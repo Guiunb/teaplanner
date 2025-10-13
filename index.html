@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
-  <title>Mini Trello — Kanban + Matriz + Agenda</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Sync)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--card:#112b4a;--muted:#9fb3d2;--accent:#2a71ff}
     *{box-sizing:border-box}
@@ -16,7 +16,6 @@
     header.app button{background:#0e58a5;color:#fff;cursor:pointer}
     header.app .ghost{background:#0b437e}
 
-    /* T deitado: Listas em cima, Matriz abaixo (mesma coluna), Agenda fixa na direita */
     .workspace{display:grid;grid-template-columns:1fr 240px;gap:12px;padding:12px;align-items:start}
     .left{display:flex;flex-direction:column;gap:12px;min-width:0}
     .board{display:flex;gap:12px;align-items:flex-start;overflow:auto}
@@ -74,11 +73,9 @@
     .ctx .sep{height:1px;background:#23314a;margin:6px 0}
     .ctx-sub{position:absolute;left:100%;top:0;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;max-height:300px;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none}
 
-    /* Mantemos o mesmo layout também no Android (sem quebrar para coluna) */
     body.android .kebab{display:block}
     .list header .more{margin-left:auto;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
 
-    /* Responsividade extra para dobráveis: encurta listas e agenda quando largura é limitada */
     @media (max-width: 900px) {
       .list{min-width:220px}
       .workspace{grid-template-columns:1fr 220px}
@@ -88,7 +85,7 @@
 </head>
 <body>
   <header class="app">
-    <h1>Mini Trello</h1>
+    <h1>Mini Trello (Sync)</h1>
     <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
     <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
     <div class="right">
@@ -120,7 +117,6 @@
     </aside>
   </section>
 
-  <!-- Menu de cartão (Timer primeiro) -->
   <div id="ctx" class="ctx">
     <button data-action="timer">Timer…</button>
     <div class="sep"></div>
@@ -140,13 +136,13 @@
     <button data-action="date">Editar data…</button>
   </div>
   
-  <!-- Menu de lista (cabeçalho) -->
   <div id="ctx-list" class="ctx">
     <button data-action="list-del">Excluir lista</button>
     <button data-action="list-move-all">Mover todos para ▶</button>
     <div class="ctx-sub" id="ctx-list-move-sub"></div>
   </div>
 
+  <!-- App principal -->
   <script>
   (function(){
     // ===== Helpers =====
@@ -154,8 +150,8 @@
     const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
     const to2=n=> (n<10?'0'+n:''+n);
     const LS_KEY='mini-trello-restore';
-    let __persistTick=null; // evitar duplicidade
-    let __muteHistory=0; // silencia pushHistory durante undo/redo/restores
+    let __persistTick=null;
+    let __muteHistory=0;
     function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
 
     const board=document.getElementById('board');
@@ -167,7 +163,6 @@
     const ctxMoveAllSub=document.getElementById('ctx-moveall-sub');
     const listCtx=document.getElementById('ctx-list');
     const listMoveSub=document.getElementById('ctx-list-move-sub');
-    // filtro de cor (multi-seleção)
     const selectedColors = new Set();
 
     const getActiveDay=()=>{ const i=document.getElementById('agendaDate'); return i&&i.value?i.value:new Date().toISOString().slice(0,10); };
@@ -188,26 +183,27 @@
       });
       applyFilters(); updateSlotsHasItems();
     }
-    function persist(){
-      if(__muteHistory>0) return; // não versiona durante replay
-      clearTimeout(__persistTick);
-      __persistTick=setTimeout(()=>{
-        const snap=serialize();
-        // Evita duplicar estado idêntico no topo do histórico
-        const last = hist.length ? JSON.stringify(hist[hist.length-1]) : null;
-        const cur  = JSON.stringify(snap);
-        if(last!==cur) pushHistory(snap);
-        try{ localStorage.setItem(LS_KEY, JSON.stringify(snap)); }catch(e){ console.error(e);} 
-      },120);
-    }
-
-    let hist=[]; let cursor=-1; // histórico simples
+    let hist=[]; let cursor=-1;
     function pushHistory(snap){ hist=hist.slice(0,cursor+1); hist.push(snap); cursor=hist.length-1; updateUndoUi(); }
     function canUndo(){ return cursor>0; }
     function canRedo(){ return cursor>=0 && cursor<hist.length-1; }
     function updateUndoUi(){ const u=document.getElementById('undo'); const r=document.getElementById('redo'); if(u) u.disabled=!canUndo(); if(r) r.disabled=!canRedo(); }
-    function doUndo(){ if(!canUndo()) return; clearTimeout(__persistTick); withMute(()=>{ cursor--; restore(hist[cursor]); }); updateUndoUi(); }
-    function doRedo(){ if(!canRedo()) return; clearTimeout(__persistTick); withMute(()=>{ cursor++; restore(hist[cursor]); }); updateUndoUi(); }
+    function doUndo(){ if(!canUndo()) return; clearTimeout(__persistTick); withMute(()=>{ cursor--; restore(hist[cursor]); }); updateUndoUi(); if(window.__sync) window.__sync.publish(serialize()); }
+    function doRedo(){ if(!canRedo()) return; clearTimeout(__persistTick); withMute(()=>{ cursor++; restore(hist[cursor]); }); updateUndoUi(); if(window.__sync) window.__sync.publish(serialize()); }
+
+    function persist(){
+      if(__muteHistory>0) return;
+      clearTimeout(__persistTick);
+      __persistTick=setTimeout(()=>{
+        const snap=serialize();
+        const last = hist.length ? JSON.stringify(hist[hist.length-1]) : null;
+        const cur  = JSON.stringify(snap);
+        if(last!==cur) pushHistory(snap);
+        try{ localStorage.setItem(LS_KEY, JSON.stringify(snap)); }catch(e){ console.error(e);} 
+        // >>> Firebase sync (se instalado)
+        try{ window.__sync && window.__sync.publish(snap); }catch(e){ console.warn('sync publish failed', e); }
+      },120);
+    }
 
     function load(){ try{const raw=localStorage.getItem(LS_KEY); if(raw){ const d=JSON.parse(raw); if(Array.isArray(d)&&d.length){ restore(d); pushHistory(d); return; } } }catch(e){console.error(e)} initDemo(); pushHistory(serialize()); }
 
@@ -230,7 +226,6 @@
       const t=el('span','text'); t.textContent=text||''; const meta=el('div','meta'); const dot=el('span','dot'); meta.append(dot);
       const kb=document.createElement('button'); kb.className='kebab'; kb.type='button'; kb.textContent='⋮'; kb.addEventListener('mousedown',ev=>ev.stopPropagation()); kb.addEventListener('click',ev=>{ ev.stopPropagation(); const r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
       c.append(t,meta,kb); paintCard(c);
-      // seleção por clique
       c.addEventListener('mousedown',e=>{ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); }
         else if(e.ctrlKey||e.metaKey){ toggleSelection(c); }
         else { clearSelection(); addSelection(c); }
@@ -238,7 +233,6 @@
       c.addEventListener('dragstart',e=>{ e.stopPropagation(); const block = selected.has(c)? Array.from(selected) : [c]; pushPH(c); dragState={...dragState, leader:c, block}; try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
       c.addEventListener('dragend',()=>{ cleanupPH(); persist(); updateSlotsHasItems(); });
       c.addEventListener('contextmenu',e=>{e.preventDefault(); if(!selected.has(c)) { clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c)});
-      // Edição inline com duplo clique
       c.addEventListener('dblclick',(e)=>{ e.preventDefault(); startInlineEdit(c); });
       return c;
     }
@@ -276,26 +270,20 @@
     }
     function applyWhen(slotEl, nodes){ if(slotEl && slotEl.dataset.type==='time'){ const day=getActiveDay(); const time=slotEl.dataset.time; nodes.forEach(n=> n.dataset.when=`${day}T${time}`); slotEl.classList.add('has-items'); } else { nodes.forEach(n=> n.dataset.when=''); } updateSlotsHasItems(); persist(); }
 
-    // mover listas (cabeçalho)
     board.addEventListener('dragover',e=>{ if(!draggingList) return; e.preventDefault(); const after=listAfter(board,e.clientX); if(after==null) board.appendChild(draggingList); else board.insertBefore(draggingList,after); });
     function listAfter(container,x){ const els=[...container.querySelectorAll('.list:not(.dragging)')]; return els.reduce((cl,ch)=>{ const r=ch.getBoundingClientRect(); const o=x-(r.left+r.width/2); return (o<0&&o>cl.offset)?{offset:o,element:ch}:cl },{offset:-Infinity,element:null}).element; }
 
-    // ===== Listas =====
     function createList(title){ const list=el('section','list'); list.dataset.type='kanban'; list.draggable=false; const h=el('header'); const t=el('input','title'); t.value=title||'Nova lista'; const more=document.createElement('button'); more.className='more'; more.type='button'; more.textContent='⋯'; more.addEventListener('click',ev=>{ ev.stopPropagation(); const r=more.getBoundingClientRect(); showListCtx(r.right,r.bottom,list); }); h.append(t,more); list.appendChild(h); const cards=el('div','cards'); list.appendChild(cards); wireDropZone(cards);
-      // entrada de novo cartão (sem botão Adicionar) com <form> para Android/"Ir"
       const add=el('div','add'); const form=el('form'); form.className='row'; form.setAttribute('autocomplete','off'); const input=el('input'); input.type='text'; input.placeholder='Novo cartão…'; input.setAttribute('enterkeyhint','go');
       function addCard(){ const v=(input.value||'').trim(); if(!v) return; const card=createCard({text:v}); cards.appendChild(card); input.value=''; persist(); }
       form.addEventListener('submit', (e)=>{ e.preventDefault(); addCard(); });
       input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addCard(); }});
       input.addEventListener('keyup', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); }});
       form.append(input); add.append(form); list.append(add); board.appendChild(list);
-      // mover listas: só pelo cabeçalho
       h.draggable=true; h.addEventListener('dragstart',(ev)=>{ draggingList=list; list.classList.add('dragging'); ev.dataTransfer?.setData('text/plain','list'); }); h.addEventListener('dragend',()=>{ draggingList=null; list.classList.remove('dragging'); persist(); });
-      // menu de lista por clique direito no cabeçalho
       h.addEventListener('contextmenu',e=>{ e.preventDefault(); showListCtx(e.clientX,e.clientY,list); });
       return list; }
 
-    // ===== Matriz =====
     function ensureMatrix(){ matrix.innerHTML=''; const corner=el('div','axis corner'); corner.style.gridColumn='1/2'; corner.style.gridRow='1/2'; matrix.appendChild(corner);
       const axX1=el('div','axis'); axX1.textContent='URGENTE'; axX1.style.gridColumn='2/3'; axX1.style.gridRow='1/2';
       const axX2=el('div','axis'); axX2.textContent='NÃO URGENTE'; axX2.style.gridColumn='3/4'; axX2.style.gridRow='1/2';
@@ -305,7 +293,6 @@
       const specs=[{quad:'Q1',label:'FAÇA AGORA',col:2,row:2},{quad:'Q2',label:'AGENDE',col:3,row:2},{quad:'Q3',label:'DELEGUE',col:2,row:3},{quad:'Q4',label:'ELIMINE',col:3,row:3}];
       specs.forEach(sp=>{ const l=el('section','list'); l.dataset.type='quad'; l.dataset.quad=sp.quad; const h=el('header'); const t=el('div','quad-label'); t.textContent=sp.label; h.append(t); const cs=el('div','cards'); wireDropZone(cs); l.append(h,cs); l.style.gridColumn=`${sp.col}/${sp.col+1}`; l.style.gridRow=`${sp.row}/${sp.row+1}`; matrix.appendChild(l); }); }
 
-    // ===== Agenda =====
     function ensureSchedule(keepCards){ const keep={}; if(keepCards){ $$('.list[data-type="time"]',schedule).forEach(s=> keep[s.dataset.time]=[...s.querySelectorAll('.card')]); } slotsRoot.innerHTML=''; for(let h=5; h<=23; h++){ for(let m of [0,30]){ if(h===23&&m===30) break; const t=`${to2(h)}:${to2(m)}`; const slot=el('section','list slot'); slot.dataset.type='time'; slot.dataset.time=t; const head=el('div','head'); const label=el('span','time'); label.textContent=t; head.append(label); slot.append(head); const cards=el('div','cards'); slot.append(cards); wireDropZone(cards); slotsRoot.appendChild(slot); if(keep[t]) keep[t].forEach(n=> cards.appendChild(n)); }} schedule.addEventListener('dragover',e=>{ if(dragState){ e.preventDefault(); try{ e.dataTransfer.dropEffect='move'; }catch(_){ } } }, {passive:false}); updateSlotsHasItems(); const date=document.getElementById('agendaDate'); if(date&&!date.value){ date.value=new Date().toISOString().slice(0,10); } date?.addEventListener('change',()=>{ applyFilters(); updateSlotsHasItems(); });
       const copyBtn=document.getElementById('copyDay'); if(copyBtn && !copyBtn._wired){ copyBtn._wired=true; copyBtn.addEventListener('click',()=>{ showModal('Copiar agenda de…',()=>{ const wrap=document.createElement('div'); const i=document.createElement('input'); i.type='date'; i.style.width='100%'; wrap.appendChild(i); return wrap; },(wrap)=>{ const from=wrap.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); }); }); }
     }
@@ -313,7 +300,6 @@
       toCopy.forEach(c=>{ const time=(c.dataset.when||'').slice(11,16); const dest=slotsRoot.querySelector(`.list[data-time="${time}"] .cards`); if(dest){ const clone=createCard(cardToData(c)); clone.dataset.when=`${toDay}T${time}`; dest.appendChild(clone); } }); updateSlotsHasItems(); persist(); }
     function updateSlotsHasItems(){ const day=getActiveDay(); $$('.list.slot',schedule).forEach(slot=>{ const time=slot.dataset.time; const cards=$$('.card',slot); let visible=0; cards.forEach(c=>{ const when=c.dataset.when||''; const ok=when.startsWith(day+'T')&&when.slice(11,16)===time && cardPassesFilters(c); c.style.display= ok? '' : 'none'; if(ok) visible++; }); slot.classList.toggle('has-items',visible>0); }); }
 
-    // ===== Filtros =====
     function cardPassesFilters(c){
       const fFrom=document.getElementById('fFrom')?.value||'';
       const fTo=document.getElementById('fTo')?.value||'';
@@ -325,7 +311,6 @@
     }
     function applyFilters(){ $$('.card',board).forEach(c=> c.style.display= cardPassesFilters(c)? '' : 'none'); $$('.card',matrix).forEach(c=> c.style.display= cardPassesFilters(c)? '' : 'none'); updateSlotsHasItems(); }
 
-    // ===== Context menu (cartão) =====
     let ctxTarget=null; const hideCtx=()=>{ ctx.style.display='none'; ctxTarget=null; ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; };
     function showCtx(x,y,card){ ctxTarget=card; buildMoveSubmenu(); ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; ctx.style.display='block'; const r=ctx.getBoundingClientRect(); ctx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; ctx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
     document.addEventListener('click',e=>{ if(!ctx.contains(e.target) && !listCtx.contains(e.target)) { hideCtx(); listCtx.style.display='none'; } });
@@ -346,19 +331,16 @@
       else if(action==='del-all'){ const list=(ctxTarget||block[0])?.closest('.list'); if(!list) return; showConfirm('Excluir TODOS os cartões desta lista?',()=>{ $$('.card',list).forEach(c=>c.remove()); persist(); updateSlotsHasItems(); }); }
     });
 
-    // ===== Contexto da lista =====
     let listCtxTarget=null;
     function showListCtx(x,y,list){ listCtxTarget=list; buildListMoveSub(); listMoveSub.style.display='none'; listCtx.style.display='block'; const r=listCtx.getBoundingClientRect(); listCtx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; listCtx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
     function buildListMoveSub(){ listMoveSub.innerHTML=''; if(!listCtxTarget) return; $$('.list').forEach((l,i)=>{ if(l===listCtxTarget) return; const b=document.createElement('button'); const name=l.querySelector('.title')?.value || l.dataset.quad || l.dataset.time || `Lista ${i+1}`; b.textContent=name; b.addEventListener('click',(ev)=>{ ev.stopPropagation(); const src=listCtxTarget.querySelector('.cards'); const dest=(l.querySelector('.cards')||l); const isTime=l.dataset.type==='time'; const time=l.dataset.time; const day=getActiveDay(); [...src.querySelectorAll('.card')].forEach(c=>{ dest.appendChild(c); if(isTime&&time){ c.dataset.when=`${day}T${time}`; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); listMoveSub.style.display='none'; listCtx.style.display='none'; }); listMoveSub.appendChild(b); }); }
     listCtx.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const action=b.dataset.action; if(action==='list-move-all'){ listMoveSub.style.display = (listMoveSub.style.display==='block'?'none':'block'); return; } if(action==='list-del' && listCtxTarget){ showConfirm('Excluir a lista inteira?',()=>{ listCtxTarget.remove(); persist(); }); } listCtx.style.display='none'; });
 
-    // ===== Modal helpers =====
     function showModal(title,builder,onOk){ const wrap=document.createElement('div'); wrap.className='modal-wrap'; const box=document.createElement('div'); box.className='modal'; const h=document.createElement('h3'); h.textContent=title; box.appendChild(h); const body=builder(); box.appendChild(body); const row=document.createElement('div'); row.className='row'; const ok=document.createElement('button'); ok.textContent='OK'; const cancel=document.createElement('button'); cancel.textContent='Cancelar'; cancel.style.background='#6b7a93'; row.append(cancel,ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap); cancel.onclick=()=>document.body.removeChild(wrap); ok.onclick=()=>{ onOk(body); document.body.removeChild(wrap); applyFilters(); persist(); }; }
     function showConfirm(message,onYes){ showModal('Confirmação', ()=>{ const d=document.createElement('div'); d.textContent=message; return d; }, ()=>{ if(typeof onYes==='function') onYes(); }); }
     function openColorDialog(cards){ if(!cards.length) return; const PALETTE=[{id:'none',name:'Sem cor',hex:''},{id:'q1',name:'Verde (Faça agora)',hex:'#104239'},{id:'q2',name:'Azul (Agende)',hex:'#0e3155'},{id:'q3',name:'Âmbar (Delegue)',hex:'#5a4014'},{id:'q4',name:'Vermelho (Elimine)',hex:'#5a1419'},{id:'gray',name:'Cinza',hex:'#39424e'},{id:'purple',name:'Roxo',hex:'#3a1f5a'}]; showModal('Editar cor',()=>{ const wrap=document.createElement('div'); wrap.style.display='grid';wrap.style.gridTemplateColumns='repeat(3, minmax(0,1fr))';wrap.style.gap='8px'; PALETTE.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',()=>{ wrap.querySelectorAll('button').forEach(x=>x.dataset.sel=''); b.dataset.sel='1'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.dataset.sel='1'; wrap.appendChild(b); }); return wrap; }, (wrap)=>{ const v=wrap._chosen===undefined? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(c=>{ c.dataset.color=v||''; paintCard(c); }); }); }
     function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',()=>{ const r=document.createElement('div'); const i=document.createElement('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; },(r)=>{ const v=r.querySelector('input').value; cards.forEach(c=>{ c.dataset.due=v||''; paintCard(c); }); }); }
 
-    // ===== Timer =====
     function updateTimerBadge(card){
       let badge=card.querySelector('.timer'); if(!badge){ badge=document.createElement('span'); badge.className='timer'; badge.title='Duplo clique: iniciar/pausar'; card.querySelector('.meta').appendChild(badge); }
       if(!badge._wired){ badge._wired=true; badge.addEventListener('dblclick',()=>{ toggleTimer(card); }); }
@@ -382,7 +364,7 @@
         var plus5=document.createElement('button'); plus5.textContent='+5m'; plus5.onclick=function(){ setSec((wrap._sec||60)+300); };
         var minus5=document.createElement('button'); minus5.textContent='-5m'; minus5.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-300)); };
         var plus10=document.createElement('button'); plus10.textContent='+10m'; plus10.onclick=function(){ setSec((wrap._sec||60)+600); };
-        var minus10=document.createElement('button'); minus10.textContent='-10m'; minus10.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-600)); };
+        var minus10=document.createElement('button'); minus10.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-600)); }; minus10.textContent='-10m';
         var plus60=document.createElement('button'); plus60.textContent='+60m'; plus60.onclick=function(){ setSec((wrap._sec||60)+3600); };
         var minus60=document.createElement('button'); minus60.textContent='-60m'; minus60.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-3600)); };
         wrap.append(display,row,plus1,minus1,plus3,minus3,plus5,minus5,plus10,minus10,plus60,minus60); setSec(60); return wrap; }, function(wrap){ var sec=wrap._sec||60; delete card.dataset.timerEnd; card.dataset.timerLeft=String(sec); updateTimerBadge(card); }); }
@@ -391,21 +373,117 @@
 
     function notify(msg){ try{ var Ctx=(window.AudioContext||window.webkitAudioContext); var ctxA=new Ctx(); var o=ctxA.createOscillator(); var g=ctxA.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0008; o.connect(g); g.connect(ctxA.destination); o.start(); setTimeout(function(){ o.stop(); ctxA.close(); }, 180); }catch(e){} showModal('Aviso', function(){ var d=document.createElement('div'); d.textContent=msg; return d; }, function(){}); }
 
-    function openColorFilters(){ var PALETTE=[{name:'Todas', hex:'*'},{name:'Sem cor', hex:''},{name:'Verde (Faça agora)',hex:'#104239'},{name:'Azul (Agende)',hex:'#0e3155'},{name:'Âmbar (Delegue)',hex:'#5a4014'},{name:'Vermelho (Elimine)',hex:'#5a1419'},{name:'Cinza',hex:'#39424e'},{name:'Roxo',hex:'#3a1f5a'}]; showModal('Filtrar por cor', function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3,minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; b.onclick=function(){ if(p.hex==='*'){ wrap._all=true; wrap.querySelectorAll('button').forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; return; } delete wrap._all; b.dataset.sel=b.dataset.sel?'':'1'; }; wrap.appendChild(b); }); return wrap; }, function(wrap){ selectedColors.clear(); if(wrap._all){ /* todas */ } else { wrap.querySelectorAll('button[data-sel="1"]').forEach(function(btn){ var hex=btn.dataset.hex||''; selectedColors.add(hex); }); } applyFilters(); }); }
+    function openColorFilters(){ var PALETTE=[{name:'Todas', hex:'*'},{name:'Sem cor', hex:''},{name:'Verde (Faça agora)',hex:'#104239'},{name:'Azul (Agende)',hex:'#0e3155'},{name:'Âmbar (Delegue)',hex:'#5a4014'},{name:'Vermelho (Elimine)',hex:'#5a1419'},{name:'Cinza',hex:'#39424e'},{name:'Roxo',hex:'#3a1f5a'}]; showModal('Filtrar por cor', function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3,minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; b.onclick=function(){ if(p.hex==='*'){ wrap._all=true; wrap.querySelectorAll('button').forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; return; } delete wrap._all; b.dataset.sel=b.dataset.sel?'':''; }; wrap.appendChild(b); }); return wrap; }, function(wrap){ selectedColors.clear(); if(wrap._all){ } else { wrap.querySelectorAll('button[data-sel="1"]').forEach(function(btn){ var hex=btn.dataset.hex||''; selectedColors.add(hex); }); } applyFilters(); }); }
 
     function initDemo(){ ensureMatrix(); ensureSchedule(); createList('A Fazer'); createList('Fazendo'); createList('Feito'); }
 
     on('undo','click',doUndo); on('redo','click',doRedo);
     on('addList','click',function(){ createList('Nova lista'); persist(); });
-    on('reset','click',function(){ localStorage.removeItem(LS_KEY); hist=[]; cursor=-1; initDemo(); pushHistory(serialize()); });
+    on('reset','click',function(){ localStorage.removeItem(LS_KEY); hist=[]; cursor=-1; initDemo(); pushHistory(serialize()); if(window.__sync) window.__sync.publish(serialize()); });
     on('androidToggle','click',function(){ document.body.classList.toggle('android'); });
     on('filterColorsBtn','click',openColorFilters);
     on('clearFilters','click',function(){ selectedColors.clear(); var ff=document.getElementById('fFrom'); var ft=document.getElementById('fTo'); if(ff) ff.value=''; if(ft) ft.value=''; applyFilters(); });
 
     document.addEventListener('keydown',function(e){ var k=(e.key||'').toLowerCase(); if((e.ctrlKey||e.metaKey) && !e.shiftKey && k==='z'){ e.preventDefault(); doUndo(); } if((e.ctrlKey||e.metaKey) && e.shiftKey && k==='z'){ e.preventDefault(); doRedo(); } });
 
+    // Expor API mínima para o módulo de sync
+    window.__app = {
+      serialize, restore,
+      withMute, pushHistory, updateUndoUi, load
+    };
+
     load();
   })();
+  </script>
+
+  <!-- Módulo de sincronização Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+    // ===== CONFIG DO SEU PROJETO =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyAvRlr_fkqDkKVxBFAScjRuumdTs-LCJPs",
+      authDomain: "teaplanner0.firebaseapp.com",
+      databaseURL: "https://teaplanner0-default-rtdb.firebaseio.com",
+      projectId: "teaplanner0",
+      storageBucket: "teaplanner0.firebasestorage.app",
+      messagingSenderId: "228994472713",
+      appId: "1:228994472713:web:193ab46362c41473e1d1d8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Sala/board pela hash da URL. Ex.: #salaA
+    const room = (location.hash||"").replace(/^#/, "") || "geral";
+    const node = ref(db, "boards/" + encodeURIComponent(room));
+
+    // Autenticação anônima
+    await new Promise((resolve, reject) => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) resolve();
+        else signInAnonymously(auth).catch(reject);
+      });
+    });
+
+    // Bridge com a app
+    const appApi = window.__app;
+
+    let applyingRemote = false;
+    let firstLoadDone = false;
+
+    // Publicar mudanças locais
+    window.__sync = {
+      publish(snap){
+        if (applyingRemote) return;
+        try {
+          set(node, { data: snap, updatedAt: Date.now() });
+        } catch (e) {
+          console.warn("Falha ao publicar no Firebase:", e);
+        }
+      }
+    };
+
+    // Receber mudanças remotas
+    onValue(node, (snap) => {
+      const val = snap.val();
+      const remote = val?.data;
+      if (!firstLoadDone) {
+        firstLoadDone = true;
+        if (!remote || !Array.isArray(remote) || remote.length === 0) {
+          // Se não há dado remoto, sobe o estado local atual
+          try {
+            const local = appApi.serialize();
+            set(node, { data: local, updatedAt: Date.now() });
+          } catch (e) { console.warn(e); }
+          return;
+        }
+      }
+      if (remote && Array.isArray(remote)) {
+        // Evitar loop: aplicar em silêncio e não republicar
+        const localNow = JSON.stringify(appApi.serialize());
+        const remoteStr = JSON.stringify(remote);
+        if (remoteStr !== localNow) {
+          applyingRemote = true;
+          try {
+            appApi.withMute(() => {
+              appApi.restore(remote);
+              appApi.pushHistory(remote);
+              appApi.updateUndoUi();
+            });
+            try { localStorage.setItem("mini-trello-restore", JSON.stringify(remote)); } catch(_) {}
+          } finally {
+            applyingRemote = false;
+          }
+        }
+      }
+    });
+
+    // Se o usuário trocar a sala na URL, recarrega a página para mudar o nó
+    window.addEventListener("hashchange", () => location.reload());
   </script>
 </body>
 </html>
