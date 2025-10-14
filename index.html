@@ -97,6 +97,8 @@
       <button id="androidToggle" class="ghost">Modo Android</button>
       <button id="addList">+ Lista</button>
       <button id="reset">Resetar</button>
+      <button id="wipeRoom" class="ghost" title="Apagar dados desta sala no servidor">Limpar sala</button>
+      <button id="archivePrev" class="ghost" title="Arquivar mês anterior">Arquivar mês anterior</button>
     </div>
   </header>
 
@@ -400,7 +402,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+    import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
 
     // ===== CONFIG DO SEU PROJETO =====
     const firebaseConfig = {
@@ -418,7 +420,9 @@
     const db = getDatabase(app);
 
     // Sala/board pela hash da URL. Ex.: #salaA
-    const room = (location.hash||"").replace(/^#/, "") || "geral";
+    // Sala padrão = AAAA-MM (ex.: 2025-10). Pode trocar via #hash se quiser.
+    const defaultRoom = new Date().toISOString().slice(0,7);
+    const room = (location.hash||"").replace(/^#/, "") || defaultRoom;
     const node = ref(db, "boards/" + encodeURIComponent(room));
 
     // Autenticação anônima
@@ -434,15 +438,68 @@
 
     let applyingRemote = false;
     let firstLoadDone = false;
+    let lastRemoteTs = 0;
+    let canSend = true;
+    let lastHash = "";
+
+    // Botão Limpar sala
+    const wipeBtn = document.getElementById("wipeRoom");
+    if (wipeBtn) {
+      wipeBtn.addEventListener("click", async () => {
+        try { await remove(node); try { localStorage.removeItem("mini-trello-restore"); } catch(_) {} location.reload(); }
+        catch(e){ alert("Falha ao limpar sala: " + (e?.message||e)); }
+      });
+    }
+
+    // Auto-arquivar itens fora do mês atual (não exclui; move para archives/)
+    async function autoArchiveOutsideCurrentMonth(snap, roomStr){
+      const curMonth = new Date().toISOString().slice(0,7);
+      const data = JSON.parse(JSON.stringify(snap || []));
+      const keep = [];
+      const toArchive = [];
+
+      for (const chunk of data){
+        const stayCards = [];
+        const outCards = [];
+        for (const c of (chunk.cards || [])){
+          const mDue  = (c.due||'').slice(0,7);
+          const mWhen = (c.when||'').slice(0,7);
+          const month = mDue || mWhen;
+          if (month && month !== curMonth) outCards.push(c); else stayCards.push(c);
+        }
+        if (outCards.length) toArchive.push({ ...chunk, cards: outCards });
+        keep.push({ ...chunk, cards: stayCards });
+      }
+
+      if (toArchive.length){
+        const updates = {};
+        updates["archives/" + encodeURIComponent(roomStr) + "/" + Date.now()] = {
+          data: toArchive,
+          archivedAt: Date.now()
+        };
+        await update(ref(db), updates);
+      }
+      return keep;
+    }
 
     // Publicar mudanças locais
     window.__sync = {
-      publish(snap){
-        if (applyingRemote) return;
+      async publish(snap){
+        if (applyingRemote || !canSend) return;
+        const cur = JSON.stringify(snap);
+        const curHash = cur.length + ":" + cur.slice(0,128);
+        if (curHash === lastHash) return; lastHash = curHash;
+        canSend = false
+        setTimeout(()=>canSend=true, 1000)
         try {
-          set(node, { data: snap, updatedAt: Date.now() });
+          const filtered = await autoArchiveOutsideCurrentMonth(snap, room);
+          const ts = Date.now();
+          lastRemoteTs = Math.max(lastRemoteTs, ts);
+          set(node, { data: filtered, updatedAt: ts });
         } catch (e) {
           console.warn("Falha ao publicar no Firebase:", e);
+        } finally {
+          canSend = true;
         }
       }
     };
@@ -451,13 +508,18 @@
     onValue(node, (snap) => {
       const val = snap.val();
       const remote = val?.data;
+      const rTs = Number(val?.updatedAt || 0);
+      if (rTs && rTs <= lastRemoteTs) return; // ignora eco/antigo
+      if (rTs) lastRemoteTs = rTs;
       if (!firstLoadDone) {
         firstLoadDone = true;
         if (!remote || !Array.isArray(remote) || remote.length === 0) {
           // Se não há dado remoto, sobe o estado local atual
           try {
             const local = appApi.serialize();
-            set(node, { data: local, updatedAt: Date.now() });
+            const ts = Date.now();
+            lastRemoteTs = Math.max(lastRemoteTs, ts);
+            set(node, { data: local, updatedAt: ts });
           } catch (e) { console.warn(e); }
           return;
         }
@@ -484,6 +546,13 @@
 
     // Se o usuário trocar a sala na URL, recarrega a página para mudar o nó
     window.addEventListener("hashchange", () => location.reload());
+
+    document.getElementById('archivePrev')?.addEventListener('click', async () => {
+      const snap = appApi.serialize();
+      const filtered = await autoArchiveOutsideCurrentMonth(snap, room);
+      appApi.withMute(() => { appApi.restore(filtered); appApi.pushHistory(filtered); appApi.updateUndoUi(); });
+      window.__sync.publish(filtered);
+    });
   </script>
 </body>
 </html>
