@@ -197,7 +197,13 @@
     }
 
     function createCard(data){
-      const {text,color,due,when,timerEnd,timerLeft}=typeof data==='string'?{text:data}:data||{text:''};
+      var _d = (typeof data==='string')? {text:data} : (data||{text:''});
+      var text=_d.text||'';
+      var color=_d.color||'';
+      var due=_d.due||'';
+      var when=_d.when||'';
+      var timerEnd=_d.timerEnd||'';
+      var timerLeft=_d.timerLeft||'';
       const c=el('div','card'); c.draggable=true; c.dataset.color=color||''; c.dataset.due=due||''; if(when) c.dataset.when=when; if(timerEnd) c.dataset.timerEnd=timerEnd; if(timerLeft) c.dataset.timerLeft=timerLeft;
       const t=el('span','text'); t.textContent=text||''; const meta=el('div','meta'); const dot=el('span','dot'); meta.append(dot);
       const kb=document.createElement('button'); kb.className='kebab'; kb.type='button'; kb.textContent='⋮';
