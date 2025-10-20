@@ -163,6 +163,39 @@
     initDemo(); pushHistory(serialize());
   }
 
+  // ===== Restauração (undo/redo/import) =====
+  function restore(data){
+    if(!data||!data.length){ return; }
+    // Limpa tudo e recria estrutura base
+    board.innerHTML='';
+    matrix.innerHTML='';
+    ensureMatrix();
+    ensureSchedule(true);
+
+    // Mapas auxiliares
+    var quadMap={ Q1:matrix.querySelector('.list[data-type="quad"][data-quad="Q1"] .cards'),
+                  Q2:matrix.querySelector('.list[data-type="quad"][data-quad="Q2"] .cards'),
+                  Q3:matrix.querySelector('.list[data-type="quad"][data-quad="Q3"] .cards'),
+                  Q4:matrix.querySelector('.list[data-type="quad"][data-quad="Q4"] .cards') };
+
+    function appendCards(container,cards){ if(!container) return; (cards||[]).forEach(function(cd){ container.appendChild(createCard(cd)); }); }
+
+    // Reconstrói
+    data.forEach(function(entry){
+      if(entry.type==='kanban'){
+        var l=createList(entry.title||'Lista');
+        appendCards(l.querySelector('.cards'), entry.cards);
+      } else if(entry.type==='quad'){
+        appendCards(quadMap[entry.quad||''], entry.cards);
+      } else if(entry.type==='time'){
+        var slot=slotsRoot.querySelector('.list[data-time="'+(entry.time||'')+'"] .cards');
+        appendCards(slot, entry.cards);
+      }
+    });
+    applyFilters();
+    updateSlotsHasItems();
+  }
+
   // ===== Cartões =====
   function paintCard(c){
     var color = c.dataset.color || '';
@@ -329,7 +362,7 @@
   ].concat(EXTRA_COLORS); }
   function routeByColor(card, hex){ if(!hex) return; var map={}; map[MATRIX_COLORS.Q1]='Q1'; map[MATRIX_COLORS.Q2]='Q2'; map[MATRIX_COLORS.Q3]='Q3'; map[MATRIX_COLORS.Q4]='Q4'; var quad=map[(hex||'').toLowerCase()]; if(!quad) return; var dest=matrix.querySelector('.list[data-type="quad"][data-quad="'+quad+'"] .cards'); if(dest){ dest.appendChild(card); card.dataset.when=''; } }
 
-  function showModal(title,builder,onOk){ var wrap=document.createElement('div'); wrap.className='modal-wrap'; var box=document.createElement('div'); box.className='modal'; var h=document.createElement('h3'); h.textContent=title; box.appendChild(h); var body=b    uilder(); box.appendChild(body); var row=document.createElement('div'); row.className='row'; var ok=document.createElement('button'); ok.textContent='OK'; var cancel=document.createElement('button'); cancel.textContent='Cancelar'; cancel.style.background='#6b7a93'; row.appendChild(cancel); row.appendChild(ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap); cancel.onclick=function(){document.body.removeChild(wrap);}; ok.onclick=function(){ onOk(body); document.body.removeChild(wrap); applyFilters(); persist(); capture(); }; }
+  function showModal(title,builder,onOk){ var wrap=document.createElement('div'); wrap.className='modal-wrap'; var box=document.createElement('div'); box.className='modal'; var h=document.createElement('h3'); h.textContent=title; box.appendChild(h); var body=builder(); box.appendChild(body); var row=document.createElement('div'); row.className='row'; var ok=document.createElement('button'); ok.textContent='OK'; var cancel=document.createElement('button'); cancel.textContent='Cancelar'; cancel.style.background='#6b7a93'; row.appendChild(cancel); row.appendChild(ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap); cancel.onclick=function(){document.body.removeChild(wrap);}; ok.onclick=function(){ onOk(body); document.body.removeChild(wrap); applyFilters(); persist(); capture(); }; }
   function showConfirm(message,onYes){ showModal('Confirmação', function(){ var d=document.createElement('div'); d.textContent=message; return d; }, function(){ if(typeof onYes==='function') onYes(); }); }
 
   function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3, minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.dataset.sel='1'; wrap.appendChild(b); }); return wrap; }, function(wrap){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); }); }
@@ -378,6 +411,21 @@
   document.addEventListener('keydown',function(e){ var k=(e.key||'').toLowerCase(); if((e.ctrlKey||e.metaKey) && !e.shiftKey && k==='z'){ e.preventDefault(); doUndo(); } if((e.ctrlKey||e.metaKey) && e.shiftKey && k==='z'){ e.preventDefault(); doRedo(); } });
 
   // start
+  // Self-tests opcionais: adicione ?selftest=1 na URL
+  (function(){ try{
+    if(String(location.search||'').indexOf('selftest=1')>=0){
+      console.log('[SELFTEST] start');
+      // Testa showModal/builder
+      showModal('SelfTest', function(){ var d=document.createElement('div'); d.textContent='ok'; return d; }, function(){ console.log('[SELFTEST] modal ok'); });
+      // Testa criar lista/cartão e desfazer/refazer
+      var l=createList('Teste'); var cont=l.querySelector('.cards'); cont.appendChild(createCard({text:'C1'})); persist();
+      setTimeout(function(){
+        try{ document.getElementById('undo').click(); console.log('[SELFTEST] undo ok'); document.getElementById('redo').click(); console.log('[SELFTEST] redo ok'); }
+        catch(e){ console.warn('[SELFTEST] undo/redo',e); }
+      },50);
+    }
+  }catch(e){ console.warn('[SELFTEST] error', e); }})();
+
   load();
   setTimeout(function(){ cleanDuplicates('Participa'); }, 100);
 })();
