@@ -3,462 +3,384 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Sync FAST)</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 128 128%27%3E%3Crect width=%27128%27 height=%27128%27 rx=%2724%27 fill=%27%231976d2%27/%3E%3Cpath d=%27M30 70h68v14H30zM30 44h40v14H30z%27 fill=%27%23fff%27/%3E%3C/svg%3E" />
+  <title>Mini Trello — Kanban + Matriz + Agenda (Mobile Rápido)</title>
   <style>
-    :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--card:#112b4a;--muted:#9fb3d2;--accent:#2a71ff}
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
+    :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--card:#112b4a;--muted:#9fb3d2}
+    *{box-sizing:border-box}html,body{height:100%}body{margin:0;font-family:system-ui,Segoe UI,Roboto,Arial;color:var(--ink);background:var(--bg)}
     header.app{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--brand);color:#fff;flex-wrap:wrap}
     header.app h1{margin:0;font-size:18px;font-weight:700}
     header.app .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    header.app input, header.app button, header.app select{border:none;border-radius:8px;padding:6px 10px}
+    header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px}
     header.app button{background:#0e58a5;color:#fff;cursor:pointer}
-    header.app .ghost{background:#0b437e}
-
     .workspace{display:grid;grid-template-columns:1fr 240px;gap:12px;padding:12px;align-items:start}
     .left{display:flex;flex-direction:column;gap:12px;min-width:0}
     .board{display:flex;gap:12px;align-items:flex-start;overflow:auto}
-
     .list{background:var(--panel);border:1px solid #183453;border-radius:10px;display:flex;flex-direction:column;min-width:240px}
     .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a}
     .list header input.title{flex:1;border:none;border-radius:8px;padding:6px 8px;background:#0e2542;color:var(--ink)}
     .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px}
-
     .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative}
-    .card.selected{outline:2px solid #2a71ff; background:#0f2f57}
+    .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
     .card .text{white-space:pre-wrap}
     .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
-    .timer{margin-left:auto;font-weight:700;letter-spacing:.5px;}
-    .timer.warn{color:#ffd166}
-    .timer.danger{color:#ff8a8a}
+    .timer{margin-left:auto;font-weight:700;letter-spacing:.5px}
     .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #375b86}
     .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-
-    .add{padding:8px;border-top:1px solid #19375b}
-    .add .row{display:flex;gap:6px}
+    .add{padding:8px;border-top:1px solid #19375b}.add .row{display:flex;gap:6px}
     .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink)}
-
     .matrix{display:grid;grid-template-columns:40px 1fr 1fr;grid-template-rows:40px auto auto;gap:12px;align-items:start}
     .axis{display:flex;align-items:center;justify-content:center;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a416a;border-radius:10px}
     .axis.corner{background:transparent;border:none}
     .axis.axis-y{writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;padding:4px 0;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a416a;border-radius:10px}
     .quad-label{font-weight:700;color:#cfe0ff}
     .list[data-type="quad"]{min-width:unset}
-    .list[data-type="quad"][data-quad="Q1"]{background:#0f2f2a;border-color:#1e5b4e}
-    .list[data-type="quad"][data-quad="Q1"] header{background:#104239}
-    .list[data-type="quad"][data-quad="Q2"]{background:#0f243a;border-color:#1b4e84}
-    .list[data-type="quad"][data-quad="Q2"] header{background:#0e3155}
-    .list[data-type="quad"][data-quad="Q3"]{background:#3a290f;border-color:#7c5a19}
-    .list[data-type="quad"][data-quad="Q3"] header{background:#5a4014}
-    .list[data-type="quad"][data-quad="Q4"]{background:#3a0f12;border-color:#7c1920}
-    .list[data-type="quad"][data-quad="Q4"] header{background:#5a1419}
-
+    .list[data-type="quad"][data-quad="Q1"]{background:#0f2f2a;border-color:#1e5b4e}.list[data-type="quad"][data-quad="Q1"] header{background:#104239}
+    .list[data-type="quad"][data-quad="Q2"]{background:#0f243a;border-color:#1b4e84}.list[data-type="quad"][data-quad="Q2"] header{background:#0e3155}
+    .list[data-type="quad"][data-quad="Q3"]{background:#3a290f;border-color:#7c5a19}.list[data-type="quad"][data-quad="Q3"] header{background:#5a4014}
+    .list[data-type="quad"][data-quad="Q4"]{background:#3a0f12;border-color:#7c1920}.list[data-type="quad"][data-quad="Q4"] header{background:#5a1419}
     .schedule{background:var(--panel);border:1px solid #183453;border-radius:12px;max-height:calc(100vh - 84px);overflow:auto;position:sticky;top:84px;min-width:240px;width:240px}
     .schedule header{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#0b437e;color:#fff;border-top-left-radius:12px;border-top-right-radius:12px}
     .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px}
-
-    .slot{border-bottom:1px dashed #244b78}
-    .slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
+    .slot{border-bottom:1px dashed #244b78}.slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
     .slot .time{font-weight:700;font-size:11px;color:#9fc1ff}
-    .slot .cards{display:none;padding:4px;min-height:28px}
-    .slot.has-items .cards{display:block}
+    .slot .cards{display:none;padding:4px;min-height:28px}.slot.has-items .cards{display:block}
     .slot.hover{background:#0e2446;box-shadow:inset 0 0 0 2px #1976d2}
-
     .placeholder{height:38px;border:2px dashed #1976d2;border-radius:8px;background:#0e2446}
-
     .ctx{position:fixed;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:220px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:1000}
-    .ctx button{display:block;width:100%;text-align:left;background:transparent;border:none;color:#dbe7ff;padding:10px 12px;border-radius:0}
-    .ctx button:hover{background:#1a2842}
+    .ctx button{display:block;width:100%;text-align:left;background:transparent;border:none;color:#dbe7ff;padding:10px 12px;border-radius:0}.ctx button:hover{background:#1a2842}
     .ctx .sep{height:1px;background:#23314a;margin:6px 0}
     .ctx-sub{position:absolute;left:100%;top:0;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;max-height:300px;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none}
-
     .list header .more{margin-left:auto;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-
-    /* Modal centralizado */
     .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
     .modal{background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:12px;min-width:280px;max-width:94vw;padding:14px 14px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
     .modal h3{margin:0 0 10px;font-size:16px}
     .modal .row{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
     .modal .row button{background:#1976d2;border:none;border-radius:8px;color:#fff;padding:8px 10px;cursor:pointer}
     .modal .row button:nth-child(1){background:#6b7a93}
-
-    @media (max-width: 900px) {
-      .list{min-width:220px}
-      .workspace{grid-template-columns:1fr 220px}
-      .schedule{width:220px;min-width:220px}
-      .modal{max-width:96vw}
-    }
+    @media (max-width: 900px){.list{min-width:220px}.workspace{grid-template-columns:1fr 220px}.schedule{width:220px;min-width:220px}.modal{max-width:96vw}}
   </style>
 </head>
 <body>
-  <header class="app">
-    <h1>Mini Trello</h1>
-    <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
-    <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
-    <div class="right">
-      <button id="filterColorsBtn" class="ghost" title="Filtrar por cor">Filtros de cor</button>
-      <strong id="sumTimers" title="Tempo restante total">0:00</strong>
-      <label>De <input id="fFrom" type="date" class="ghost" /></label>
-      <label>Até <input id="fTo" type="date" class="ghost" /></label>
-      <button id="clearFilters">Limpar filtros</button>
-      <button id="androidToggle" class="ghost">Modo Android</button>
-      <button id="addList">+ Lista</button>
-
-      <!-- SYNC manual -->
-      <button id="exportJson" class="ghost" title="Baixar backup JSON">Exportar JSON</button>
-      <button id="importJsonBtn" class="ghost" title="Restaurar de JSON">Importar JSON</button>
-      <input id="importFile" type="file" accept="*/*" style="display:none" />
-
-      <button id="reset">Resetar</button>
-    </div>
-  </header>
-
-  <section class="workspace">
-    <div class="left">
-      <main class="board" id="board"></main>
-      <section class="matrix" id="matrix"></section>
-    </div>
-    <aside class="schedule" id="schedule">
-      <header>
-        <strong>AGENDA</strong>
-        <div style="display:flex;align-items:center;gap:8px">
-          <input id="agendaDate" type="date" />
-          <button id="copyDay" title="Copiar agenda de outra data">Copiar</button>
-        </div>
-      </header>
-      <div id="slots"></div>
-    </aside>
-  </section>
-
-  <!-- Menu de cartão -->
-  <div id="ctx" class="ctx">
-    <button data-action="timer">Timer…</button>
-    <div class="sep"></div>
-    <button data-action="dup">Duplicar</button>
-    <button data-action="del">Excluir</button>
-    <div id="ctx-move" style="position:relative">
-      <button data-action="move">Mover para ▶</button>
-      <div class="ctx-sub" id="ctx-move-sub"></div>
-    </div>
-    <div id="ctx-move-all" style="position:relative">
-      <button data-action="move-all">Mover TODOS desta lista ▶</button>
-      <div class="ctx-sub" id="ctx-moveall-sub"></div>
-    </div>
-    <button data-action="del-all">Excluir TODOS desta lista</button>
-    <div class="sep"></div>
-    <button data-action="color">Editar cor…</button>
-    <button data-action="date">Editar data…</button>
+<header class="app">
+  <h1>Mini Trello</h1>
+  <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
+  <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
+  <div class="right">
+    <button id="filterColorsBtn" class="ghost" title="Filtrar por cor">Filtros de cor</button>
+    <strong id="sumTimers" title="Tempo restante total">0:00</strong>
+    <label>De <input id="fFrom" type="date" class="ghost" /></label>
+    <label>Até <input id="fTo" type="date" class="ghost" /></label>
+    <button id="clearFilters">Limpar filtros</button>
+    <button id="androidToggle" class="ghost">Modo Android</button>
+    <button id="addList">+ Lista</button>
+    <button id="exportJson" class="ghost" title="Baixar backup JSON">Exportar JSON</button>
+    <button id="importJsonBtn" class="ghost" title="Restaurar de JSON">Importar JSON</button>
+    <input id="importFile" type="file" accept="*/*" style="display:none" />
+    <button id="reset">Resetar</button>
   </div>
-  
-  <!-- Menu de lista (cabeçalho) -->
-  <div id="ctx-list" class="ctx">
-    <button data-action="list-del">Excluir lista</button>
-    <button data-action="list-move-all">Mover todos para ▶</button>
-    <div class="ctx-sub" id="ctx-list-move-sub"></div>
+</header>
+<section class="workspace">
+  <div class="left">
+    <main class="board" id="board"></main>
+    <section class="matrix" id="matrix"></section>
   </div>
+  <aside class="schedule" id="schedule">
+    <header>
+      <strong>AGENDA</strong>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="agendaDate" type="date" />
+        <button id="copyDay" title="Copiar agenda de outra data">Copiar</button>
+      </div>
+    </header>
+    <div id="slots"></div>
+  </aside>
+</section>
 
-  <script>
-  (function(){
-    // ===== Helpers =====
-    const el=(t,c)=>{const n=document.createElement(t); if(c) n.className=c; return n};
-    const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-    const to2=n=> (n<10?'0'+n:''+n);
-    const LS_KEY='mini-trello-restore';
-    let __persistTick=null, __muteHistory=0;
-    function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
+<div id="ctx" class="ctx">
+  <button data-action="timer">Timer…</button>
+  <div class="sep"></div>
+  <button data-action="dup">Duplicar</button>
+  <button data-action="del">Excluir</button>
+  <div id="ctx-move" style="position:relative">
+    <button data-action="move">Mover para ▶</button>
+    <div class="ctx-sub" id="ctx-move-sub"></div>
+  </div>
+  <div id="ctx-move-all" style="position:relative">
+    <button data-action="move-all">Mover TODOS desta lista ▶</button>
+    <div class="ctx-sub" id="ctx-moveall-sub"></div>
+  </div>
+  <button data-action="del-all">Excluir TODOS desta lista</button>
+  <div class="sep"></div>
+  <button data-action="color">Editar cor…</button>
+  <button data-action="date">Editar data…</button>
+</div>
 
-    const board=document.getElementById('board');
-    const matrix=document.getElementById('matrix');
-    const schedule=document.getElementById('schedule');
-    const slotsRoot=document.getElementById('slots');
+<div id="ctx-list" class="ctx">
+  <button data-action="list-del">Excluir lista</button>
+  <button data-action="list-move-all">Mover todos para ▶</button>
+  <div class="ctx-sub" id="ctx-list-move-sub"></div>
+</div>
 
-    // ===== Persistência + Histórico =====
-    function cardToData(c){return{ text:(c.querySelector('.text')?.textContent||'').trim(), color:c.dataset.color||'', due:c.dataset.due||'', when:c.dataset.when||'', timerEnd:c.dataset.timerEnd||'', timerLeft:c.dataset.timerLeft||'' }}
-    function serialize(){ const data=[];
-      $$('.list[data-type="kanban"]',board).forEach(l=> data.push({type:'kanban',title:l.querySelector('.title').value,cards:$$('.card',l).map(cardToData)}));
-      $$('.list[data-type="quad"]',matrix).forEach(l=> data.push({type:'quad',quad:l.dataset.quad,cards:$$('.card',l).map(cardToData)}));
-      $$('.list[data-type="time"]',schedule).forEach(s=> data.push({type:'time',time:s.dataset.time,cards:$$('.card',s).map(cardToData)}));
-      return data; }
-    function restore(arr){ board.innerHTML=''; ensureMatrix(); ensureSchedule(true);
-      (arr||[]).forEach(x=>{
-        if(x.type==='kanban'){ const l=createList(x.title); (x.cards||[]).forEach(cd=> l.querySelector('.cards').appendChild(createCard(cd))); }
-        if(x.type==='quad'){ const cont=matrix.querySelector(`.list[data-quad="${x.quad}"] .cards`); (x.cards||[]).forEach(cd=> cont.appendChild(createCard(cd))); }
-        if(x.type==='time'){ const cont=slotsRoot.querySelector(`.list[data-time="${x.time}"] .cards`); (x.cards||[]).forEach(cd=> cont.appendChild(createCard(cd))); }
-      });
-      cleanDuplicates(); applyFilters(); updateSlotsHasItems();
+<script>
+(function(){
+  // ===== Helpers =====
+  function el(t,c){var n=document.createElement(t); if(c) n.className=c; return n;}
+  function $$(s,r){if(!r) r=document; return Array.prototype.slice.call(r.querySelectorAll(s));}
+  function to2(n){return (n<10?'0'+n:''+n);}  
+  var LS_KEY='mini-trello-restore';
+  var __persistTick=null, __muteHistory=0;
+  function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
+
+  var board=document.getElementById('board');
+  var matrix=document.getElementById('matrix');
+  var schedule=document.getElementById('schedule');
+  var slotsRoot=document.getElementById('slots');
+
+  // ===== Persistência + Histórico =====
+  function cardToData(c){
+    var t=c.querySelector('.text');
+    return{ text:(t?t.textContent:'').trim(), color:c.dataset.color||'', due:c.dataset.due||'', when:c.dataset.when||'', timerEnd:c.dataset.timerEnd||'', timerLeft:c.dataset.timerLeft||'' };
+  }
+  function serialize(){ var data=[];
+    $$('.list[data-type="kanban"]',board).forEach(function(l){ data.push({type:'kanban',title:l.querySelector('.title').value,cards:$$('.card',l).map(cardToData)}); });
+    $$('.list[data-type="quad"]',matrix).forEach(function(l){ data.push({type:'quad',quad:l.dataset.quad,cards:$$('.card',l).map(cardToData)}); });
+    $$('.list[data-type="time"]',schedule).forEach(function(s){ data.push({type:'time',time:s.dataset.time,cards:$$('.card',s).map(cardToData)}); });
+    return data; }
+
+  var HIST_LIMIT=120; var hist=[], cursor=-1;  
+  function pushHistory(snap){ hist=hist.slice(0,cursor+1); hist.push(snap); if(hist.length>HIST_LIMIT) { hist.shift(); } cursor=hist.length-1; updateUndoUi(); }
+  function capture(){ if(__muteHistory>0) return; try{ pushHistory(serialize()); }catch(e){} }
+  function canUndo(){ return cursor>0; }
+  function canRedo(){ return cursor>=0 && cursor<hist.length-1; }
+  function updateUndoUi(){ document.getElementById('undo').disabled=!canUndo(); document.getElementById('redo').disabled=!canRedo(); }
+  function doUndo(){ if(!canUndo()) return; withMute(function(){ cursor--; restore(hist[cursor]); }); updateUndoUi(); }
+  function doRedo(){ if(!canRedo()) return; withMute(function(){ cursor++; restore(hist[cursor]); }); updateUndoUi(); }
+
+  function persist(){ if(__muteHistory>0) return; clearTimeout(__persistTick); __persistTick=setTimeout(function(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(serialize())); }catch(e){} capture(); }, 120); }
+
+  function load(){
+    try{ var raw=localStorage.getItem(LS_KEY); if(raw){ var d=JSON.parse(raw); var arr=(Object.prototype.toString.call(d)==='[object Array]')? d : (d&&Object.prototype.toString.call(d.data)==='[object Array]'? d.data:[]); if(arr.length){ restore(arr); pushHistory(arr); return; } } }catch(e){}
+    initDemo(); pushHistory(serialize());
+  }
+
+  // ===== Cartões =====
+  function paintCard(c){
+    var color = c.dataset.color || '';
+    if (color) { c.style.background = color; c.style.borderColor = color; c.style.borderLeftColor = color; }
+    else { c.style.background = '#112b4a'; c.style.borderColor = '#20486f'; c.style.borderLeftColor = 'transparent'; }
+    var dot=c.querySelector('.dot'); if(dot) dot.style.background=color||'transparent';
+    updateTimerBadge(c);
+  }
+
+  function createCard(data){
+    var _d= (typeof data==='string')? {text:data} : (data||{text:''});
+    var text=_d.text||''; var color=_d.color||''; var due=_d.due||''; var when=_d.when||''; var timerEnd=_d.timerEnd||''; var timerLeft=_d.timerLeft||'';
+    var c=el('div','card'); c.draggable=true; c.dataset.color=color; c.dataset.due=due; if(when) c.dataset.when=when; if(timerEnd) c.dataset.timerEnd=timerEnd; if(timerLeft) c.dataset.timerLeft=timerLeft;
+    var t=el('span','text'); t.textContent=text; var meta=el('div','meta'); var dot=el('span','dot'); meta.appendChild(dot);
+    var kb=document.createElement('button'); kb.className='kebab'; kb.type='button'; kb.textContent='⋮';
+    // FIX: selecionar o cartão dos "..." antes de abrir o menu
+    kb.addEventListener('mousedown',function(ev){ ev.stopPropagation(); });
+    kb.addEventListener('click',function(ev){ ev.stopPropagation(); clearSelection(); addSelection(c); var r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
+    c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
+    c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c);} else if(e.ctrlKey||e.metaKey){ toggleSelection(c);} else { clearSelection(); addSelection(c);} });
+    c.addEventListener('dragstart',function(e){ e.stopPropagation(); var block = selected.has(c)? Array.from(selected) : [c]; pushPH(c); if(!dragState) dragState={}; dragState.leader=c; dragState.block=block; try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
+    c.addEventListener('dragend',function(){ cleanupPH(); persist(); updateSlotsHasItems(); });
+    c.addEventListener('contextmenu',function(e){ e.preventDefault(); if(!selected.has(c)){ clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c); });
+    c.addEventListener('dblclick',function(e){ e.preventDefault(); startInlineEdit(c); });
+    return c;
+  }
+
+  // ===== Edição inline =====
+  function startInlineEdit(card){
+    var tEl=card.querySelector('.text'); if(!tEl) return; if(card.classList.contains('editing')) return;
+    card.classList.add('editing'); var original=tEl.textContent; tEl.setAttribute('contenteditable','true'); tEl.focus();
+    var sel=window.getSelection(); var range=document.createRange(); range.selectNodeContents(tEl); range.collapse(false); sel.removeAllRanges(); sel.addRange(range);
+    function finish(save){ tEl.removeEventListener('keydown',onKey); tEl.removeEventListener('blur',onBlur); tEl.removeAttribute('contenteditable'); card.classList.remove('editing'); if(!save) tEl.textContent=original; paintCard(card); persist(); }
+    function onKey(ev){ if(ev.key==='Escape'){ ev.preventDefault(); finish(false);} if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ ev.preventDefault(); finish(true);} }
+    function onBlur(){ finish(true); }
+    tEl.addEventListener('keydown',onKey); tEl.addEventListener('blur',onBlur);
+  }
+
+  // ===== DnD =====
+  var dragState=null; var draggingList=null; var selected=new Set(); var lastAnchor=null;
+  function clearSelection(){ selected.forEach(function(c){c.classList.remove('selected');}); selected.clear(); }
+  function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; }}
+  function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c);} }
+  function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } var parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return;} var cards=[].slice.call(parent.querySelectorAll('.card')); var a=cards.indexOf(lastAnchor); var b=cards.indexOf(to); var i=a<b?a:b; var j=a<b?b:a; clearSelection(); for(var k=i;k<=j;k++){ addSelection(cards[k]); } }
+  function getSelectionOr(target){ return selected.size? Array.from(selected) : (target? [target] : []); }
+  function pushPH(leader){ var ph=el('div','placeholder'); dragState={leader:leader,block:[],placeholder:ph}; }
+  function cleanupPH(){ if(dragState&&dragState.placeholder) dragState.placeholder.remove(); dragState=null; }
+  function nearestAfter(container,y){ var els=[].slice.call(container.querySelectorAll('.card:not(.dragging)')); var best={offset:-Infinity,element:null}; els.forEach(function(child){ var r=child.getBoundingClientRect(); var o=y-(r.top+r.height/2); if(o<0 && o>best.offset) best={offset:o,element:child}; }); return best.element; }
+
+  function wireDropZone(cardsContainer){ var slotEl=cardsContainer.closest('.list');
+    cardsContainer.addEventListener('dragover',function(e){ if(!dragState) return; e.preventDefault(); var after=nearestAfter(cardsContainer,e.clientY); var ph=dragState.placeholder; if(!after) cardsContainer.appendChild(ph); else cardsContainer.insertBefore(ph,after); });
+    cardsContainer.addEventListener('drop',function(e){ if(!dragState) return; e.preventDefault(); var parent=dragState.placeholder.parentElement||cardsContainer; var ref=dragState.placeholder; var block= selected.size? Array.from(selected) : [dragState.leader]; block.forEach(function(n){ parent.insertBefore(n,ref); }); applyWhen(slotEl, block); cleanupPH(); persist(); });
+    if(slotEl && slotEl.dataset.type==='time'){
+      slotEl.addEventListener('dragover',function(e){ if(!dragState) return; e.preventDefault(); slotEl.classList.add('hover'); var after2=nearestAfter(cardsContainer,e.clientY); var ph2=dragState.placeholder; if(!after2) cardsContainer.appendChild(ph2); else cardsContainer.insertBefore(ph2,after2); });
+      slotEl.addEventListener('dragleave',function(){ slotEl.classList.remove('hover'); });
+      slotEl.addEventListener('drop',function(e){ if(!dragState) return; e.preventDefault(); var parent2=dragState.placeholder.parentElement||cardsContainer; var ref2=dragState.placeholder; var block2= selected.size? Array.from(selected) : [dragState.leader]; block2.forEach(function(n){ parent2.insertBefore(n,ref2); }); applyWhen(slotEl, block2); slotEl.classList.remove('hover'); cleanupPH(); persist(); });
     }
-    function persist(){
-      if(__muteHistory>0) return;
-      clearTimeout(__persistTick);
-      __persistTick=setTimeout(()=>{
-        try{ localStorage.setItem(LS_KEY, JSON.stringify(serialize())); }catch(e){}
-      },130);
-    }
+  }
+  function applyWhen(slotEl, nodes){ if(slotEl && slotEl.dataset.type==='time'){ var day=getActiveDay(); var time=slotEl.dataset.time; nodes.forEach(function(n){ n.dataset.when=day+'T'+time; }); slotEl.classList.add('has-items'); } else { nodes.forEach(function(n){ n.dataset.when=''; }); } updateSlotsHasItems(); }
 
-    // Histórico simples (Undo/Redo)
-    let hist=[], cursor=-1;
-    function pushHistory(snap){ hist=hist.slice(0,cursor+1); hist.push(snap); cursor=hist.length-1; updateUndoUi(); }
-    function canUndo(){ return cursor>0; }
-    function canRedo(){ return cursor>=0 && cursor<hist.length-1; }
-    function updateUndoUi(){ undo.disabled=!canUndo(); redo.disabled=!canRedo(); }
-    function doUndo(){ if(!canUndo()) return; withMute(()=>{ cursor--; restore(hist[cursor]); }); updateUndoUi(); }
-    function doRedo(){ if(!canRedo()) return; withMute(()=>{ cursor++; restore(hist[cursor]); }); updateUndoUi(); }
+  // mover listas
+  board.addEventListener('dragover',function(e){ if(!draggingList) return; e.preventDefault(); var after=listAfter(board,e.clientX); if(after==null) board.appendChild(draggingList); else board.insertBefore(draggingList,after); });
+  function listAfter(container,x){ var els=[].slice.call(container.querySelectorAll('.list:not(.dragging)')); var best={offset:-Infinity,element:null}; els.forEach(function(ch){ var r=ch.getBoundingClientRect(); var o=x-(r.left+r.width/2); if(o<0&&o>best.offset) best={offset:o,element:ch}; }); return best.element; }
 
-    function load(){
-      try{
-        const raw=localStorage.getItem(LS_KEY);
-        if(raw){
-          const d=JSON.parse(raw);
-          const arr=Array.isArray(d)?d:(Array.isArray(d.data)?d.data:[]);
-          if(arr.length){ restore(arr); pushHistory(arr); return; }
-        }
-      }catch(e){}
-      initDemo(); pushHistory(serialize());
-    }
+  // ===== Listas =====
+  function createList(title){ var list=el('section','list'); list.dataset.type='kanban'; var h=el('header'); var t=el('input','title'); t.value=title||'Nova lista'; var more=document.createElement('button'); more.className='more'; more.type='button'; more.textContent='⋯'; more.addEventListener('click',function(ev){ ev.stopPropagation(); var r=more.getBoundingClientRect(); showListCtx(r.right,r.bottom,list); }); h.appendChild(t); h.appendChild(more); list.appendChild(h); var cards=el('div','cards'); list.appendChild(cards); wireDropZone(cards);
+    var add=el('div','add'); var form=el('form'); form.className='row'; form.setAttribute('autocomplete','off'); var input=el('input'); input.type='text'; input.placeholder='Novo cartão…'; input.setAttribute('enterkeyhint','go');
+    function addCard(){ var v=(input.value||'').trim(); if(!v) return; var card=createCard({text:v}); cards.appendChild(card); input.value=''; persist(); }
+    form.addEventListener('submit',function(e){ e.preventDefault(); addCard(); });
+    input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); addCard(); }});
+    form.appendChild(input); add.appendChild(form); list.appendChild(add); board.appendChild(list);
+    h.draggable=true; h.addEventListener('dragstart',function(ev){ draggingList=list; list.classList.add('dragging'); if(ev.dataTransfer) ev.dataTransfer.setData('text/plain','list'); }); h.addEventListener('dragend',function(){ draggingList=null; list.classList.remove('dragging'); persist(); });
+    h.addEventListener('contextmenu',function(e){ e.preventDefault(); showListCtx(e.clientX,e.clientY,list); });
+    return list; }
 
-    // ===== Cartões =====
-    function paintCard(c){
-      const color = c.dataset.color || '';
-      if (color) {
-        c.style.background = color; c.style.borderColor = color; c.style.borderLeftColor = color;
-      } else {
-        const def = getComputedStyle(document.documentElement).getPropertyValue('--card') || '#112b4a';
-        c.style.background = def; c.style.borderColor = '#20486f'; c.style.borderLeftColor = 'transparent';
-      }
-      const dot = c.querySelector('.dot'); if (dot) dot.style.background = color || 'transparent';
-      updateTimerBadge(c);
-    }
+  // ===== Matriz =====
+  function ensureMatrix(){ matrix.innerHTML=''; var corner=el('div','axis corner'); corner.style.gridColumn='1/2'; corner.style.gridRow='1/2'; matrix.appendChild(corner);
+    var axX1=el('div','axis'); axX1.textContent='URGENTE'; axX1.style.gridColumn='2/3'; axX1.style.gridRow='1/2';
+    var axX2=el('div','axis'); axX2.textContent='NÃO URGENTE'; axX2.style.gridColumn='3/4'; axX2.style.gridRow='1/2';
+    var axY1=el('div','axis axis-y'); axY1.textContent='IMPORTANTE'; axY1.style.gridColumn='1/2'; axY1.style.gridRow='2/3';
+    var axY2=el('div','axis axis-y'); axY2.textContent='NÃO IMPORTANTE'; axY2.style.gridColumn='1/2'; axY2.style.gridRow='3/4';
+    matrix.appendChild(axX1); matrix.appendChild(axX2); matrix.appendChild(axY1); matrix.appendChild(axY2);
+    var specs=[{quad:'Q1',label:'FAÇA AGORA',col:2,row:2},{quad:'Q2',label:'AGENDE',col:3,row:2},{quad:'Q3',label:'DELEGUE',col:2,row:3},{quad:'Q4',label:'ELIMINE',col:3,row:3}];
+    specs.forEach(function(sp){ var l=el('section','list'); l.dataset.type='quad'; l.dataset.quad=sp.quad; var h=el('header'); var t=el('div','quad-label'); t.textContent=sp.label; h.appendChild(t); var cs=el('div','cards'); wireDropZone(cs); l.appendChild(h); l.appendChild(cs); l.style.gridColumn=sp.col+'/'+(sp.col+1); l.style.gridRow=sp.row+'/'+(sp.row+1); matrix.appendChild(l); }); }
 
-    function createCard(data){
-      const {text,color,due,when,timerEnd,timerLeft}=typeof data==='string'?{text:data}:data||{text:''};
-      const c=el('div','card'); c.draggable=true; c.dataset.color=color||''; c.dataset.due=due||''; if(when) c.dataset.when=when; if(timerEnd) c.dataset.timerEnd=timerEnd; if(timerLeft) c.dataset.timerLeft=timerLeft;
-      const t=el('span','text'); t.textContent=text||''; const meta=el('div','meta'); const dot=el('span','dot'); meta.append(dot);
-      const kb=document.createElement('button'); kb.className='kebab'; kb.type='button'; kb.textContent='⋮'; kb.addEventListener('mousedown',ev=>ev.stopPropagation()); kb.addEventListener('click',ev=>{ ev.stopPropagation(); const r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
-      c.append(t,meta,kb); paintCard(c);
-      c.addEventListener('mousedown',e=>{ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); }
-        else if(e.ctrlKey||e.metaKey){ toggleSelection(c); }
-        else { clearSelection(); addSelection(c); }
-      });
-      c.addEventListener('dragstart',e=>{ e.stopPropagation(); const block = selected.has(c)? Array.from(selected) : [c]; pushPH(c); dragState={...dragState, leader:c, block}; try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
-      c.addEventListener('dragend',()=>{ cleanupPH(); persist(); updateSlotsHasItems(); });
-      c.addEventListener('contextmenu',e=>{e.preventDefault(); if(!selected.has(c)) { clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c)});
-      c.addEventListener('dblclick',(e)=>{ e.preventDefault(); startInlineEdit(c); });
-      return c;
-    }
+  // ===== Agenda =====
+  function ensureSchedule(keepCards){ var keep={}; if(keepCards){ $$('.list[data-type="time"]',schedule).forEach(function(s){ keep[s.dataset.time]=[].slice.call(s.querySelectorAll('.card')); }); }
+    slotsRoot.innerHTML=''; for(var h=5;h<=23;h++){ for(var m=0;m<=30;m+=30){ if(h===23&&m===30) break; var t=to2(h)+':'+to2(m); var slot=el('section','list slot'); slot.dataset.type='time'; slot.dataset.time=t; var head=el('div','head'); var label=el('span','time'); label.textContent=t; head.appendChild(label); slot.appendChild(head); var cards=el('div','cards'); slot.appendChild(cards); wireDropZone(cards); slotsRoot.appendChild(slot); if(keep[t]) keep[t].forEach(function(n){ cards.appendChild(n); }); }}
+    schedule.addEventListener('dragover',function(e){ if(dragState){ e.preventDefault(); try{ e.dataTransfer.dropEffect='move'; }catch(_){ } }});
+    updateSlotsHasItems(); var date=document.getElementById('agendaDate'); if(date&&!date.value){ date.value=new Date().toISOString().slice(0,10); }
+    if(date){ date.addEventListener('change',function(){ applyFilters(); updateSlotsHasItems(); }); }
+    var copyBtn=document.getElementById('copyDay'); if(copyBtn && !copyBtn._wired){ copyBtn._wired=true; copyBtn.addEventListener('click',function(){ showModal('Copiar agenda de…',function(){ var wrap=document.createElement('div'); var i=document.createElement('input'); i.type='date'; i.style.width='100%'; wrap.appendChild(i); return wrap; },function(wrap){ var from=wrap.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); }); }); }
+  }
+  function copyAgendaFrom(fromDay,toDay){ if(fromDay===toDay) return; var cardsAll=$$('.card'); var toCopy=cardsAll.filter(function(c){ return (c.dataset.when||'').indexOf(fromDay+'T')===0; });
+    toCopy.forEach(function(c){ var time=(c.dataset.when||'').slice(11,16); var dest=slotsRoot.querySelector('.list[data-time="'+time+'"] .cards'); if(dest){ var clone=createCard(cardToData(c)); clone.dataset.when=toDay+'T'+time; dest.appendChild(clone); } }); updateSlotsHasItems(); persist(); }
+  function getActiveDay(){ var i=document.getElementById('agendaDate'); return (i&&i.value)?i.value:new Date().toISOString().slice(0,10); }
+  function updateSlotsHasItems(){ var day=getActiveDay(); $$('.list.slot',schedule).forEach(function(slot){ var time=slot.dataset.time; var cards=$$('.card',slot); var visible=0; cards.forEach(function(c){ var when=c.dataset.when||''; var ok=(when.indexOf(day+'T')===0)&&when.slice(11,16)===time && cardPassesFilters(c); c.style.display= ok? '' : 'none'; if(ok) visible++; }); slot.classList.toggle('has-items',visible>0); }); }
 
-    // ===== Edição inline =====
-    function startInlineEdit(card){
-      const tEl = card.querySelector('.text'); if(!tEl) return; if(card.classList.contains('editing')) return;
-      card.classList.add('editing'); const original = tEl.textContent; tEl.setAttribute('contenteditable','true'); tEl.focus();
-      const sel = window.getSelection(); const range = document.createRange(); range.selectNodeContents(tEl); range.collapse(false); sel.removeAllRanges(); sel.addRange(range);
-      function finish(save){ tEl.removeEventListener('keydown',onKey); tEl.removeEventListener('blur',onBlur); tEl.removeAttribute('contenteditable'); card.classList.remove('editing'); if(!save){ tEl.textContent = original; } paintCard(card); persist(); }
-      function onKey(ev){ if(ev.key==='Escape'){ ev.preventDefault(); finish(false); } if(ev.key==='Enter' && (ev.ctrlKey||ev.metaKey)) { ev.preventDefault(); finish(true); } }
-      function onBlur(){ finish(true); }
-      tEl.addEventListener('keydown', onKey); tEl.addEventListener('blur', onBlur);
-    }
+  // ===== Filtros =====
+  var selectedColors=new Set();
+  function cardPassesFilters(c){
+    var fFrom=(document.getElementById('fFrom')&&document.getElementById('fFrom').value)||'';
+    var fTo=(document.getElementById('fTo')&&document.getElementById('fTo').value)||'';
+    var ok=true; if(selectedColors.size>0){ ok= ok && selectedColors.has((c.dataset.color||'').toLowerCase()); }
+    if(fFrom){ ok = ok && (!!c.dataset.due && c.dataset.due>=fFrom); }
+    if(fTo){ ok = ok && (!!c.dataset.due && c.dataset.due<=fTo); }
+    return ok;
+  }
+  function applyFilters(){ $$('.card',board).forEach(function(c){ c.style.display= cardPassesFilters(c)? '' : 'none'; }); $$('.card',matrix).forEach(function(c){ c.style.display= cardPassesFilters(c)? '' : 'none'; }); updateSlotsHasItems(); }
 
-    // ===== DnD =====
-    let dragState=null; let draggingList=null; const selected=new Set(); let lastAnchor=null;
-    function clearSelection(){ selected.forEach(c=>c.classList.remove('selected')); selected.clear(); }
-    function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; }}
-    function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c); }}
-    function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } const parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return; } const cards=[...parent.querySelectorAll('.card')]; const a=cards.indexOf(lastAnchor); const b=cards.indexOf(to); const [i,j]=a<b?[a,b]:[b,a]; clearSelection(); for(let k=i;k<=j;k++) addSelection(cards[k]); }
-    function getSelectionOr(target){ return selected.size? Array.from(selected) : (target? [target] : []); }
-    const pushPH=(leader)=>{ const ph=el('div','placeholder'); dragState={leader,block:[],placeholder:ph}; };
-    const cleanupPH=()=>{ dragState?.placeholder?.remove(); dragState=null; };
-    function nearestAfter(container,y){ const els=[...container.querySelectorAll('.card:not(.dragging)')]; return els.reduce((cl,child)=>{ const r=child.getBoundingClientRect(); const o=y-(r.top+r.height/2); return (o<0&&o>cl.offset)?{offset:o,element:child}:cl },{offset:-Infinity,element:null}).element; }
+  // ===== Dedupe =====
+  function cleanDuplicates(filterText){
+    function makeKey(card, owner){ var tx=(card.querySelector('.text')?card.querySelector('.text').textContent:'').trim(); var due=card.dataset.due||''; var when=card.dataset.when||''; var color=(card.dataset.color||'').toLowerCase(); var scope= owner.dataset.type+':' + (owner.dataset.quad||owner.dataset.time||(owner.querySelector('.title')?owner.querySelector('.title').value:'')); return scope+'|'+tx+'|'+due+'|'+when+'|'+color; }
+    var seen=new Set(); var removed=0; $$('.list').forEach(function(list){ $$('.card',list).forEach(function(c){ var tx=(c.querySelector('.text')?c.querySelector('.text').textContent:'').trim(); if(filterText && tx.toLowerCase()!==filterText.toLowerCase()) return; var k=makeKey(c,list); if(seen.has(k)){ c.remove(); removed++; } else { seen.add(k);} }); }); if(removed>0) persist(); return removed;
+  }
 
-    function wireDropZone(cardsContainer){ const slotEl=cardsContainer.closest('.list');
-      cardsContainer.addEventListener('dragover',e=>{ if(!dragState) return; e.preventDefault(); const after=nearestAfter(cardsContainer,e.clientY); const ph=dragState.placeholder; if(!after) cardsContainer.appendChild(ph); else cardsContainer.insertBefore(ph,after); });
-      cardsContainer.addEventListener('drop',e=>{ if(!dragState) return; e.preventDefault(); const parent=dragState.placeholder.parentElement||cardsContainer; const ref=dragState.placeholder; const block = selected.size? Array.from(selected) : [dragState.leader]; block.forEach(n=> parent.insertBefore(n,ref)); applyWhen(slotEl, block); cleanupPH(); });
-      if(slotEl && slotEl.dataset.type==='time'){
-        slotEl.addEventListener('dragover',e=>{ if(!dragState) return; e.preventDefault(); slotEl.classList.add('hover'); const ph=dragState.placeholder; const after=nearestAfter(cardsContainer,e.clientY); if(!after) cardsContainer.appendChild(ph); else cardsContainer.insertBefore(ph,after); });
-        slotEl.addEventListener('dragleave',()=> slotEl.classList.remove('hover'));
-        slotEl.addEventListener('drop',e=>{ if(!dragState) return; e.preventDefault(); const parent=dragState.placeholder.parentElement||cardsContainer; const ref=dragState.placeholder; const block = selected.size? Array.from(selected) : [dragState.leader]; block.forEach(n=> parent.insertBefore(n,ref)); applyWhen(slotEl, block); slotEl.classList.remove('hover'); cleanupPH(); });
-      }
-    }
-    function applyWhen(slotEl, nodes){ if(slotEl && slotEl.dataset.type==='time'){ const day=getActiveDay(); const time=slotEl.dataset.time; nodes.forEach(n=> n.dataset.when=`${day}T${time}`); slotEl.classList.add('has-items'); } else { nodes.forEach(n=> n.dataset.when=''); } updateSlotsHasItems(); persist(); }
+  // ===== Menus =====
+  var ctxTarget=null; var ctx=document.getElementById('ctx'); var ctxMoveSub=document.getElementById('ctx-move-sub'); var ctxMoveAllSub=document.getElementById('ctx-moveall-sub');
+  var listCtxTarget=null; var listCtx=document.getElementById('ctx-list'); var listMoveSub=document.getElementById('ctx-list-move-sub');
+  function hideCtx(){ ctx.style.display='none'; ctxTarget=null; ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; }
+  function showCtx(x,y,card){ ctxTarget=card; buildMoveSubmenu(); ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; ctx.style.display='block'; var r=ctx.getBoundingClientRect(); ctx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; ctx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
+  document.addEventListener('click',function(e){ if(!ctx.contains(e.target) && !listCtx.contains(e.target)) { hideCtx(); listCtx.style.display='none'; } });
+  document.addEventListener('keydown',function(e){ if(e.key==='Delete'){ var block=getSelectionOr(); if(block.length){ block.forEach(function(n){ n.remove(); }); persist(); updateSlotsHasItems(); } }});
 
-    // mover listas
-    board.addEventListener('dragover',e=>{ if(!draggingList) return; e.preventDefault(); const after=listAfter(board,e.clientX); if(after==null) board.appendChild(draggingList); else board.insertBefore(draggingList,after); });
-    function listAfter(container,x){ const els=[...container.querySelectorAll('.list:not(.dragging)')]; return els.reduce((cl,ch)=>{ const r=ch.getBoundingClientRect(); const o=x-(r.left+r.width/2); return (o<0&&o>cl.offset)?{offset:o,element:ch}:cl },{offset:-Infinity,element:null}).element; }
+  function duplicateCards(cards){ if(!cards.length) return; var last=cards[cards.length-1]; var parent=last.parentElement; var after=last.nextSibling; cards.forEach(function(c){ parent.insertBefore(createCard(cardToData(c)),after); }); persist(); }
+  function buildMoveSubmenu(){ ctxMoveSub.innerHTML=''; $$('.list').forEach(function(l,i){ var b=document.createElement('button'); var name=(l.querySelector('.title')?l.querySelector('.title').value:null)||l.dataset.quad||l.dataset.time||('Lista '+(i+1)); b.textContent=name; b.addEventListener('click',function(ev){ ev.stopPropagation(); var block=getSelectionOr(ctxTarget); if(!block.length) return; var dest=(l.querySelector('.cards')||l); var isTime=l.dataset.type==='time'; var slotTime=l.dataset.time; var day=getActiveDay(); block.forEach(function(c){ dest.appendChild(c); if(isTime&&slotTime){ c.dataset.when=day+'T'+slotTime; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); hideCtx(); }); ctxMoveSub.appendChild(b); }); }
+  function buildMoveAllSubmenu(fromList){ ctxMoveAllSub.innerHTML=''; $$('.list').forEach(function(l,i){ if(l===fromList) return; var b=document.createElement('button'); var name=(l.querySelector('.title')?l.querySelector('.title').value:null)||l.dataset.quad||l.dataset.time||('Lista '+(i+1)); b.textContent=name; b.addEventListener('click',function(ev){ ev.stopPropagation(); var src=fromList.querySelector('.cards'); var dest=(l.querySelector('.cards')||l); var isTime=l.dataset.type==='time'; var slotTime=l.dataset.time; var day=getActiveDay(); [].slice.call(src.querySelectorAll('.card')).forEach(function(c){ dest.appendChild(c); if(isTime&&slotTime){ c.dataset.when=day+'T'+slotTime; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); hideCtx(); }); ctxMoveAllSub.appendChild(b); }); }
+  ctx.addEventListener('click',function(e){ var btn=e.target.closest('button'); if(!btn) return; var action=btn.dataset.action; var block=getSelectionOr(ctxTarget);
+    if(action==='move'){ ctxMoveSub.style.display=(ctxMoveSub.style.display==='block'?'none':'block'); ctxMoveAllSub.style.display='none'; return; }
+    if(action==='move-all'){ var list=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display=(ctxMoveAllSub.style.display==='block'?'none':'block'); ctxMoveSub.style.display='none'; return; }
+    hideCtx();
+    if(action==='dup'){ duplicateCards(block); }
+    else if(action==='del'){ block.forEach(function(n){ n.remove(); }); persist(); updateSlotsHasItems(); }
+    else if(action==='color'){ openColorDialog(block); }
+    else if(action==='date'){ openDateDialog(block); }
+    else if(action==='timer'){ var card=(block&&block[0])||ctxTarget; if(card) openTimerDialog(card); }
+    else if(action==='del-all'){ var list2=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list2) return; showConfirm('Excluir TODOS os cartões desta lista?',function(){ $$('.card',list2).forEach(function(c){ c.remove(); }); persist(); updateSlotsHasItems(); }); }
+  });
 
-    // ===== Listas =====
-    function createList(title){ const list=el('section','list'); list.dataset.type='kanban'; const h=el('header'); const t=el('input','title'); t.value=title||'Nova lista'; const more=document.createElement('button'); more.className='more'; more.type='button'; more.textContent='⋯'; more.addEventListener('click',ev=>{ ev.stopPropagation(); const r=more.getBoundingClientRect(); showListCtx(r.right,r.bottom,list); }); h.append(t,more); list.appendChild(h); const cards=el('div','cards'); list.appendChild(cards); wireDropZone(cards);
-      const add=el('div','add'); const form=el('form'); form.className='row'; form.setAttribute('autocomplete','off'); const input=el('input'); input.type='text'; input.placeholder='Novo cartão…'; input.setAttribute('enterkeyhint','go');
-      function addCard(){ const v=(input.value||'').trim(); if(!v) return; const card=createCard({text:v}); cards.appendChild(card); input.value=''; persist(); }
-      form.addEventListener('submit', (e)=>{ e.preventDefault(); addCard(); });
-      input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addCard(); }});
-      form.append(input); add.append(form); list.append(add); board.appendChild(list);
-      h.draggable=true; h.addEventListener('dragstart',(ev)=>{ draggingList=list; list.classList.add('dragging'); ev.dataTransfer?.setData('text/plain','list'); }); h.addEventListener('dragend',()=>{ draggingList=null; list.classList.remove('dragging'); persist(); });
-      h.addEventListener('contextmenu',e=>{ e.preventDefault(); showListCtx(e.clientX,e.clientY,list); });
-      return list; }
+  function showListCtx(x,y,list){ listCtxTarget=list; buildListMoveSub(); listMoveSub.style.display='none'; listCtx.style.display='block'; var r=listCtx.getBoundingClientRect(); listCtx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; listCtx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
+  function buildListMoveSub(){ listMoveSub.innerHTML=''; if(!listCtxTarget) return; $$('.list').forEach(function(l,i){ if(l===listCtxTarget) return; var b=document.createElement('button'); var name=(l.querySelector('.title')?l.querySelector('.title').value:null)||l.dataset.quad||l.dataset.time||('Lista '+(i+1)); b.textContent=name; b.addEventListener('click',function(ev){ ev.stopPropagation(); var src=listCtxTarget.querySelector('.cards'); var dest=(l.querySelector('.cards')||l); var isTime=l.dataset.type==='time'; var time=l.dataset.time; var day=getActiveDay(); [].slice.call(src.querySelectorAll('.card')).forEach(function(c){ dest.appendChild(c); if(isTime&&time){ c.dataset.when=day+'T'+time; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); listMoveSub.style.display='none'; listCtx.style.display='none'; }); listMoveSub.appendChild(b); }); }
+  listCtx.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; var action=b.dataset.action; if(action==='list-move-all'){ listMoveSub.style.display=(listMoveSub.style.display==='block'?'none':'block'); return; } if(action==='list-del'&&listCtxTarget){ showConfirm('Excluir a lista inteira?',function(){ listCtxTarget.remove(); persist(); }); } listCtx.style.display='none'; });
 
-    // ===== Matriz =====
-    function ensureMatrix(){ matrix.innerHTML=''; const corner=el('div','axis corner'); corner.style.gridColumn='1/2'; corner.style.gridRow='1/2'; matrix.appendChild(corner);
-      const axX1=el('div','axis'); axX1.textContent='URGENTE'; axX1.style.gridColumn='2/3'; axX1.style.gridRow='1/2';
-      const axX2=el('div','axis'); axX2.textContent='NÃO URGENTE'; axX2.style.gridColumn='3/4'; axX2.style.gridRow='1/2';
-      const axY1=el('div','axis axis-y'); axY1.textContent='IMPORTANTE'; axY1.style.gridColumn='1/2'; axY1.style.gridRow='2/3';
-      const axY2=el('div','axis axis-y'); axY2.textContent='NÃO IMPORTANTE'; axY2.style.gridColumn='1/2'; axY2.style.gridRow='3/4';
-      matrix.append(axX1,axX2,axY1,axY2);
-      const specs=[{quad:'Q1',label:'FAÇA AGORA',col:2,row:2},{quad:'Q2',label:'AGENDE',col:3,row:2},{quad:'Q3',label:'DELEGUE',col:2,row:3},{quad:'Q4',label:'ELIMINE',col:3,row:3}];
-      specs.forEach(sp=>{ const l=el('section','list'); l.dataset.type='quad'; l.dataset.quad=sp.quad; const h=el('header'); const t=el('div','quad-label'); t.textContent=sp.label; h.append(t); const cs=el('div','cards'); wireDropZone(cs); l.append(h,cs); l.style.gridColumn=`${sp.col}/${sp.col+1}`; l.style.gridRow=`${sp.row}/${sp.row+1}`; matrix.appendChild(l); }); }
+  // ===== Modal helpers + Paleta =====
+  var MATRIX_COLORS = { Q1:'#104239', Q2:'#0e3155', Q3:'#5a4014', Q4:'#5a1419' };
+  var EXTRA_COLORS = [
+    {id:'krav', name:'Azul claro (Krav Maga)', hex:'#5dade2'},
+    {id:'gdf', name:'Amarelo claro (GDF)', hex:'#f9e79f'},
+    {id:'pessoal', name:'Laranja (Pessoal)', hex:'#f5b041'},
+    {id:'teal', name:'Verde-água', hex:'#1abc9c'},
+    {id:'pink', name:'Rosa', hex:'#ff6fae'},
+    {id:'lilas', name:'Lilás', hex:'#8e44ad'},
+    {id:'marrom', name:'Marrom', hex:'#6d4c41'},
+    {id:'navy', name:'Azul escuro', hex:'#1f3a93'},
+    {id:'grafite', name:'Grafite', hex:'#2c3e50'},
+    {id:'turquesa', name:'Turquesa', hex:'#48c9b0'},
+    {id:'bege', name:'Bege', hex:'#f5deb3'}
+  ];
+  function buildFullPalette(){ return [
+    {id:'q1',name:'Verde (Faça agora)',hex:MATRIX_COLORS.Q1},
+    {id:'q2',name:'Azul (Agende)',hex:MATRIX_COLORS.Q2},
+    {id:'q3',name:'Âmbar (Delegue)',hex:MATRIX_COLORS.Q3},
+    {id:'q4',name:'Vermelho (Elimine)',hex:MATRIX_COLORS.Q4}
+  ].concat(EXTRA_COLORS); }
+  function routeByColor(card, hex){ if(!hex) return; var map={}; map[MATRIX_COLORS.Q1]='Q1'; map[MATRIX_COLORS.Q2]='Q2'; map[MATRIX_COLORS.Q3]='Q3'; map[MATRIX_COLORS.Q4]='Q4'; var quad=map[(hex||'').toLowerCase()]; if(!quad) return; var dest=matrix.querySelector('.list[data-type="quad"][data-quad="'+quad+'"] .cards'); if(dest){ dest.appendChild(card); card.dataset.when=''; } }
 
-    // ===== Agenda =====
-    function ensureSchedule(keepCards){ const keep={}; if(keepCards){ $$('.list[data-type="time"]',schedule).forEach(s=> keep[s.dataset.time]=[...s.querySelectorAll('.card')]); } slotsRoot.innerHTML=''; for(let h=5; h<=23; h++){ for(let m of [0,30]){ if(h===23&&m===30) break; const t=`${to2(h)}:${to2(m)}`; const slot=el('section','list slot'); slot.dataset.type='time'; slot.dataset.time=t; const head=el('div','head'); const label=el('span','time'); label.textContent=t; head.append(label); slot.append(head); const cards=el('div','cards'); slot.append(cards); wireDropZone(cards); slotsRoot.appendChild(slot); if(keep[t]) keep[t].forEach(n=> cards.appendChild(n)); }} schedule.addEventListener('dragover',e=>{ if(dragState){ e.preventDefault(); try{ e.dataTransfer.dropEffect='move'; }catch(_){ } } }, {passive:false}); updateSlotsHasItems(); const date=document.getElementById('agendaDate'); if(date&&!date.value){ date.value=new Date().toISOString().slice(0,10); } date?.addEventListener('change',()=>{ applyFilters(); updateSlotsHasItems(); });
-      const copyBtn=document.getElementById('copyDay'); if(copyBtn && !copyBtn._wired){ copyBtn._wired=true; copyBtn.addEventListener('click',()=>{ showModal('Copiar agenda de…',()=>{ const wrap=document.createElement('div'); const i=document.createElement('input'); i.type='date'; i.style.width='100%'; wrap.appendChild(i); return wrap; },(wrap)=>{ const from=wrap.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); }); }); }
-    }
-    function copyAgendaFrom(fromDay,toDay){ if(fromDay===toDay) return; const cardsAll=$$('.card'); const toCopy=cardsAll.filter(c=> (c.dataset.when||'').startsWith(fromDay+'T'));
-      toCopy.forEach(c=>{ const time=(c.dataset.when||'').slice(11,16); const dest=slotsRoot.querySelector(`.list[data-time="${time}"] .cards`); if(dest){ const clone=createCard(cardToData(c)); clone.dataset.when=`${toDay}T${time}`; dest.appendChild(clone); } }); updateSlotsHasItems(); persist(); }
-    function getActiveDay(){ const i=document.getElementById('agendaDate'); return i&&i.value?i.value:new Date().toISOString().slice(0,10); }
-    function updateSlotsHasItems(){ const day=getActiveDay(); $$('.list.slot',schedule).forEach(slot=>{ const time=slot.dataset.time; const cards=$$('.card',slot); let visible=0; cards.forEach(c=>{ const when=c.dataset.when||''; const ok=when.startsWith(day+'T')&&when.slice(11,16)===time && cardPassesFilters(c); c.style.display= ok? '' : 'none'; if(ok) visible++; }); slot.classList.toggle('has-items',visible>0); }); }
+  function showModal(title,builder,onOk){ var wrap=document.createElement('div'); wrap.className='modal-wrap'; var box=document.createElement('div'); box.className='modal'; var h=document.createElement('h3'); h.textContent=title; box.appendChild(h); var body=b    uilder(); box.appendChild(body); var row=document.createElement('div'); row.className='row'; var ok=document.createElement('button'); ok.textContent='OK'; var cancel=document.createElement('button'); cancel.textContent='Cancelar'; cancel.style.background='#6b7a93'; row.appendChild(cancel); row.appendChild(ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap); cancel.onclick=function(){document.body.removeChild(wrap);}; ok.onclick=function(){ onOk(body); document.body.removeChild(wrap); applyFilters(); persist(); capture(); }; }
+  function showConfirm(message,onYes){ showModal('Confirmação', function(){ var d=document.createElement('div'); d.textContent=message; return d; }, function(){ if(typeof onYes==='function') onYes(); }); }
 
-    // ===== Filtros =====
-    const selectedColors = new Set();
-    function cardPassesFilters(c){
-      const fFrom=document.getElementById('fFrom')?.value||'';
-      const fTo=document.getElementById('fTo')?.value||'';
-      let ok=true;
-      if(selectedColors.size>0){ ok = ok && selectedColors.has((c.dataset.color||'').toLowerCase()); }
-      if(fFrom){ ok= ok && (!!c.dataset.due && c.dataset.due>=fFrom); }
-      if(fTo){ ok= ok && (!!c.dataset.due && c.dataset.due<=fTo); }
-      return ok;
-    }
-    function applyFilters(){ $$('.card',board).forEach(c=> c.style.display= cardPassesFilters(c)? '' : 'none'); $$('.card',matrix).forEach(c=> c.style.display= cardPassesFilters(c)? '' : 'none'); updateSlotsHasItems(); }
+  function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3, minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.dataset.sel='1'; wrap.appendChild(b); }); return wrap; }, function(wrap){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); }); }
+  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=document.createElement('div'); var i=document.createElement('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; paintCard(c); }); }); }
 
-    // ===== Dedupe (resolve “Participa” em loop) =====
-    function cleanDuplicates(filterText){
-      const makeKey=(card, owner)=>{
-        const text=(card.querySelector('.text')?.textContent||'').trim();
-        const due=card.dataset.due||'';
-        const when=card.dataset.when||'';
-        const color=(card.dataset.color||'').toLowerCase();
-        const scope= owner.dataset.type+':'+(owner.dataset.quad||owner.dataset.time||owner.querySelector('.title')?.value||'');
-        return scope+'|'+text+'|'+due+'|'+when+'|'+color;
-      };
-      const seen=new Set(); let removed=0;
-      $$('.list').forEach(list=>{
-        const cards=$$('.card',list);
-        cards.forEach(c=>{
-          const text=(c.querySelector('.text')?.textContent||'').trim();
-          if(filterText && text.toLowerCase()!==filterText.toLowerCase()) return;
-          const k=makeKey(c, list);
-          if(seen.has(k)){ c.remove(); removed++; } else { seen.add(k); }
-        });
-      });
-      if(removed>0){ persist(); }
-      return removed;
-    }
+  // ===== Timer =====
+  function updateTimerBadge(card){ var badge=card.querySelector('.timer'); if(!badge){ badge=document.createElement('span'); badge.className='timer'; badge.title='Duplo clique: iniciar/pausar'; card.querySelector('.meta').appendChild(badge);} if(!badge._wired){ badge._wired=true; badge.addEventListener('dblclick',function(){ toggleTimer(card); }); }
+    var endIso=card.dataset.timerEnd||''; var leftStr=card.dataset.timerLeft||'';
+    if(endIso){ var now=Date.now(); var ms=Math.max(0, Date.parse(endIso)-now); var totalSec=Math.floor(ms/1000); var mm=Math.floor(totalSec/60); var ss=totalSec%60; badge.textContent='⏱ '+mm+':'+String(ss).padStart(2,'0'); badge.classList.toggle('danger', totalSec<=10); badge.classList.toggle('warn', totalSec>10 && totalSec<=60); }
+    else if(leftStr){ var totalSec2=Math.max(0, parseInt(leftStr,10)||0); var mm2=Math.floor(totalSec2/60); var ss2=totalSec2%60; badge.textContent='⏸ '+mm2+':'+String(ss2).padStart(2,'0'); badge.classList.remove('danger'); badge.classList.remove('warn'); }
+    else { badge.textContent=''; badge.classList.remove('danger'); badge.classList.remove('warn'); }
+    updateTotalTimer();
+  }
+  function toggleTimer(card){ var now=Date.now(); if(card.dataset.timerEnd){ var left=Math.max(0, Math.floor((Date.parse(card.dataset.timerEnd)-now)/1000)); delete card.dataset.timerEnd; card.dataset.timerLeft=String(left); updateTimerBadge(card); persist(); return; } var left2=parseInt(card.dataset.timerLeft||''); if(!left2 || isNaN(left2)) return; delete card.dataset.timerMoved; card.dataset.timerEnd=new Date(now + left2*1000).toISOString(); delete card.dataset.timerLeft; updateTimerBadge(card); persist(); startGlobalTimer(); }
+  var __timerTick=null; function startGlobalTimer(){ if(__timerTick) return; __timerTick=setInterval(function(){ var now=Date.now(); var active=0; $$('.card').forEach(function(c){ var endIso=c.dataset.timerEnd; if(endIso){ active++; var end=Date.parse(endIso); var remaining=end-now; if(remaining<=0){ if(c.dataset.timerMoved!=='1'){ c.dataset.timerMoved='1'; delete c.dataset.timerEnd; delete c.dataset.timerLeft; c.dataset.color=MATRIX_COLORS.Q4; paintCard(c); var q1=matrix.querySelector('.list[data-type="quad"][data-quad="Q1"] .cards'); if(q1) q1.appendChild(c); persist(); var name=(c.querySelector('.text')&&c.querySelector('.text').textContent||'Cartão').trim(); notify(name+': tempo esgotado'); } } } updateTimerBadge(c); }); if(active===0){ clearInterval(__timerTick); __timerTick=null; } }, 1000); }
+  function openTimerDialog(card){ showModal('Timer do cartão', function(){ var wrap=document.createElement('div'); var display=document.createElement('div'); display.style.fontSize='22px'; display.style.fontWeight='700'; display.style.textAlign='center'; display.style.margin='8px 0'; var row=document.createElement('div'); row.style.display='flex'; row.style.gap='6px'; row.style.flexWrap='wrap'; var quick=[60, 180, 300, 600, 3600]; function fmt(s){ var m=Math.floor(s/60), ss=s%60; return m+':'+String(ss).padStart(2,'0'); } function setSec(sec){ if(sec<0) sec=0; wrap._sec=sec; display.textContent=fmt(sec);} quick.forEach(function(s){ var b=document.createElement('button'); b.textContent=fmt(s); b.type='button'; b.onclick=function(){ setSec(s); }; row.appendChild(b); }); var plus1=document.createElement('button'); plus1.textContent='+1m'; plus1.onclick=function(){ setSec((wrap._sec||60)+60); }; var minus1=document.createElement('button'); minus1.textContent='-1m'; minus1.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-60)); }; wrap.appendChild(display); wrap.appendChild(row); wrap.appendChild(plus1); wrap.appendChild(minus1); setSec(60); return wrap; }, function(wrap){ var sec=wrap._sec||60; delete card.dataset.timerEnd; card.dataset.timerLeft=String(sec); updateTimerBadge(card); }); }
+  function updateTotalTimer(){ var sum=0; $$('.card').forEach(function(c){ if(c.dataset.timerEnd){ var left=Math.max(0, Math.floor((Date.parse(c.dataset.timerEnd)-Date.now())/1000)); sum+=left; } else if(c.dataset.timerLeft){ sum+=parseInt(c.dataset.timerLeft,10)||0; } }); var mm=Math.floor(sum/60), ss=sum%60; var elSum=document.getElementById('sumTimers'); if(elSum) elSum.textContent= mm+':'+String(ss).padStart(2,'0'); }
+  function notify(msg){ try{ var Ctx=(window.AudioContext||window.webkitAudioContext); var ctxA=new Ctx(); var o=ctxA.createOscillator(); var g=ctxA.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0008; o.connect(g); g.connect(ctxA.destination); o.start(); setTimeout(function(){ o.stop(); ctxA.close(); }, 180); }catch(e){} showModal('Aviso', function(){ var d=document.createElement('div'); d.textContent=msg; return d; }, function(){}); }
 
-    // ===== Context menus & diálogos =====
-    let ctxTarget=null; const ctx=document.getElementById('ctx'); const ctxMoveSub=document.getElementById('ctx-move-sub'); const ctxMoveAllSub=document.getElementById('ctx-moveall-sub');
-    let listCtxTarget=null; const listCtx=document.getElementById('ctx-list'); const listMoveSub=document.getElementById('ctx-list-move-sub');
-    function hideCtx(){ ctx.style.display='none'; ctxTarget=null; ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; }
-    function showCtx(x,y,card){ ctxTarget=card; buildMoveSubmenu(); ctxMoveSub.style.display='none'; ctxMoveAllSub.style.display='none'; ctx.style.display='block'; const r=ctx.getBoundingClientRect(); ctx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; ctx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
-    document.addEventListener('click',e=>{ if(!ctx.contains(e.target) && !listCtx.contains(e.target)) { hideCtx(); listCtx.style.display='none'; } });
-    document.addEventListener('keydown',e=>{ if(e.key==='Delete'){ const block=getSelectionOr(); if(block.length){ block.forEach(n=>n.remove()); persist(); updateSlotsHasItems(); }} });
+  function openColorFilters(){ var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};})); showModal('Filtrar por cor', function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3,minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; b.onclick=function(){ if(p.hex==='*'){ wrap._all=true; [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; return; } delete wrap._all; b.dataset.sel=b.dataset.sel?'':'1'; }; wrap.appendChild(b); }); return wrap; }, function(wrap){ selectedColors.clear(); if(wrap._all){ } else { [].slice.call(wrap.querySelectorAll('button[data-sel="1"]')).forEach(function(btn){ var hex=btn.dataset.hex||''; selectedColors.add(hex.toLowerCase()); }); } applyFilters(); }); }
 
-    function getSelectionOr(target){ return selected.size? Array.from(selected) : (target? [target] : []); }
-    function duplicateCards(cards){ if(!cards.length) return; const last=cards[cards.length-1]; const parent=last.parentElement; const after=last.nextSibling; cards.forEach(c=> parent.insertBefore(createCard(cardToData(c)),after)); persist(); }
-    function buildMoveSubmenu(){ ctxMoveSub.innerHTML=''; $$('.list').forEach((l,i)=>{ const b=document.createElement('button'); const name=l.querySelector('.title')?.value || l.dataset.quad || l.dataset.time || `Lista ${i+1}`; b.textContent=name; b.addEventListener('click',(ev)=>{ ev.stopPropagation(); const block=getSelectionOr(ctxTarget); if(!block.length) return; const dest=(l.querySelector('.cards')||l); const isTime=l.dataset.type==='time'; const slotTime=l.dataset.time; const day=getActiveDay(); block.forEach(c=>{ dest.appendChild(c); if(isTime&&slotTime){ c.dataset.when=`${day}T${slotTime}`; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); hideCtx(); }); ctxMoveSub.appendChild(b); }); }
-    function buildMoveAllSubmenu(fromList){ ctxMoveAllSub.innerHTML=''; $$('.list').forEach((l,i)=>{ if(l===fromList) return; const b=document.createElement('button'); const name=l.querySelector('.title')?.value || l.dataset.quad || l.dataset.time || `Lista ${i+1}`; b.textContent=name; b.addEventListener('click',(ev)=>{ ev.stopPropagation(); const src=fromList.querySelector('.cards'); const dest=(l.querySelector('.cards')||l); const isTime=l.dataset.type==='time'; const slotTime=l.dataset.time; const day=getActiveDay(); [...src.querySelectorAll('.card')].forEach(c=>{ dest.appendChild(c); if(isTime&&slotTime){ c.dataset.when=`${day}T${slotTime}`; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); hideCtx(); }); ctxMoveAllSub.appendChild(b); }); }
-    ctx.addEventListener('click',e=>{ const btn=e.target.closest('button'); if(!btn) return; const action=btn.dataset.action; const block=getSelectionOr(ctxTarget);
-      if(action==='move'){ ctxMoveSub.style.display = (ctxMoveSub.style.display==='block'?'none':'block'); ctxMoveAllSub.style.display='none'; return; }
-      if(action==='move-all'){ const list = (ctxTarget||block[0])?.closest('.list'); if(!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display = (ctxMoveAllSub.style.display==='block'?'none':'block'); ctxMoveSub.style.display='none'; return; }
-      hideCtx();
-      if(action==='dup'){ duplicateCards(block); }
-      else if(action==='del'){ block.forEach(n=>n.remove()); persist(); updateSlotsHasItems(); }
-      else if(action==='color'){ openColorDialog(block); }
-      else if(action==='date'){ openDateDialog(block); }
-      else if(action==='timer'){ const card=(block&&block[0])||ctxTarget; if(card) openTimerDialog(card); }
-      else if(action==='del-all'){ const list=(ctxTarget||block[0])?.closest('.list'); if(!list) return; showConfirm('Excluir TODOS os cartões desta lista?',()=>{ $$('.card',list).forEach(c=>c.remove()); persist(); updateSlotsHasItems(); }); }
-    });
+  // ===== Export/Import =====
+  function pad2(n){return (n<10?'0':'')+n}
+  function ts(){ var d=new Date(); return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'-'+pad2(d.getHours())+pad2(d.getMinutes()); }
+  function download(filename, text){ var blob=new Blob([text],{type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },0); }
+  function doExport(){ var payload={ version:1, exportedAt:new Date().toISOString(), data: serialize() }; download('mini-trello-backup-'+ts()+'.json', JSON.stringify(payload)); }
+  function doImportFromText(txt){ var parsed=null; try{ parsed=JSON.parse(txt);}catch(e){ alert('Arquivo inválido (JSON)'); return;} var arr=(Object.prototype.toString.call(parsed)==='[object Array]')? parsed : ((parsed&&Object.prototype.toString.call(parsed.data)==='[object Array]')? parsed.data : null); if(!arr){ alert('Estrutura não reconhecida.'); return;} showConfirm('Importar vai substituir o conteúdo atual. Deseja continuar?', function(){ withMute(function(){ restore(arr); pushHistory(arr); try{ localStorage.setItem(LS_KEY, JSON.stringify({data:arr})); }catch(e){} }); notify('Importado com sucesso.'); }); }
 
-    function showListCtx(x,y,list){ listCtxTarget=list; buildListMoveSub(); listMoveSub.style.display='none'; listCtx.style.display='block'; const r=listCtx.getBoundingClientRect(); listCtx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; listCtx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
-    function buildListMoveSub(){ listMoveSub.innerHTML=''; if(!listCtxTarget) return; $$('.list').forEach((l,i)=>{ if(l===listCtxTarget) return; const b=document.createElement('button'); const name=l.querySelector('.title')?.value || l.dataset.quad || l.dataset.time || `Lista ${i+1}`; b.textContent=name; b.addEventListener('click',(ev)=>{ ev.stopPropagation(); const src=listCtxTarget.querySelector('.cards'); const dest=(l.querySelector('.cards')||l); const isTime=l.dataset.type==='time'; const time=l.dataset.time; const day=getActiveDay(); [...src.querySelectorAll('.card')].forEach(c=>{ dest.appendChild(c); if(isTime&&time){ c.dataset.when=`${day}T${time}`; } else { c.dataset.when=''; } }); if(isTime) l.classList.add('has-items'); persist(); applyFilters(); updateSlotsHasItems(); listMoveSub.style.display='none'; listCtx.style.display='none'; }); listMoveSub.appendChild(b); }); }
-    listCtx.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const action=b.dataset.action; if(action==='list-move-all'){ listMoveSub.style.display = (listMoveSub.style.display==='block'?'none':'block'); return; } if(action==='list-del' && listCtxTarget){ showConfirm('Excluir a lista inteira?',()=>{ listCtxTarget.remove(); persist(); }); } listCtx.style.display='none'; });
+  // ===== Inicialização =====
+  function ensureScheduleUI(){ ensureSchedule(true); }
+  function initDemo(){ ensureMatrix(); ensureScheduleUI(); createList('A Fazer'); createList('Fazendo'); createList('Feito'); }
 
-    // ===== Modal helpers =====
-    function showModal(title,builder,onOk){ const wrap=document.createElement('div'); wrap.className='modal-wrap'; const box=document.createElement('div'); box.className='modal'; const h=document.createElement('h3'); h.textContent=title; box.appendChild(h); const body=builder(); box.appendChild(body); const row=document.createElement('div'); row.className='row'; const ok=document.createElement('button'); ok.textContent='OK'; const cancel=document.createElement('button'); cancel.textContent='Cancelar'; cancel.style.background='#6b7a93'; row.append(cancel,ok); box.appendChild(row); wrap.appendChild(box); document.body.appendChild(wrap); cancel.onclick=()=>document.body.removeChild(wrap); ok.onclick=()=>{ onOk(body); document.body.removeChild(wrap); applyFilters(); persist(); }; }
-    function showConfirm(message,onYes){ showModal('Confirmação', ()=>{ const d=document.createElement('div'); d.textContent=message; return d; }, ()=>{ if(typeof onYes==='function') onYes(); }); }
-    function openColorDialog(cards){ if(!cards.length) return; const PALETTE=[{id:'none',name:'Sem cor',hex:''},{id:'q1',name:'Verde (Faça agora)',hex:'#104239'},{id:'q2',name:'Azul (Agende)',hex:'#0e3155'},{id:'q3',name:'Âmbar (Delegue)',hex:'#5a4014'},{id:'q4',name:'Vermelho (Elimine)',hex:'#5a1419'},{id:'gray',name:'Cinza',hex:'#39424e'},{id:'purple',name:'Roxo',hex:'#3a1f5a'}]; showModal('Editar cor',()=>{ const wrap=document.createElement('div'); wrap.style.display='grid';wrap.style.gridTemplateColumns='repeat(3, minmax(0,1fr))';wrap.style.gap='8px'; PALETTE.forEach(p=>{ const b=document.createElement('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',()=>{ wrap.querySelectorAll('button').forEach(x=>x.dataset.sel=''); b.dataset.sel='1'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.dataset.sel='1'; wrap.appendChild(b); }); return wrap; }, (wrap)=>{ const v=wrap._chosen===undefined? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(c=>{ c.dataset.color=v||''; paintCard(c); }); }); }
-    function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',()=>{ const r=document.createElement('div'); const i=document.createElement('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; },(r)=>{ const v=r.querySelector('input').value; cards.forEach(c=>{ c.dataset.due=v||''; paintCard(c); }); }); }
+  // Botões / atalhos
+  function on(id,ev,fn){ var e=document.getElementById(id); if(e) e.addEventListener(ev,fn); }
+  on('undo','click',doUndo); on('redo','click',doRedo);
+  on('addList','click',function(){ createList('Nova lista'); persist(); });
+  on('reset','click',function(){ localStorage.removeItem(LS_KEY); hist=[]; cursor=-1; initDemo(); pushHistory(serialize()); });
+  on('androidToggle','click',function(){ document.body.classList.toggle('android'); });
+  on('filterColorsBtn','click',openColorFilters);
+  on('clearFilters','click',function(){ selectedColors.clear(); var ff=document.getElementById('fFrom'); var ft=document.getElementById('fTo'); if(ff) ff.value=''; if(ft) ft.value=''; applyFilters(); });
+  on('exportJson','click', doExport);
+  on('importJsonBtn','click', function(){ var inp=document.getElementById('importFile'); if(!inp) return; inp.value=''; inp.click(); });
+  var fileInput=document.getElementById('importFile');
+  if(fileInput && !fileInput._wired){ fileInput._wired=true; fileInput.addEventListener('change',function(){ var f=fileInput.files && fileInput.files[0]; if(!f) return; var reader=new FileReader(); reader.onload=function(){ doImportFromText(String(reader.result||'')); fileInput.value=''; }; reader.readAsText(f); }); }
 
-    // ===== Timer =====
-    function updateTimerBadge(card){
-      let badge=card.querySelector('.timer'); if(!badge){ badge=document.createElement('span'); badge.className='timer'; badge.title='Duplo clique: iniciar/pausar'; card.querySelector('.meta').appendChild(badge); }
-      if(!badge._wired){ badge._wired=true; badge.addEventListener('dblclick',()=>{ toggleTimer(card); }); }
-      const endIso=card.dataset.timerEnd||''; const leftStr=card.dataset.timerLeft||'';
-      if(endIso){ const now=Date.now(); const ms=Math.max(0, Date.parse(endIso)-now); const totalSec=Math.floor(ms/1000); const mm=Math.floor(totalSec/60); const ss=totalSec%60; badge.textContent=`⏱ ${mm}:${String(ss).padStart(2,'0')}`; badge.classList.toggle('danger', totalSec<=10); badge.classList.toggle('warn', totalSec>10 && totalSec<=60); }
-      else if(leftStr){ const totalSec=Math.max(0, parseInt(leftStr,10)||0); const mm=Math.floor(totalSec/60); const ss=totalSec%60; badge.textContent=`⏸ ${mm}:${String(ss).padStart(2,'0')}`; badge.classList.remove('danger'); badge.classList.remove('warn'); }
-      else { badge.textContent=''; badge.classList.remove('danger'); badge.classList.remove('warn'); }
-      updateTotalTimer();
-    }
+  document.addEventListener('keydown',function(e){ var k=(e.key||'').toLowerCase(); if((e.ctrlKey||e.metaKey) && !e.shiftKey && k==='z'){ e.preventDefault(); doUndo(); } if((e.ctrlKey||e.metaKey) && e.shiftKey && k==='z'){ e.preventDefault(); doRedo(); } });
 
-    function toggleTimer(card){ const now=Date.now(); if(card.dataset.timerEnd){ const left=Math.max(0, Math.floor((Date.parse(card.dataset.timerEnd)-now)/1000)); delete card.dataset.timerEnd; card.dataset.timerLeft=String(left); updateTimerBadge(card); persist(); return; } let left=parseInt(card.dataset.timerLeft||''); if(!left || isNaN(left)){ return; } delete card.dataset.timerMoved; card.dataset.timerEnd=new Date(now + left*1000).toISOString(); delete card.dataset.timerLeft; updateTimerBadge(card); persist(); startGlobalTimer(); }
-
-    let __timerTick=null; function startGlobalTimer(){ if(__timerTick) return; __timerTick = setInterval(function(){ var now = Date.now(); var active=0; $$('.card').forEach(function(c){ var endIso=c.dataset.timerEnd; if(endIso){ active++; var end=Date.parse(endIso); var remaining=end-now; if(remaining<=0){ if(c.dataset.timerMoved!=='1'){ c.dataset.timerMoved='1'; delete c.dataset.timerEnd; delete c.dataset.timerLeft; c.dataset.color='#5a1419'; paintCard(c); var q1=matrix.querySelector('.list[data-type="quad"][data-quad="Q1"] .cards'); if(q1) q1.appendChild(c); persist(); var name=(c.querySelector('.text')&&c.querySelector('.text').textContent||'Cartão').trim(); notify(name+': tempo esgotado'); } } } updateTimerBadge(c); }); if(active===0){ clearInterval(__timerTick); __timerTick=null; } }, 1000); }
-
-    function openTimerDialog(card){ showModal('Timer do cartão', function(){ var wrap=document.createElement('div'); var display=document.createElement('div'); display.style.fontSize='22px'; display.style.fontWeight='700'; display.style.textAlign='center'; display.style.margin='8px 0'; var row=document.createElement('div'); row.style.display='flex'; row.style.gap='6px'; row.style.flexWrap='wrap'; var quick=[60, 3*60, 5*60, 10*60, 60*60]; function fmt(s){ var m=Math.floor(s/60), ss=s%60; return m+':' + String(ss).padStart(2,'0'); } function setSec(sec){ if(sec<0) sec=0; wrap._sec=sec; display.textContent=fmt(sec); }
-        quick.forEach(function(s){ var b=document.createElement('button'); b.textContent=fmt(s); b.type='button'; b.onclick=function(){ setSec(s); }; row.appendChild(b); });
-        var plus1=document.createElement('button'); plus1.textContent='+1m'; plus1.onclick=function(){ setSec((wrap._sec||60)+60); };
-        var minus1=document.createElement('button'); minus1.textContent='-1m'; minus1.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-60)); };
-        var plus3=document.createElement('button'); plus3.textContent='+3m'; plus3.onclick=function(){ setSec((wrap._sec||60)+180); };
-        var minus3=document.createElement('button'); minus3.textContent='-3m'; minus3.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-180)); };
-        var plus5=document.createElement('button'); plus5.textContent='+5m'; plus5.onclick=function(){ setSec((wrap._sec||60)+300); };
-        var minus5=document.createElement('button'); minus5.textContent='-5m'; minus5.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-300)); };
-        var plus10=document.createElement('button'); plus10.textContent='+10m'; plus10.onclick=function(){ setSec((wrap._sec||60)+600); };
-        var minus10=document.createElement('button'); minus10.textContent='-10m'; minus10.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-600)); };
-        var plus60=document.createElement('button'); plus60.textContent='+60m'; plus60.onclick=function(){ setSec((wrap._sec||60)+3600); };
-        var minus60=document.createElement('button'); minus60.textContent='-60m'; minus60.onclick=function(){ setSec(Math.max(0,(wrap._sec||60)-3600)); };
-        wrap.append(display,row,plus1,minus1,plus3,minus3,plus5,minus5,plus10,minus10,plus60,minus60); setSec(60); return wrap; }, function(wrap){ var sec=wrap._sec||60; delete card.dataset.timerEnd; card.dataset.timerLeft=String(sec); updateTimerBadge(card); }); }
-
-    function updateTotalTimer(){ var sum=0; $$('.card').forEach(function(c){ if(c.dataset.timerEnd){ var left=Math.max(0, Math.floor((Date.parse(c.dataset.timerEnd)-Date.now())/1000)); sum+=left; } else if(c.dataset.timerLeft){ sum+=parseInt(c.dataset.timerLeft,10)||0; } }); var mm=Math.floor(sum/60), ss=sum%60; var elSum=document.getElementById('sumTimers'); if(elSum) elSum.textContent= mm+':'+String(ss).padStart(2,'0'); }
-    function notify(msg){ try{ var Ctx=(window.AudioContext||window.webkitAudioContext); var ctxA=new Ctx(); var o=ctxA.createOscillator(); var g=ctxA.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0008; o.connect(g); g.connect(ctxA.destination); o.start(); setTimeout(function(){ o.stop(); ctxA.close(); }, 180); }catch(e){} showModal('Aviso', function(){ var d=document.createElement('div'); d.textContent=msg; return d; }, function(){}); }
-
-    function openColorFilters(){ var PALETTE=[{name:'Todas', hex:'*'},{name:'Sem cor', hex:''},{name:'Verde (Faça agora)',hex:'#104239'},{name:'Azul (Agende)',hex:'#0e3155'},{name:'Âmbar (Delegue)',hex:'#5a4014'},{name:'Vermelho (Elimine)',hex:'#5a1419'},{name:'Cinza',hex:'#39424e'},{name:'Roxo',hex:'#3a1f5a'}]; showModal('Filtrar por cor', function(){ var wrap=document.createElement('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(3,minmax(0,1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=document.createElement('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; b.onclick=function(){ if(p.hex==='*'){ wrap._all=true; wrap.querySelectorAll('button').forEach(function(x){x.dataset.sel='';}); b.dataset.sel='1'; return; } delete wrap._all; b.dataset.sel=b.dataset.sel?'':'1'; }; wrap.appendChild(b); }); return wrap; }, function(wrap){ selectedColors.clear(); if(wrap._all){ /* todas */ } else { wrap.querySelectorAll('button[data-sel="1"]').forEach(function(btn){ var hex=btn.dataset.hex||''; selectedColors.add(hex); }); } applyFilters(); }); }
-
-    // ===== Export/Import =====
-    function pad2(n){return (n<10?'0':'')+n}
-    function ts(){ const d=new Date(); return `${d.getFullYear()}${pad2(d.getMonth()+1)}${pad2(d.getDate())}-${pad2(d.getHours())}${pad2(d.getMinutes())}` }
-    function download(filename, text){ const blob=new Blob([text],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0); }
-    function doExport(){ const payload={ version:1, exportedAt:new Date().toISOString(), data: serialize() }; download(`mini-trello-backup-${ts()}.json`, JSON.stringify(payload)); }
-
-    function doImportFromText(txt){
-      let parsed=null; try{ parsed=JSON.parse(txt); }catch(e){ alert('Arquivo inválido (JSON)'); return; }
-      const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data)? parsed.data : null);
-      if(!arr){ alert('Estrutura não reconhecida. Esperado um array de listas ou objeto {data:[...]}.'); return; }
-      showConfirm('Importar vai substituir o conteúdo atual. Deseja continuar?', ()=>{
-        withMute(()=>{ restore(arr); pushHistory(arr); try{ localStorage.setItem(LS_KEY, JSON.stringify({data:arr})); }catch(e){} });
-        notify('Importado com sucesso.');
-      });
-    }
-
-    // ===== Inicialização =====
-    function initDemo(){ ensureMatrix(); ensureSchedule(); createList('A Fazer'); createList('Fazendo'); createList('Feito'); }
-
-    // Botões / atalhos
-    const on=(id,ev,fn)=>{ const e=document.getElementById(id); if(e) e.addEventListener(ev,fn); };
-    on('undo','click',doUndo); on('redo','click',doRedo);
-    on('addList','click',function(){ createList('Nova lista'); persist(); });
-    on('reset','click',function(){ localStorage.removeItem(LS_KEY); hist=[]; cursor=-1; initDemo(); pushHistory(serialize()); });
-    on('androidToggle','click',function(){ document.body.classList.toggle('android'); });
-    on('filterColorsBtn','click',openColorFilters);
-    on('clearFilters','click',function(){ selectedColors.clear(); var ff=document.getElementById('fFrom'); var ft=document.getElementById('fTo'); if(ff) ff.value=''; if(ft) ft.value=''; applyFilters(); });
-    on('exportJson','click', doExport);
-    on('importJsonBtn','click', ()=>{ const inp=document.getElementById('importFile'); if(!inp) return; inp.value=''; inp.click(); });
-    const fileInput=document.getElementById('importFile');
-    if(fileInput && !fileInput._wired){ fileInput._wired=true; fileInput.addEventListener('change',()=>{ const f=fileInput.files && fileInput.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=()=>{ doImportFromText(String(reader.result||'')); fileInput.value=''; }; reader.readAsText(f); }); }
-
-    document.addEventListener('keydown',function(e){ var k=(e.key||'').toLowerCase(); if((e.ctrlKey||e.metaKey) && !e.shiftKey && k==='z'){ e.preventDefault(); doUndo(); } if((e.ctrlKey||e.metaKey) && e.shiftKey && k==='z'){ e.preventDefault(); doRedo(); } });
-
-    // start
-    load();
-    // limpeza automática específica (Participa)
-    setTimeout(()=>{ const n=cleanDuplicates('Participa'); if(n>0) console.log('Removidos duplicados:', n); }, 50);
-  })();
-  </script>
+  // start
+  load();
+  setTimeout(function(){ cleanDuplicates('Participa'); }, 100);
+})();
+</script>
 </body>
 </html>
