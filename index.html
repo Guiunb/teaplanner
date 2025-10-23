@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v6.6)</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.2)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -15,6 +15,7 @@
     header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px;background:#0e58a5;color:#fff}
     header.app button{cursor:pointer}
     header.app button.active{background:#ffd54f;color:#10243a} /* Style for active toggle buttons */
+    #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;} /* Added cursor */
     .badge{display:inline-block;background:#ffd54f;color:#10243a;font-weight:700;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid rgba(0,0,0,.15)}
     .badge[hidden]{display:none!important}
 
@@ -115,7 +116,8 @@
     .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative;transition:opacity .2s, transform .2s}
     .card.dragging{opacity:0.5;transform:rotate(3deg)}
     .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
-    .card .text{white-space:pre-wrap}
+    .card.editing { background: #1a4b7f; } /* Highlight while editing */
+    .card .text{white-space:pre-wrap; min-height: 1em;} /* Ensure editable area has height */
     .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #375b86}
     .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
@@ -157,6 +159,9 @@
     .modal .row{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
     .modal .row button{background:#1976d2;border:none;border-radius:8px;color:#fff;padding:8px 10px;cursor:pointer}
     .modal .row button.cancel{background:#6b7a93}
+    /* Style for import options modal */
+    .import-options button { margin: 5px; flex-grow: 1;}
+
 
     @keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}
     .spinner_V8m1{transform-origin:center;animation:spinner_zKoa 2s linear infinite}.spinner_V8m1 circle{stroke-linecap:round;animation:spinner_YpZS 1.5s ease-in-out infinite}
@@ -195,6 +200,7 @@
   <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
   <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
   <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px" title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m ou 1h 30m">
+  <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong> <!-- Display updated -->
   <label>De <input id="fFrom" type="date"></label>
   <label>Até <input id="fTo" type="date"></label>
   <button id="clearFilters">Limpar filtros</button>
@@ -267,6 +273,13 @@
   function el(t,c){var n=document.createElement(t); if(c) n.className=c; return n;}
   function $$(s,r){if(!r) r=document; return Array.prototype.slice.call(r.querySelectorAll(s));}
   function to2(n){return (n<10?'0'+n:''+n);}
+  function formatSecondsToTime(totalSeconds) { // Helper to format time
+      if (totalSeconds <= 0) return '0:00 min'; // Add min here too for consistency if desired
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      return `${hours > 0 ? hours + ':' : ''}${to2(minutes)} min`; // Append ' min'
+  }
+
   var LS_KEY='mini-trello-restore';
   var __persistTick=null, __muteHistory=0;
   function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
@@ -275,8 +288,51 @@
   var schedule=document.getElementById('schedule');
   var slotsRoot=document.getElementById('slots');
   var matrixEl=document.getElementById('matrix'); // Renamed from matrix
+  var sumTimersDisplay = document.getElementById('sumTimersDisplay'); // Get the display element
   var allCards = []; // Cache de todos os elementos de cartão para performance
   var globalTimerInterval = null;
+  var selected = new Set(); // Moved selection set here to be accessible by timer sum
+  var lastMouseX = 0, lastMouseY = 0; // Track mouse position
+
+  // Track mouse position
+  document.addEventListener('mousemove', (e) => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+  });
+
+  // ===== Sum Timers Logic =====
+  function updateTotalTimerDisplay() {
+      let selectedSeconds = 0;
+      let visibleSeconds = 0;
+      let totalSecondsAll = 0;
+
+      // Calculate sum for selected cards
+      if (selected.size > 0) {
+          selected.forEach(card => {
+              selectedSeconds += parseInt(card.dataset.timerTotal || '0', 10);
+          });
+      }
+
+      // Calculate sum for all *visible* cards and *total* cards
+      allCards.forEach(card => {
+          const cardTime = parseInt(card.dataset.timerTotal || '0', 10);
+          totalSecondsAll += cardTime;
+          // Check if card is currently displayed (not display: none)
+          // Use computed style for a more robust visibility check
+          const style = window.getComputedStyle(card);
+          if (style.display !== 'none' && style.visibility !== 'hidden' && card.offsetParent !== null) {
+               visibleSeconds += cardTime;
+          }
+      });
+
+      // Determine text content based on selection
+      const displayText = selected.size > 0 ? formatSecondsToTime(selectedSeconds) : formatSecondsToTime(visibleSeconds);
+      sumTimersDisplay.textContent = displayText;
+
+      // Update tooltip with all three values
+      sumTimersDisplay.title = `Selecionado: ${formatSecondsToTime(selectedSeconds)} / Filtrado: ${formatSecondsToTime(visibleSeconds)} / Total: ${formatSecondsToTime(totalSecondsAll)}`;
+  }
+
 
   // ===== Persistência + Histórico =====
   function cardToData(c){
@@ -357,6 +413,7 @@
 
   function duplicateCards(cards) {
     if (!cards || !cards.length) return;
+    let newCards = []; // Keep track of newly created cards
     cards.forEach(function(c) {
       var newData = cardToData(c);
       // Remove 'when' data if duplicating outside agenda context
@@ -364,6 +421,7 @@
           newData.when = '';
       }
       var newCard = createCard(newData);
+      newCards.push(newCard); // Add to list
       c.parentElement.insertBefore(newCard, c.nextSibling);
       if (newData.when) { // If it had a 'when', ensure it stays in allCards cache
         // It's added to allCards automatically by createCard
@@ -371,14 +429,15 @@
     });
     persist();
     updateSlotsHasItems(); // Update agenda view if needed
+    updateTotalTimerDisplay(); // Update total time
   }
 
 
   function initDemo() {
     withMute(function() {
       var toDo = createList('Para Fazer');
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239'})); // Cor Q1
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155'})); // Cor Q2
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); // Cor Q1, 30 min
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); // Cor Q2, 60 min
       toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas'}));
 
       createList('Em Andamento');
@@ -386,14 +445,15 @@
 
       if (matrixEl) {
         var q1 = matrixEl.querySelector('.list[data-quad="Q1"] .cards');
-        q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239'})); // Cor Q1
+        q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); // Cor Q1, 120 min
       }
       // Add a demo goal
-      createCard({ text: "Definir meta principal da semana", when: `${getActiveDay()}TGOAL` }); // createCard adds to cache
+      createCard({ text: "Definir meta principal da semana", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); // 15 min
 
     });
     applyFilters(); // Apply filters first
     updateSlotsHasItems(); // Then render the agenda based on filtered items
+    updateTotalTimerDisplay(); // Initial total time calculation
   }
 
 
@@ -411,6 +471,7 @@
                  // and then letting updateSlotsHasItems render the agenda
                  restore(dataToRestore);
                  pushHistory(dataToRestore); // Push the raw data structure
+                 updateTotalTimerDisplay(); // Calculate total after restore
                  return;
             }
         }
@@ -418,6 +479,7 @@
     // If load failed or no data, init demo
     initDemo();
     pushHistory(serialize()); // Push initial state
+    // updateTotalTimerDisplay(); // Already called in initDemo -> applyFilters -> updateSlotsHasItems
   }
 
 
@@ -466,10 +528,10 @@
         (entry.cards || []).forEach(cardData => {
             // Ensure 'when' is correctly formatted or assigned for goals
             if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
-                 cardData.when = cardData.when.split('T')[0] + 'TGOAL';
+                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL'; // Ensure date part exists
             } else if (entry.time && cardData.when && !cardData.when.includes('T'+entry.time)) {
                 // Fix potential mismatch if time is stored separately
-                 cardData.when = cardData.when.split('T')[0] + 'T' + entry.time;
+                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time; // Ensure date part exists
             }
              createCard(cardData); // Adds to allCards cache
         });
@@ -487,6 +549,7 @@
 
     applyFilters(); // Apply general filters (color, date range, time estimate)
     updateSlotsHasItems(); // Render the agenda for the current day
+    updateTotalTimerDisplay(); // Update total time after restore
   }
 
 
@@ -510,7 +573,7 @@
           else if (state === 'finished') { disp.style.color = '#ef5350'; disp.style.background = 'rgba(239, 83, 80, 0.2)'; } // red
           else { // stopped
              var totalMins = Math.round(totalSeconds / 60);
-             disp.textContent = `⏳ ${totalMins}m`;
+             disp.textContent = `⏳ ${totalMins} min`; // Changed 'm' to ' min'
              disp.style.color = ''; disp.style.background = 'rgba(0,0,0,.2)';
           }
       } else {
@@ -538,9 +601,9 @@
     kb.addEventListener('click',function(ev){ ev.stopPropagation(); clearSelection(); addSelection(c); var r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
     c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
 
-    c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); } else if(e.ctrlKey||e.metaKey){ toggleSelection(c); } else if(!selected.has(c)) { clearSelection(); addSelection(c); } });
+    c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); } else if(e.ctrlKey||e.metaKey){ toggleSelection(c); } else if(!selected.has(c)) { clearSelection(); addSelection(c); } updateTotalTimerDisplay(); }); // Update timer on selection change
     c.addEventListener('dragstart',function(e){ e.stopPropagation(); var block = selected.has(c)? Array.from(selected) : [c]; dragState={leader:c, block:block}; block.forEach(function(n){ n.classList.add('dragging'); }); pushPH(); try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
-    c.addEventListener('dragend',function(){ if(dragState&&dragState.block){ dragState.block.forEach(function(n){ n.classList.remove('dragging'); }); } cleanupPH(); dragState=null; persist(); updateSlotsHasItems(); });
+    c.addEventListener('dragend',function(){ if(dragState&&dragState.block){ dragState.block.forEach(function(n){ n.classList.remove('dragging'); }); } cleanupPH(); dragState=null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); }); // Update timer after drag
     c.addEventListener('contextmenu',function(e){ e.preventDefault(); if(!selected.has(c)){ clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c); });
     c.addEventListener('dblclick',function(e){ e.preventDefault(); handleCardDblClick(c); });
 
@@ -548,6 +611,7 @@
     if (!allCards.includes(c)) {
         allCards.push(c);
     }
+    updateTotalTimerDisplay(); // Update total when adding card
     return c;
   }
 
@@ -557,18 +621,49 @@
       c.remove();
       persist(); // Persist after removing from cache and DOM
       updateSlotsHasItems(); // Update agenda display if it was an agenda card
+      updateTotalTimerDisplay(); // Update total after removing
   }
 
 
   function startInlineEdit(card){
     var tEl=card.querySelector('.text'); if(!tEl) return; if(card.classList.contains('editing')) return;
     card.classList.add('editing'); var original=tEl.textContent; tEl.setAttribute('contenteditable','true'); tEl.focus();
-    var sel=window.getSelection(); var range=document.createRange(); range.selectNodeContents(tEl); range.collapse(false); sel.removeAllRanges(); sel.addRange(range);
-    function finish(save){ tEl.removeEventListener('keydown',onKey); tEl.removeEventListener('blur',onBlur); tEl.removeAttribute('contenteditable'); card.classList.remove('editing'); if(!save) tEl.textContent=original; persist(); }
-    function onKey(ev){ if(ev.key==='Escape'){ ev.preventDefault(); finish(false);} if(ev.key==='Enter'&&(ev.ctrlKey||ev.metaKey)){ ev.preventDefault(); finish(true);} }
+    // Move cursor to end
+    var sel=window.getSelection();
+    var range=document.createRange();
+    range.selectNodeContents(tEl);
+    range.collapse(false); // false collapses to the end
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    function finish(save){
+        tEl.removeEventListener('keydown',onKey);
+        tEl.removeEventListener('blur',onBlur);
+        tEl.removeAttribute('contenteditable');
+        card.classList.remove('editing');
+        if(!save) {
+            tEl.textContent=original;
+        } else if (tEl.textContent.trim() === '') {
+            removeCard(card); // Remove card if text is empty after edit
+        }
+        persist();
+    }
+    function onKey(ev){
+        if(ev.key==='Escape'){
+            ev.preventDefault();
+            finish(false);
+        }
+        // Save on Enter or Ctrl+Enter/Meta+Enter
+        if(ev.key==='Enter' && !ev.shiftKey){ // Allow Shift+Enter for new lines
+            ev.preventDefault();
+            finish(true);
+        }
+    }
     function onBlur(){ finish(true); }
-    tEl.addEventListener('keydown',onKey); tEl.addEventListener('blur',onBlur);
+    tEl.addEventListener('keydown',onKey);
+    tEl.addEventListener('blur',onBlur);
   }
+
 
   // ===== Timer Logic =====
   function startGlobalTimer() {
@@ -624,11 +719,11 @@
   }
 
   // ===== DnD =====
-  var dragState=null; var draggingList=null; var selected=new Set(); var lastAnchor=null;
-  function clearSelection(){ selected.forEach(function(c){c.classList.remove('selected');}); selected.clear(); }
-  function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; }}
-  function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c);} }
-  function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } var parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return;} var cards=[].slice.call(parent.querySelectorAll('.card')); var a=cards.indexOf(lastAnchor); var b=cards.indexOf(to); var i=a<b?a:b; var j=a<b?b:a; clearSelection(); for(var k=i;k<=j;k++){ if(cards[k].style.display !== 'none') addSelection(cards[k]); } }
+  var dragState=null; var draggingList=null; var lastAnchor=null; // `selected` moved to top
+  function clearSelection(){ selected.forEach(function(c){c.classList.remove('selected');}); selected.clear(); updateTotalTimerDisplay();} // Update timer on clear
+  function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; } updateTotalTimerDisplay(); } // Update timer on add
+  function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c);} updateTotalTimerDisplay(); } // Update timer on toggle
+  function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } var parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return;} var cards=[].slice.call(parent.querySelectorAll('.card')); var a=cards.indexOf(lastAnchor); var b=cards.indexOf(to); var i=a<b?a:b; var j=a<b?b:a; clearSelection(); for(var k=i;k<=j;k++){ if(cards[k].style.display !== 'none') addSelection(cards[k]); } updateTotalTimerDisplay(); } // Update timer after range select
   function getSelectionOr(target){ return selected.size? Array.from(selected) : (target? [target] : []); }
   function pushPH(){ if(!dragState) dragState={}; var ph=el('div','placeholder'); dragState.placeholder=ph; return ph; }
   function cleanupPH(){ if(dragState&&dragState.placeholder) dragState.placeholder.remove(); }
@@ -662,6 +757,7 @@
       // Refresh agenda view after drop and persist changes
       updateSlotsHasItems();
       persist();
+      updateTotalTimerDisplay(); // Update total after drop potentially changes visibility
     }
 
     function handleDragOver(e) {
@@ -737,7 +833,7 @@
     input.type='text';
     input.placeholder='Novo cartão…';
     input.setAttribute('enterkeyhint','go');
-    function addCard(){ var v=(input.value||'').trim(); if(!v) return; var card=createCard({text:v}); cards.appendChild(card); input.value=''; input.focus(); persist(); }
+    function addCard(){ var v=(input.value||'').trim(); if(!v) return; var card=createCard({text:v}); cards.appendChild(card); input.value=''; input.focus(); persist(); /* updateTotalTimerDisplay called in createCard */}
     form.addEventListener('submit',function(e){ e.preventDefault(); addCard(); });
     form.appendChild(input);
     add.appendChild(form);
@@ -852,6 +948,7 @@
     });
     updateSlotsHasItems(); // Refresh the agenda view for the 'toDay'
     persist();
+    updateTotalTimerDisplay(); // Update total after copying
   }
 
   function getActiveDay(){ var i=document.getElementById('agendaDate'); return (i&&i.value)?i.value:new Date().toISOString().slice(0,10); }
@@ -905,7 +1002,7 @@
              card.style.display = 'none';
          }
      });
-
+     updateTotalTimerDisplay(); // Update total after visibility changes
   }
 
 
@@ -957,6 +1054,7 @@
 
     updateSlotsHasItems(); // Refresh agenda based on current date AND general filters
     updateFiltersUi(allCards.length, $$('.card[style*="display: none"]').length); // Update UI based on hidden cards count
+    updateTotalTimerDisplay(); // Update total after filtering
   }
 
 
@@ -1190,6 +1288,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           });
           applyFilters();
           document.body.removeChild(okBtn.closest('.modal-wrap')); // Close modal
+          updateTotalTimerDisplay(); // Update total after setting timer
       });
   }
   function openColorFilters(){ var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};})); showModal('Filtrar por cor', function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; if((p.hex==='*' && selectedColors.size === 0) || selectedColors.has(p.hex)) b.style.outline='2px solid #fff'; b.onclick=function(){ if(p.hex==='*'){ selectedColors.clear(); } else { if(selectedColors.has(p.hex)) selectedColors.delete(p.hex); else selectedColors.add(p.hex); } [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ btn.style.outline=''; if((btn.dataset.hex==='*' && selectedColors.size === 0) || selectedColors.has(btn.dataset.hex)) btn.style.outline='2px solid #fff'; }); }; wrap.appendChild(b); }); return wrap; }, function(body, okBtn){ applyFilters(); document.body.removeChild(okBtn.closest('.modal-wrap')); }); }
@@ -1269,6 +1368,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       }
        updateSlotsHasItems(); // Refresh agenda if needed
       persist();
+      updateTotalTimerDisplay(); // Update total after potentially adding cards
     } catch (error) {
       showModal('Erro de IA', function() {
           var d=el('div');
@@ -1305,6 +1405,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       }
       updateSlotsHasItems(); // Update agenda view as cards might have moved out
       persist();
+      updateTotalTimerDisplay(); // Update total as card visibility might change
     } catch (error) {
       showModal('Erro de IA', function() {
           var d=el('div');
@@ -1410,14 +1511,79 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
     // Undo/Redo
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey? doRedo() : doUndo(); return; }
 
+    // Ctrl+Enter to create card
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+         // Allow creating card even if input/editable is focused
+        if (document.activeElement.tagName === 'INPUT' && document.activeElement.closest('.add')) {
+             // If Enter is pressed in the 'New card...' input, let the form handle it
+             return;
+        }
+         // Prevent default Enter behavior elsewhere
+         e.preventDefault();
+
+        let targetList = null;
+        let insertAfterCard = null;
+
+        if (selected.size > 0) {
+            // Get the last selected card
+            insertAfterCard = Array.from(selected).pop();
+            targetList = insertAfterCard.closest('.list');
+        } else {
+            // Find list under mouse
+            const lists = $$('.list'); // All list types
+            targetList = lists.find(l => {
+                // Only consider lists that are currently visible
+                if (l.offsetParent === null) return false;
+                const rect = l.getBoundingClientRect();
+                return lastMouseX >= rect.left && lastMouseX <= rect.right &&
+                       lastMouseY >= rect.top && lastMouseY <= rect.bottom;
+            });
+            // Default to first Kanban list if no list found under mouse or if it's hidden
+            if (!targetList || targetList.offsetParent === null) {
+                targetList = boardEl.querySelector('.list[data-type="kanban"]');
+                // Ensure the default list is visible
+                 if (!targetList || targetList.offsetParent === null) {
+                    targetList = $$('.list[data-type="kanban"]').find(l => l.offsetParent !== null); // Find *any* visible kanban list
+                 }
+            }
+             // Further fallback if even Kanban is hidden
+             if (!targetList || targetList.offsetParent === null) {
+                  targetList = $$('.list[data-type="quad"]').find(l => l.offsetParent !== null); // Try Matrix
+             }
+              if (!targetList || targetList.offsetParent === null) {
+                  targetList = $$('.list[data-type="goal"], .list[data-type="time"]').find(l => l.offsetParent !== null); // Try Agenda
+             }
+
+        }
+
+        if (targetList) {
+            const cardsContainer = targetList.querySelector('.cards');
+            if (cardsContainer) {
+                 const newCard = createCard({ text: '' }); // Create blank
+                 if (insertAfterCard && insertAfterCard.parentElement === cardsContainer) {
+                     cardsContainer.insertBefore(newCard, insertAfterCard.nextSibling);
+                 } else {
+                     cardsContainer.appendChild(newCard); // Append to end if no selection or different list
+                 }
+                  applyWhen(targetList, [newCard]); // Handle agenda 'when' if needed
+                 persist();
+                 updateTotalTimerDisplay();
+                 startInlineEdit(newCard); // Focus and edit immediately
+            }
+        }
+        return; // Stop further key processing
+    }
+
     // Shortcuts requiring selected cards or context menu target
     var currentSelection = getSelectionOr(ctxTarget);
     // Allow Del globally ONLY if nothing specific is focused/selected
     if (!currentSelection.length && !ctxTarget && (e.key==='Delete' || e.key==='Backspace')) {
          return; // Let browser handle if nothing relevant is targeted
     }
-     // Ensure we don't interfere with text input
-    if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
+     // Ensure we don't interfere with text input UNLESS it's Del/Backspace on empty card text
+     const activeEl = document.activeElement;
+     const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
+     if ((activeEl.tagName === 'INPUT' || (activeEl.isContentEditable && !isEditingCard) )) return;
 
 
     // Context Menu Shortcuts (only if cards are selected)
@@ -1435,13 +1601,17 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         return;
     }
 
-    // Deletion Shortcut (only if cards are selected)
-    if(currentSelection.length > 0 && (e.key==='Delete' || e.key==='Backspace')){
+    // Deletion Shortcut (only if cards are selected OR if editing an empty card text)
+     if( (currentSelection.length > 0 || (isEditingCard && activeEl.textContent.trim() === '')) && (e.key==='Delete' || e.key==='Backspace')){
         e.preventDefault(); // Prevent browser back navigation on Backspace
-        showConfirm('Excluir '+currentSelection.length+' cartão(s)?', function() {
-            currentSelection.forEach(function(n){ removeCard(n); });
+
+        const cardsToDelete = currentSelection.length > 0 ? Array.from(currentSelection) : [activeEl.closest('.card')];
+        if (!cardsToDelete.length || !cardsToDelete[0]) return; // Safety check
+
+        showConfirm('Excluir '+cardsToDelete.length+' cartão(s)?', function() {
+            cardsToDelete.forEach(function(n){ removeCard(n); });
             clearSelection(); // Clear selection after delete
-            // Persist is called within removeCard
+            // Persist called in removeCard
         });
         return;
     }
@@ -1531,8 +1701,9 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         if (!Array.isArray(dataToRestore)) {
             throw new Error("Formato JSON inválido. Array de dados não encontrado.");
         }
-        restore(dataToRestore);
-        persist(); // Persist after successful restore
+        // Prompt user for action
+        promptImportAction(dataToRestore);
+
       }catch(err){
         showModal('Erro de Importação', function(){
             var d=el('div');
@@ -1544,6 +1715,103 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
     reader.readAsText(file);
     e.target.value = ''; // Reset file input to allow re-importing the same file
   };
+
+   // Function to prompt import action
+  function promptImportAction(dataToRestore) {
+      showModal('Importar Dados', function() {
+          var container = el('div');
+          container.textContent = 'Como deseja importar os dados do ficheiro?';
+          var btnRow = el('div', 'row import-options'); // Use row for button layout
+          var replaceBtn = el('button'); replaceBtn.textContent = 'Substituir';
+          var mergeBtn = el('button'); mergeBtn.textContent = 'Mesclar';
+          // Cancel button is added by showModal, we replace its text/style later if needed
+
+          replaceBtn.onclick = function() {
+              restore(dataToRestore);
+              persist();
+              document.body.removeChild(container.closest('.modal-wrap'));
+          };
+          mergeBtn.onclick = function() {
+              mergeData(dataToRestore);
+              persist();
+              document.body.removeChild(container.closest('.modal-wrap'));
+          };
+
+          btnRow.appendChild(replaceBtn);
+          btnRow.appendChild(mergeBtn);
+          container.appendChild(btnRow);
+
+          // We return only the content part for showModal
+          return container;
+      }, function(body, okBtn) {
+           // The default OK button in showModal is not needed here as actions are on custom buttons
+           // We just need to ensure the modal closes if Cancel is clicked (handled by default showModal)
+           // If the user clicks outside, it should also close ideally, but showModal doesn't handle that
+           // We'll rely on the Cancel button or specific action buttons.
+           // Let's hide the default OK button if possible, or repurpose Cancel
+           okBtn.style.display = 'none'; // Hide default OK
+           const cancelBtn = body.closest('.modal').querySelector('.cancel');
+           if(cancelBtn) cancelBtn.textContent = 'Cancelar Importação'; // Make cancel more specific
+      });
+  }
+
+  // Function to merge imported data with existing data
+  function mergeData(dataToMerge) {
+      const currentKanbanLists = {};
+      $$('.list[data-type="kanban"]', boardEl).forEach(l => {
+          currentKanbanLists[l.querySelector('.title').value] = l.querySelector('.cards');
+      });
+      const quadMap = {
+          Q1: matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
+          Q2: matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
+          Q3: matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
+          Q4: matrixEl.querySelector('.list[data-quad="Q4"] .cards')
+      };
+
+      dataToMerge.forEach(entry => {
+          if (entry.type === 'kanban') {
+              let targetContainer = currentKanbanLists[entry.title];
+              if (!targetContainer) {
+                  // Create list if it doesn't exist
+                  const newList = createList(entry.title);
+                  targetContainer = newList.querySelector('.cards');
+              }
+              (entry.cards || []).forEach(cardData => {
+                  // Avoid adding exact duplicates (simple check based on text) - could be more robust
+                  const exists = Array.from(targetContainer.children).some(c => c.querySelector('.text').textContent.trim() === cardData.text.trim());
+                  if (!exists) {
+                      targetContainer.appendChild(createCard(cardData));
+                  }
+              });
+          } else if (entry.type === 'quad' && quadMap[entry.quad]) {
+              (entry.cards || []).forEach(cardData => {
+                   const exists = Array.from(quadMap[entry.quad].children).some(c => c.querySelector('.text').textContent.trim() === cardData.text.trim());
+                   if (!exists) {
+                       quadMap[entry.quad].appendChild(createCard(cardData));
+                   }
+              });
+          } else if (entry.type === 'time' || entry.type === 'goal') {
+              (entry.cards || []).forEach(cardData => {
+                   // Ensure 'when' is correctly formatted or assigned for goals
+                   if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
+                        cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL';
+                   } else if (entry.time && cardData.when && !cardData.when.includes('T'+entry.time)) {
+                       cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time;
+                   }
+                   // Check if card already exists in cache (more robust check needed)
+                   const existsInCache = allCards.some(c => c.dataset.when === cardData.when && c.querySelector('.text').textContent.trim() === cardData.text.trim());
+                   if (!existsInCache) {
+                        createCard(cardData); // Add to cache, updateSlotsHasItems will handle DOM placement
+                   }
+              });
+          }
+      });
+      applyFilters();
+      updateSlotsHasItems();
+      updateTotalTimerDisplay();
+  }
+
+
    // Function to generate timestamp string
   function getTimestamp() {
       const now = new Date();
