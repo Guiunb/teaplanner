@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.2)</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.3)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -27,13 +27,14 @@
         gap: 12px;
         transition: gap .3s ease-in-out;
         position: relative; /* Needed for absolute positioning of toggles */
+        overflow: hidden; /* Prevent body scroll */
     }
 
     #main-content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
+        overflow-y: auto; /* Allow this main area to scroll */
         min-width: 0;
         position: relative; /* For toggle buttons */
         transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
@@ -50,8 +51,9 @@
 
     .board-container, .matrix-container {
         position: relative;
-        transition: height .3s ease-in-out, min-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, flex-grow .3s ease-in-out;
+        transition: height .3s ease-in-out, min-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, flex-grow .3s ease-in-out, flex-shrink .3s ease-in-out;
         overflow: hidden; /* Hide content during collapse */
+        flex-shrink: 0; /* Prevent shrinking initially */
     }
      .board-container.collapsed, .matrix-container.collapsed {
         height: 0 !important;
@@ -62,10 +64,12 @@
         border: none; /* Avoid border showing when collapsed */
         margin: 0;
         flex-grow: 0; /* Don't grow when collapsed */
+        flex-shrink: 1; /* Allow shrinking when collapsed */
     }
 
-    .board-container { flex-grow: 1; display: flex; flex-direction: column; }
-    .matrix-container { flex-grow: 1; display: flex; flex-direction: column;}
+    /* Adjust flex properties, Kanban less likely to grow than Matrix if space is tight */
+    .board-container { flex-grow: 0; display: flex; flex-direction: column;}
+    .matrix-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 300px; /* Ensure matrix has minimum space */}
 
 
     .board {
@@ -80,12 +84,16 @@
     .matrix {
         display: grid;
         grid-template-columns: 40px 1fr 1fr;
-        grid-template-rows: 40px auto auto;
+        grid-template-rows: 40px minmax(100px, auto) minmax(100px, auto); /* Ensure rows have min height */
         gap: 12px;
-        align-items: start;
+        align-items: stretch; /* Stretch items vertically */
         padding-top: 16px;
-        min-height: 200px;
-        flex-grow: 1;
+        min-height: 300px; /* Minimum height for the grid */
+        flex-grow: 1; /* Allow matrix grid to take available space */
+    }
+     .matrix .list { /* Make lists inside matrix stretch */
+        align-self: stretch;
+        min-height: 100px; /* Ensure list has some height */
     }
 
     #agenda-sidebar {
@@ -110,9 +118,9 @@
     .toggle-tab { display: none; }
 
     .list{background:var(--panel);border:1px solid #183453;border-radius:10px;display:flex;flex-direction:column;min-width:240px;flex-shrink:0}
-    .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a}
+    .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a; flex-shrink: 0;} /* Prevent header shrink */
     .list header input.title{flex:1;border:none;border-radius:8px;padding:6px 8px;background:#0e2542;color:var(--ink)}
-    .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px}
+    .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px; overflow-y: auto; flex-grow: 1;} /* Allow cards area to scroll if needed */
     .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative;transition:opacity .2s, transform .2s}
     .card.dragging{opacity:0.5;transform:rotate(3deg)}
     .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
@@ -122,7 +130,7 @@
     .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #375b86}
     .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
     .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-    .add{padding:8px;border-top:1px solid #19375b}.add .row{display:flex;gap:6px}
+    .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px} /* Prevent add section shrink */
     .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink)}
 
     .axis{display:flex;align-items:center;justify-content:center;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a4e78;border-radius:10px}
@@ -1246,16 +1254,45 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       var ok=el('button','ok'); ok.textContent='OK';
       row.appendChild(cancel); row.appendChild(ok); box.appendChild(row);
       wrap.appendChild(box); document.body.appendChild(wrap);
-      cancel.onclick=function(){document.body.removeChild(wrap);};
+
+      // Enter key listener for the modal
+      const modalKeyListener = function(e) {
+          if (e.key === 'Enter') {
+              e.preventDefault();
+              ok.click(); // Trigger the OK button click
+          } else if (e.key === 'Escape') {
+               e.preventDefault();
+               cancel.click(); // Trigger Cancel on Escape
+          }
+      };
+      wrap.setAttribute('tabindex', '-1'); // Make the modal focusable
+      wrap.focus(); // Focus the modal itself
+      wrap.addEventListener('keydown', modalKeyListener);
+
+      cancel.onclick=function(){
+          wrap.removeEventListener('keydown', modalKeyListener); // Clean up listener
+          document.body.removeChild(wrap);
+      };
       // Modified ok.onclick to pass the ok button itself to onOk
-      ok.onclick=function(){ onOk(body, ok); /* document.body.removeChild(wrap); // Let onOk handle removal */ };
+      ok.onclick=function(){
+           wrap.removeEventListener('keydown', modalKeyListener); // Clean up listener
+           onOk(body, ok); // Let onOk handle removal if needed, otherwise remove below
+           // Ensure modal is removed if onOk doesn't handle it
+           if (wrap.parentNode === document.body) {
+               document.body.removeChild(wrap);
+           }
+      };
       var firstInput = body.querySelector('input'); if(firstInput) firstInput.focus();
-      return { wrap: wrap, okButton: ok }; // Return wrap and ok button
+      return { wrap: wrap, okButton: ok, cancelButton: cancel }; // Return wrap and buttons
   }
 
-  function showConfirm(message,onYes){ showModal('Confirmação', function(){ var d=el('div'); d.textContent=message; return d; }, function(body, okBtn){ if(typeof onYes==='function') onYes(); document.body.removeChild(okBtn.closest('.modal-wrap')); }); }
-  function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.style.outline='';}); b.style.outline='2px solid #fff'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.style.outline='2px solid #fff'; wrap.appendChild(b); }); return wrap; }, function(wrap, okBtn){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); applyFilters(); document.body.removeChild(okBtn.closest('.modal-wrap')); }); }
-  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, okBtn){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; }); applyFilters(); document.body.removeChild(okBtn.closest('.modal-wrap')); }); }
+  function showConfirm(message,onYes){
+      const { wrap, okButton, cancelButton } = showModal('Confirmação', function(){ var d=el('div'); d.textContent=message; return d; }, function(body, okBtn){ if(typeof onYes==='function') onYes(); /* Removal handled by default click */ });
+      // No specific Enter handling needed here as showModal already adds it.
+  }
+
+  function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.style.outline='';}); b.style.outline='2px solid #fff'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.style.outline='2px solid #fff'; wrap.appendChild(b); }); return wrap; }, function(wrap, okBtn){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); applyFilters(); }); }
+  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, okBtn){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; }); applyFilters(); }); }
   function openTimerDialog(cards) {
       if (!cards.length) return;
       var modalElements = showModal('Definir Timer (minutos)', function() { // Capture return value
@@ -1267,14 +1304,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   <input type="number" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; margin-top: 4px;">
               </label>
           `;
-           // Add Enter key listener
-           const input = r.querySelector('.timer-input');
-           input.addEventListener('keydown', function(e) {
-               if (e.key === 'Enter') {
-                   e.preventDefault();
-                   modalElements.okButton.click(); // Simulate OK button click
-               }
-           });
+           // Enter key listener added directly within showModal now
           return r;
       }, function(r, okBtn) { // onOk receives the ok button
           var timerMins = r.querySelector('.timer-input').value;
@@ -1287,11 +1317,11 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
               paintCard(c);
           });
           applyFilters();
-          document.body.removeChild(okBtn.closest('.modal-wrap')); // Close modal
+          // Modal removal handled by default showModal ok click
           updateTotalTimerDisplay(); // Update total after setting timer
       });
   }
-  function openColorFilters(){ var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};})); showModal('Filtrar por cor', function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; if((p.hex==='*' && selectedColors.size === 0) || selectedColors.has(p.hex)) b.style.outline='2px solid #fff'; b.onclick=function(){ if(p.hex==='*'){ selectedColors.clear(); } else { if(selectedColors.has(p.hex)) selectedColors.delete(p.hex); else selectedColors.add(p.hex); } [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ btn.style.outline=''; if((btn.dataset.hex==='*' && selectedColors.size === 0) || selectedColors.has(btn.dataset.hex)) btn.style.outline='2px solid #fff'; }); }; wrap.appendChild(b); }); return wrap; }, function(body, okBtn){ applyFilters(); document.body.removeChild(okBtn.closest('.modal-wrap')); }); }
+  function openColorFilters(){ var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};})); showModal('Filtrar por cor', function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; if((p.hex==='*' && selectedColors.size === 0) || selectedColors.has(p.hex)) b.style.outline='2px solid #fff'; b.onclick=function(){ if(p.hex==='*'){ selectedColors.clear(); } else { if(selectedColors.has(p.hex)) selectedColors.delete(p.hex); else selectedColors.add(p.hex); } [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ btn.style.outline=''; if((btn.dataset.hex==='*' && selectedColors.size === 0) || selectedColors.has(btn.dataset.hex)) btn.style.outline='2px solid #fff'; }); }; wrap.appendChild(b); }); return wrap; }, function(body, okBtn){ applyFilters(); /* Modal removal handled by default */ }); }
 
   // ===== Gemini API Integration =====
   function showLoader(message) {
@@ -1709,7 +1739,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             var d=el('div');
             d.textContent='Não foi possível ler o arquivo JSON. Verifique se o arquivo está no formato correto. Erro: ' + err.message;
             return d;
-        },function(body, okBtn){ document.body.removeChild(okBtn.closest('.modal-wrap'));}); // Allow closing error modal
+        },function(body, okBtn){ /* Modal removal handled by default click */ }); // Allow closing error modal
       }
     };
     reader.readAsText(file);
@@ -1718,13 +1748,12 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
    // Function to prompt import action
   function promptImportAction(dataToRestore) {
-      showModal('Importar Dados', function() {
+      const { wrap, okButton, cancelButton } = showModal('Importar Dados', function() {
           var container = el('div');
           container.textContent = 'Como deseja importar os dados do ficheiro?';
           var btnRow = el('div', 'row import-options'); // Use row for button layout
           var replaceBtn = el('button'); replaceBtn.textContent = 'Substituir';
           var mergeBtn = el('button'); mergeBtn.textContent = 'Mesclar';
-          // Cancel button is added by showModal, we replace its text/style later if needed
 
           replaceBtn.onclick = function() {
               restore(dataToRestore);
@@ -1741,18 +1770,18 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           btnRow.appendChild(mergeBtn);
           container.appendChild(btnRow);
 
-          // We return only the content part for showModal
+          // Return only the content part for showModal
           return container;
       }, function(body, okBtn) {
-           // The default OK button in showModal is not needed here as actions are on custom buttons
-           // We just need to ensure the modal closes if Cancel is clicked (handled by default showModal)
-           // If the user clicks outside, it should also close ideally, but showModal doesn't handle that
-           // We'll rely on the Cancel button or specific action buttons.
-           // Let's hide the default OK button if possible, or repurpose Cancel
-           okBtn.style.display = 'none'; // Hide default OK
-           const cancelBtn = body.closest('.modal').querySelector('.cancel');
-           if(cancelBtn) cancelBtn.textContent = 'Cancelar Importação'; // Make cancel more specific
+           // This function is only called when OK or Enter is pressed,
+           // but we handle actions via custom buttons. So, do nothing here.
+           // We keep the OK button hidden.
       });
+      // Hide the default OK button provided by showModal
+      if(okButton) okButton.style.display = 'none';
+      if(cancelButton) cancelButton.textContent = 'Cancelar Importação';
+
+      // Add keydown listener specifically for this modal to handle Enter on Merge/Replace? No, rely on focus + Enter.
   }
 
   // Function to merge imported data with existing data
@@ -1775,6 +1804,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   // Create list if it doesn't exist
                   const newList = createList(entry.title);
                   targetContainer = newList.querySelector('.cards');
+                  currentKanbanLists[entry.title] = targetContainer; // Add to map
               }
               (entry.cards || []).forEach(cardData => {
                   // Avoid adding exact duplicates (simple check based on text) - could be more robust
