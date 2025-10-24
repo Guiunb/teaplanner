@@ -347,64 +347,44 @@
     var t=c.querySelector('.text');
     return{ text:(t?t.textContent:'').trim(), color:c.dataset.color||'', due:c.dataset.due||'', when:c.dataset.when||'', timerTotal:c.dataset.timerTotal||'', timerLeft:c.dataset.timerLeft||'', timerState:c.dataset.timerState||'' };
   }
-  function serialize(){ var data=[];
-    // Serialize directly from the allCards cache for consistency
-     const allSerializedCards = allCards.map(cardToData);
-     data = []; // Reset data
+  function serialize(){
+         var data=[];
 
-     // Group cards by their current location based on cache data
-     const kanbanData = {};
-     const matrixData = {};
-     const agendaGoalCards = [];
-     const agendaTimeCards = {};
+         // 1. Serialize Kanban lists IN DOM ORDER
+         $$('.list[data-type="kanban"]', boardEl).forEach(function(l) {
+             const title = l.querySelector('.title').value;
+             // Get cards from this list that are in the main cache
+             const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
+             data.push({ type: 'kanban', title: title, cards: cardsInList });
+         });
 
-      allCards.forEach(card => {
-         const cardData = cardToData(card);
-         const parentList = card.closest('.list');
-         if (parentList) {
-             const listType = parentList.dataset.type;
-             if (listType === 'kanban') {
-                 const title = parentList.querySelector('.title').value;
-                 if (!kanbanData[title]) kanbanData[title] = [];
-                 kanbanData[title].push(cardData);
-             } else if (listType === 'quad') {
-                 const quad = parentList.dataset.quad;
-                  if (!matrixData[quad]) matrixData[quad] = [];
-                 matrixData[quad].push(cardData);
-             } else if (listType === 'goal' && card.dataset.when && card.dataset.when.endsWith('TGOAL')) {
-                  agendaGoalCards.push(cardData);
-             } else if (listType === 'time' && card.dataset.when && /T\d{2}:\d{2}$/.test(card.dataset.when)) {
-                  const time = card.dataset.when.substring(11);
-                  if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
-                  agendaTimeCards[time].push(cardData);
-             }
-         } else if (card.dataset.when) { // Handle cards potentially detached but still in cache with 'when'
-             if (card.dataset.when.endsWith('TGOAL')) {
-                 agendaGoalCards.push(cardData);
-             } else if (/T\d{2}:\d{2}$/.test(card.dataset.when)) {
-                 const time = card.dataset.when.substring(11);
-                 if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
-                 agendaTimeCards[time].push(cardData);
-             }
+         // 2. Serialize Matrix lists IN DOM ORDER
+         if (matrixEl) {
+             $$('.list[data-type="quad"]', matrixEl).forEach(function(l) {
+                 const quad = l.dataset.quad;
+                 // Get cards from this list that are in the main cache
+                 const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
+                 data.push({ type: 'quad', quad: quad, cards: cardsInList });
+             });
          }
-         // Cards without parent list and without 'when' are considered "lost", maybe add error handling or put them somewhere default?
-      });
 
-      // Assemble final data structure
-     for (const title in kanbanData) {
-         data.push({ type: 'kanban', title: title, cards: kanbanData[title] });
-     }
-     for (const quad in matrixData) {
-         data.push({ type: 'quad', quad: quad, cards: matrixData[quad] });
-     }
-      if (agendaGoalCards.length > 0) {
-         data.push({ type: 'goal', goal: true, cards: agendaGoalCards });
-     }
-      for (const time in agendaTimeCards) {
-         data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
-     }
+         // 3. Serialize Agenda cards FROM CACHE (as they might not be in DOM)
+         const agendaGoalCards = allCards.filter(c => c.dataset.when && c.dataset.when.endsWith('TGOAL')).map(cardToData);
+         if (agendaGoalCards.length > 0) {
+             data.push({ type: 'goal', goal: true, cards: agendaGoalCards });
+         }
 
-    return data;
+         const agendaTimeCards = {};
+         allCards.filter(c => c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
+             const time = c.dataset.when.substring(11);
+             if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
+             agendaTimeCards[time].push(cardToData(c));
+         });
+         for (const time in agendaTimeCards) {
+              data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
+         }
+
+        return data;
   }
 
 
@@ -1875,4 +1855,5 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 </script>
 </body>
 </html>
+
 
