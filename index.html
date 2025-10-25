@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.3)</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.5)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -375,14 +375,14 @@
          }
 
          const agendaTimeCards = {};
-         allCards.filter(c => c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
-             const time = c.dataset.when.substring(11);
-             if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
-             agendaTimeCards[time].push(cardToData(c));
-         });
-         for (const time in agendaTimeCards) {
-              data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
-         }
+          allCards.filter(c => c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
+              const time = c.dataset.when.substring(11);
+              if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
+              agendaTimeCards[time].push(cardToData(c));
+          });
+          for (const time in agendaTimeCards) {
+               data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
+          }
 
         return data;
   }
@@ -477,16 +477,20 @@
     allCards = []; // Clear the cache first
 
     // Clear visible lists in DOM
-    $$('.list[data-type="kanban"] .cards', boardEl).forEach(c => c.innerHTML = '');
-    $$('.list[data-type="quad"] .cards', matrixEl).forEach(c => c.innerHTML = '');
-    $$('.list[data-type="goal"] .cards, .list[data-type="time"] .cards', schedule).forEach(c => c.innerHTML = '');
+    boardEl.innerHTML = ''; // << Clear the Kanban board
+    matrixEl.innerHTML = ''; // << Clear the Matrix
+    slotsRoot.innerHTML = ''; // << Clear the Agenda slots
 
-    var kanbanLists = {}, quadMap = {};
-    $$('.list[data-type="kanban"]', boardEl).forEach(function(l) { kanbanLists[l.querySelector('.title').value] = l.querySelector('.cards'); });
-    if(matrixEl) {
-      quadMap = { Q1:matrixEl.querySelector('.list[data-quad="Q1"] .cards'), Q2:matrixEl.querySelector('.list[data-quad="Q2"] .cards'), Q3:matrixEl.querySelector('.list[data-quad="Q3"] .cards'), Q4:matrixEl.querySelector('.list[data-quad="Q4"] .cards') };
-    }
-    // No need for timeMap, updateSlotsHasItems handles agenda rendering
+    // Rebuild empty structures
+    ensureMatrix();
+    ensureSchedule(false);
+
+    var quadMap = { // Get quadrant containers *after* rebuilding
+      Q1:matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
+      Q2:matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
+      Q3:matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
+      Q4:matrixEl.querySelector('.list[data-quad="Q4"] .cards')
+    };
 
     function appendCardsToDOM(container, cardsData){
       if(!container || !cardsData || !cardsData.length) return;
@@ -498,17 +502,11 @@
       container.appendChild(fragment);
     }
 
-    var existingKanbanTitles = new Set(Object.keys(kanbanLists));
-
     data.forEach(function(entry){
       if(entry.type==='kanban'){
-        if (kanbanLists[entry.title]) {
-            appendCardsToDOM(kanbanLists[entry.title], entry.cards);
-            existingKanbanTitles.delete(entry.title);
-        } else {
-            var l = createList(entry.title || 'Lista');
-            appendCardsToDOM(l.querySelector('.cards'), entry.cards);
-        }
+        // THIS IS THE FIX: Create the list first, then append
+        var l = createList(entry.title || 'Lista');
+        appendCardsToDOM(l.querySelector('.cards'), entry.cards);
       } else if(entry.type==='quad' && quadMap[entry.quad]){
         appendCardsToDOM(quadMap[entry.quad], entry.cards);
       } else if(entry.type==='time' || entry.type === 'goal'){
@@ -525,15 +523,6 @@
         });
       }
     });
-
-    // Remove any empty Kanban lists that weren't in the data
-    existingKanbanTitles.forEach(title => {
-        const listToRemove = $$('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value === title);
-        if (listToRemove && listToRemove.querySelectorAll('.card').length === 0) {
-            listToRemove.remove();
-        }
-    });
-
 
     applyFilters(); // Apply general filters (color, date range, time estimate)
     updateSlotsHasItems(); // Render the agenda for the current day
@@ -1238,8 +1227,11 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       // Enter key listener for the modal
       const modalKeyListener = function(e) {
           if (e.key === 'Enter') {
-              e.preventDefault();
-              ok.click(); // Trigger the OK button click
+              // Only trigger OK if the active element isn't a button (like the custom ones in import)
+              if (document.activeElement.tagName !== 'BUTTON') {
+                 e.preventDefault();
+                 ok.click(); // Trigger the default OK button click
+              }
           } else if (e.key === 'Escape') {
                e.preventDefault();
                cancel.click(); // Trigger Cancel on Escape
@@ -1284,7 +1276,14 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   <input type="number" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; margin-top: 4px;">
               </label>
           `;
-           // Enter key listener added directly within showModal now
+           // Add Enter key listener to the input field
+           const input = r.querySelector('.timer-input');
+           input.addEventListener('keydown', function(e) {
+               if (e.key === 'Enter') {
+                   e.preventDefault();
+                   modalElements.okButton.click(); // Simulate OK button click
+               }
+           });
           return r;
       }, function(r, okBtn) { // onOk receives the ok button
           var timerMins = r.querySelector('.timer-input').value;
@@ -1513,7 +1512,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   document.getElementById('undo').onclick=doUndo; document.getElementById('redo').onclick=doRedo;
   document.getElementById('clearFilters').onclick=function(){ selectedColors.clear(); document.getElementById('fFrom').value=''; document.getElementById('fTo').value=''; document.getElementById('fTime').value=''; applyFilters(); };
   document.getElementById('agendaDate').addEventListener('change', applyFilters ); // Use applyFilters directly
-  document.getElementById('copyDay').addEventListener('click',function(){ showModal('Copiar agenda de…',function(){ var w=el('div'); var i=el('input'); i.type='date'; i.style.width='100%'; w.appendChild(i); return w; },function(w, okBtn){ var from=w.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); document.body.removeChild(okBtn.closest('.modal-wrap')); }); });
+  document.getElementById('copyDay').addEventListener('click',function(){ showModal('Copiar agenda de…',function(){ var w=el('div'); var i=el('input'); i.type='date'; i.style.width='100%'; w.appendChild(i); return w; },function(w, okBtn){ var from=w.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); /* Modal removal handled by default click */ }); });
   $$('#fFrom, #fTo, #fTime').forEach(function(el){ el.addEventListener('input', applyFilters); });
 
   // Keyboard Shortcuts Listener
@@ -1760,8 +1759,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       // Hide the default OK button provided by showModal
       if(okButton) okButton.style.display = 'none';
       if(cancelButton) cancelButton.textContent = 'Cancelar Importação';
-
-      // Add keydown listener specifically for this modal to handle Enter on Merge/Replace? No, rely on focus + Enter.
   }
 
   // Function to merge imported data with existing data
@@ -1855,5 +1852,4 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 </script>
 </body>
 </html>
-
 
