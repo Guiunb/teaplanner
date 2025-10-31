@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.5)</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.7)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -129,6 +129,7 @@
     .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #375b86}
     .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
+    .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; } /* Date display */
     .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
     .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px} /* Prevent add section shrink */
     .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink)}
@@ -249,6 +250,8 @@
 
 <!-- Updated Context Menu Structure -->
 <div id="ctx" class="ctx">
+  <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+  <div class="sep"></div>
   <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
   <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
   <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
@@ -563,6 +566,22 @@
     if (color) { c.style.borderColor = color; c.style.borderLeftColor = color; }
     else { c.style.borderColor = '#20486f'; c.style.borderLeftColor = 'transparent'; }
     var dot=c.querySelector('.dot'); if(dot) dot.style.background=color||'transparent';
+    var dateEl = c.querySelector('.due-date');
+    if (c.dataset.due) {
+        if (!dateEl) {
+             dateEl = el('span', 'due-date');
+             c.querySelector('.meta').appendChild(dateEl);
+        }
+        try {
+            const [y, m, d] = c.dataset.due.split('-');
+            dateEl.textContent = `📅 ${d}/${m}`;
+        } catch(e) {
+             dateEl.textContent = '📅 ' + c.dataset.due;
+        }
+        dateEl.style.display = '';
+    } else if (dateEl) {
+        dateEl.style.display = 'none'; // Hide if no date
+    }
     updateTimerDisplay(c);
   }
 
@@ -573,7 +592,13 @@
     c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerTotal || ''; c.dataset.timerState = _d.timerState || 'stopped';
 
     var t=el('span','text'); t.textContent=_d.text||'';
-    var meta=el('div','meta'); var dot=el('span','dot'); var timerDisp=el('span','timer-display'); meta.appendChild(dot); meta.appendChild(timerDisp);
+    var meta=el('div','meta');
+    var dot=el('span','dot');
+    var timerDisp=el('span','timer-display');
+    var dateDisp = el('span', 'due-date'); // Create element for date
+    meta.appendChild(dot);
+    meta.appendChild(timerDisp);
+    meta.appendChild(dateDisp); // Add to meta
     var kb=el('button','kebab'); kb.type='button'; kb.textContent='⋮';
     kb.addEventListener('click',function(ev){ ev.stopPropagation(); clearSelection(); addSelection(c); var r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
     c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
@@ -1180,7 +1205,8 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
     if(action==='move'){ ctxMoveSub.style.display=(ctxMoveSub.style.display==='block'?'none':'block'); ctxMoveAllSub.style.display='none'; return; }
     if(action==='move-all'){ var list=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display=(ctxMoveAllSub.style.display==='block'?'none':'block'); ctxMoveSub.style.display='none'; return; }
     hideCtx();
-    if(action==='gemini-subtasks'){ generateSubtasks(block); }
+    if(action==='edit'){ if(block.length) startInlineEdit(block[0]); } // F2 action
+    else if(action==='gemini-subtasks'){ generateSubtasks(block); }
     else if(action==='gemini-organize'){ organizeCardWithGemini(block); }
     else if(action==='dup'){ duplicateCards(block); }
     else if(action==='del'){ block.forEach(function(n){ removeCard(n); }); /* Persist is called within removeCard */ }
@@ -1276,14 +1302,16 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   <input type="number" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; margin-top: 4px;">
               </label>
           `;
-           // Add Enter key listener to the input field
+           // Enter key listener added directly within showModal now
            const input = r.querySelector('.timer-input');
-           input.addEventListener('keydown', function(e) {
-               if (e.key === 'Enter') {
-                   e.preventDefault();
-                   modalElements.okButton.click(); // Simulate OK button click
-               }
-           });
+           if (input) { // Add safety check
+             input.addEventListener('keydown', function(e) {
+                 if (e.key === 'Enter') {
+                     e.preventDefault();
+                     modalElements.okButton.click(); // Simulate OK button click
+                 }
+             });
+           }
           return r;
       }, function(r, okBtn) { // onOk receives the ok button
           var timerMins = r.querySelector('.timer-input').value;
@@ -1592,7 +1620,8 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
      // Ensure we don't interfere with text input UNLESS it's Del/Backspace on empty card text
      const activeEl = document.activeElement;
      const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
-     if ((activeEl.tagName === 'INPUT' || (activeEl.isContentEditable && !isEditingCard) )) return;
+     // Allow key shortcuts if not typing in an input OR if F2 is pressed
+     if ((activeEl.tagName === 'INPUT' || (activeEl.isContentEditable && !isEditingCard) ) && e.key !== 'F2') return;
 
 
     // Context Menu Shortcuts (only if cards are selected)
@@ -1602,6 +1631,13 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         else if (e.key.toLowerCase() === 'd') { e.preventDefault(); openDateDialog(currentSelection); }
         return;
     }
+    // F2 to Edit
+    if (currentSelection.length > 0 && e.key === 'F2') {
+         e.preventDefault();
+         startInlineEdit(currentSelection[0]); // Edit the first selected card
+         return;
+    }
+
 
      // Duplication Shortcut (only if cards are selected)
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
@@ -1612,6 +1648,9 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
     // Deletion Shortcut (only if cards are selected OR if editing an empty card text)
      if( (currentSelection.length > 0 || (isEditingCard && activeEl.textContent.trim() === '')) && (e.key==='Delete' || e.key==='Backspace')){
+         // If editing, don't trigger delete, let inline edit handle it
+         if (isEditingCard) return;
+
         e.preventDefault(); // Prevent browser back navigation on Backspace
 
         const cardsToDelete = currentSelection.length > 0 ? Array.from(currentSelection) : [activeEl.closest('.card')];
