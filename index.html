@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v7.7)</title>
+  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v8.0)</title>
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -125,9 +125,14 @@
     .card.dragging{opacity:0.5;transform:rotate(3deg)}
     .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
     .card.editing { background: #1a4b7f; } /* Highlight while editing */
-    .card .text{white-space:pre-wrap; min-height: 1em;} /* Ensure editable area has height */
+    .card .text{white-space:pre-wrap; min-height: 1em; transition: opacity .2s, text-decoration .2s;} /* Ensure editable area has height */
+    .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; } /* Completed Style */
+    
     .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .dot{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid #375b86}
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-flex;border:1px solid #375b86; position: relative; align-items: center; justify-content: center; cursor: pointer;} /* Changed to inline-flex */
+    .dot-check { display: none; color: #fff; font-weight: bold; font-size: 10px; line-height: 10px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); user-select: none; } /* Checkmark */
+    .card[data-completed="true"] .dot-check { display: block; } /* Show checkmark when completed */
+
     .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
     .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; } /* Date display */
     .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
@@ -331,8 +336,11 @@
           // Check if card is currently displayed (not display: none)
           // Use computed style for a more robust visibility check
           const style = window.getComputedStyle(card);
-          if (style.display !== 'none' && style.visibility !== 'hidden' && card.offsetParent !== null) {
-               visibleSeconds += cardTime;
+          if (style.display !== 'none' && style.visibility !== 'hidden') {
+               // Check offsetParent as a final check for truly visible
+               if (card.offsetParent !== null) {
+                    visibleSeconds += cardTime;
+               }
           }
       });
 
@@ -348,7 +356,16 @@
   // ===== Persistência + Histórico =====
   function cardToData(c){
     var t=c.querySelector('.text');
-    return{ text:(t?t.textContent:'').trim(), color:c.dataset.color||'', due:c.dataset.due||'', when:c.dataset.when||'', timerTotal:c.dataset.timerTotal||'', timerLeft:c.dataset.timerLeft||'', timerState:c.dataset.timerState||'' };
+    return{
+        text:(t?t.textContent:'').trim(),
+        color:c.dataset.color||'',
+        due:c.dataset.due||'',
+        when:c.dataset.when||'',
+        timerTotal:c.dataset.timerTotal||'',
+        timerLeft:c.dataset.timerLeft||'',
+        timerState:c.dataset.timerState||'',
+        completed: c.dataset.completed || 'false' // Add completed state
+    };
   }
   function serialize(){
          var data=[];
@@ -429,7 +446,7 @@
       var toDo = createList('Para Fazer');
       toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); // Cor Q1, 30 min
       toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); // Cor Q2, 60 min
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas'}));
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas', completed: 'true'})); // Completed demo
 
       createList('Em Andamento');
       createList('Feito');
@@ -561,6 +578,18 @@
       }
   }
 
+  // New function to toggle card completion state
+  function toggleCardCompletion(e) {
+      e.stopPropagation(); // Stop click from bubbling to card (for selection/dblclick)
+      const card = e.target.closest('.card');
+      if (!card) return;
+      const isCompleted = card.dataset.completed === 'true';
+      card.dataset.completed = isCompleted ? 'false' : 'true';
+      persist();
+      // CSS handles the visual update (strikethrough and checkmark)
+  }
+
+
   function paintCard(c){
     var color = c.dataset.color || '';
     if (color) { c.style.borderColor = color; c.style.borderLeftColor = color; }
@@ -590,10 +619,13 @@
     var c=el('div','card'); c.draggable=true;
     c.dataset.color=_d.color||''; c.dataset.due=_d.due||''; c.dataset.when=_d.when||'';
     c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerTotal || ''; c.dataset.timerState = _d.timerState || 'stopped';
+    c.dataset.completed = _d.completed || 'false'; // Add completed state
 
     var t=el('span','text'); t.textContent=_d.text||'';
     var meta=el('div','meta');
     var dot=el('span','dot');
+    var dotCheck = el('span', 'dot-check'); dotCheck.textContent = '✓'; // Add checkmark
+    dot.appendChild(dotCheck); // Add checkmark inside dot
     var timerDisp=el('span','timer-display');
     var dateDisp = el('span', 'due-date'); // Create element for date
     meta.appendChild(dot);
@@ -603,11 +635,21 @@
     kb.addEventListener('click',function(ev){ ev.stopPropagation(); clearSelection(); addSelection(c); var r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
     c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
 
+    // Event Listeners
+    dot.addEventListener('click', toggleCardCompletion); // Click on dot toggles complete
+    dot.addEventListener('dblclick', (e) => e.stopPropagation()); // Stop dblclick on dot from firing timer
+
     c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); } else if(e.ctrlKey||e.metaKey){ toggleSelection(c); } else if(!selected.has(c)) { clearSelection(); addSelection(c); } updateTotalTimerDisplay(); }); // Update timer on selection change
     c.addEventListener('dragstart',function(e){ e.stopPropagation(); var block = selected.has(c)? Array.from(selected) : [c]; dragState={leader:c, block:block}; block.forEach(function(n){ n.classList.add('dragging'); }); pushPH(); try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
     c.addEventListener('dragend',function(){ if(dragState&&dragState.block){ dragState.block.forEach(function(n){ n.classList.remove('dragging'); }); } cleanupPH(); dragState=null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); }); // Update timer after drag
     c.addEventListener('contextmenu',function(e){ e.preventDefault(); if(!selected.has(c)){ clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c); });
-    c.addEventListener('dblclick',function(e){ e.preventDefault(); handleCardDblClick(c); });
+    c.addEventListener('dblclick',function(e){
+        if (e.target.classList.contains('dot') || e.target.classList.contains('dot-check')) {
+            e.stopPropagation(); // Prevent dblclick on dot
+            return;
+        }
+        handleCardDblClick(c); // Handle dblclick for timer
+    });
 
     // Add to cache only if it doesn't already exist (important for restore)
     if (!allCards.includes(c)) {
@@ -646,7 +688,10 @@
         if(!save) {
             tEl.textContent=original;
         } else if (tEl.textContent.trim() === '') {
-            removeCard(card); // Remove card if text is empty after edit
+             // Ask for confirmation before deleting empty card
+            showConfirm('Excluir cartão vazio?', function() {
+                 removeCard(card);
+            });
         }
         persist();
     }
@@ -1290,7 +1335,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   }
 
   function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.style.outline='';}); b.style.outline='2px solid #fff'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.style.outline='2px solid #fff'; wrap.appendChild(b); }); return wrap; }, function(wrap, okBtn){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); applyFilters(); }); }
-  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, okBtn){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; }); applyFilters(); }); }
+  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, okBtn){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; paintCard(c); }); applyFilters(); }); }
   function openTimerDialog(cards) {
       if (!cards.length) return;
       var modalElements = showModal('Definir Timer (minutos)', function() { // Capture return value
@@ -1613,15 +1658,40 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
     // Shortcuts requiring selected cards or context menu target
     var currentSelection = getSelectionOr(ctxTarget);
+    
+     // Ensure we don't interfere with text input UNLESS it's Del/Backspace on empty card text
+     const activeEl = document.activeElement;
+     const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
+     
+     // F2 can be triggered even when editing
+     if (e.key === 'F2') {
+         e.preventDefault();
+         if (isEditingCard) { // If editing, finish editing
+             activeEl.blur(); 
+         } else if (currentSelection.length > 0) { // If not editing, start editing
+            startInlineEdit(currentSelection[0]); // Edit the first selected card
+         }
+         return;
+    }
+     
+     // If in an input (but not modal) or editing card text, block other shortcuts
+     if ((activeEl.tagName === 'INPUT' && !activeEl.closest('.modal')) || (isEditingCard)) {
+         // Special case: allow Del/Backspace to delete empty card
+         if (isEditingCard && (e.key === 'Delete' || e.key === 'Backspace') && activeEl.textContent.trim() === '') {
+             e.preventDefault();
+             const cardToDelete = [activeEl.closest('.card')];
+             showConfirm('Excluir cartão vazio?', function() {
+                 cardToDelete.forEach(n => removeCard(n));
+                 clearSelection();
+             });
+         }
+         return; // Otherwise, let editor handle the key
+     }
+     
     // Allow Del globally ONLY if nothing specific is focused/selected
     if (!currentSelection.length && !ctxTarget && (e.key==='Delete' || e.key==='Backspace')) {
          return; // Let browser handle if nothing relevant is targeted
     }
-     // Ensure we don't interfere with text input UNLESS it's Del/Backspace on empty card text
-     const activeEl = document.activeElement;
-     const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
-     // Allow key shortcuts if not typing in an input OR if F2 is pressed
-     if ((activeEl.tagName === 'INPUT' || (activeEl.isContentEditable && !isEditingCard) ) && e.key !== 'F2') return;
 
 
     // Context Menu Shortcuts (only if cards are selected)
@@ -1631,13 +1701,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         else if (e.key.toLowerCase() === 'd') { e.preventDefault(); openDateDialog(currentSelection); }
         return;
     }
-    // F2 to Edit
-    if (currentSelection.length > 0 && e.key === 'F2') {
-         e.preventDefault();
-         startInlineEdit(currentSelection[0]); // Edit the first selected card
-         return;
-    }
-
 
      // Duplication Shortcut (only if cards are selected)
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
@@ -1646,18 +1709,11 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         return;
     }
 
-    // Deletion Shortcut (only if cards are selected OR if editing an empty card text)
-     if( (currentSelection.length > 0 || (isEditingCard && activeEl.textContent.trim() === '')) && (e.key==='Delete' || e.key==='Backspace')){
-         // If editing, don't trigger delete, let inline edit handle it
-         if (isEditingCard) return;
-
+    // Deletion Shortcut (only if cards are selected AND not editing)
+     if( currentSelection.length > 0 && (e.key==='Delete' || e.key==='Backspace')){
         e.preventDefault(); // Prevent browser back navigation on Backspace
-
-        const cardsToDelete = currentSelection.length > 0 ? Array.from(currentSelection) : [activeEl.closest('.card')];
-        if (!cardsToDelete.length || !cardsToDelete[0]) return; // Safety check
-
-        showConfirm('Excluir '+cardsToDelete.length+' cartão(s)?', function() {
-            cardsToDelete.forEach(function(n){ removeCard(n); });
+        showConfirm('Excluir '+currentSelection.length+' cartão(s)?', function() {
+            currentSelection.forEach(function(n){ removeCard(n); });
             clearSelection(); // Clear selection after delete
             // Persist called in removeCard
         });
