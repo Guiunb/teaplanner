@@ -3,7 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Mini Trello — Kanban + Matriz + Agenda (Otimizado v8.0)</title>
+  <title>TEA PLANNER (v9.5)</title>
+  <!-- Favicon (Ícone da Aba) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
     *{box-sizing:border-box}
@@ -11,13 +13,22 @@
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg); display: flex; flex-direction: column;}
     header.app{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--brand);color:#fff;flex-wrap:wrap;transition:background-color .3s; flex-shrink: 0;}
     header.app.filters-active{background:#b85d00}
-    header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto;} /* Push buttons to the right */
+    header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto; display: flex; align-items: center;} /* Push buttons to the right */
+    .header-icon { width: 22px; height: 22px; stroke: #fff; vertical-align: -4px; margin-right: 8px; } /* Ícone do Cabeçalho */
     header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px;background:#0e58a5;color:#fff}
     header.app button{cursor:pointer}
     header.app button.active{background:#ffd54f;color:#10243a} /* Style for active toggle buttons */
     #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;} /* Added cursor */
     .badge{display:inline-block;background:#ffd54f;color:#10243a;font-weight:700;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid rgba(0,0,0,.15)}
     .badge[hidden]{display:none!important}
+    /* Toggle Switch styles */
+    .toggle-switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+    .toggle-switch-input { display: none; }
+    .toggle-switch-label { font-size: 16px; user-select: none; }
+    .toggle-switch-input:checked + .toggle-switch-label { color: #ffd54f; }
+    .toggle-switch-input:checked + .toggle-switch-label + .toggle-switch-button { background: #ffd54f; }
+    .toggle-switch-button { font-size: 12px; padding: 2px 4px; border-radius: 6px; background: #0e58a5; color: #10243a; transition: background .2s; }
+    
 
     .workspace {
         display: flex;
@@ -150,9 +161,22 @@
     .list[data-type="quad"][data-quad="Q4"]{background:#3a0f12;border-color:#7c1920}.list[data-type="quad"][data-quad="Q4"] header{background:#5a1419}
 
     .schedule{background:var(--panel);border:1px solid #183453;border-radius:12px;width:100%; height:100%; display: flex; flex-direction: column; overflow: hidden;}
-    .schedule header{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#0b437e;color:#fff;border-top-left-radius:12px;border-top-right-radius:12px}
+    .schedule header{
+        position:sticky;top:0;z-index:1;display:flex;flex-direction:column; /* Changed to column */
+        gap: 8px; /* Added gap between rows */
+        padding:8px 10px;background:#0b437e;color:#fff;
+        border-top-left-radius:12px;border-top-right-radius:12px
+    }
+    .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; } /* New row wrapper */
     #slots { overflow-y: auto; flex-grow: 1; }
-    .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px}
+    .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px; width: 120px;} /* Fixed width */
+    .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; } /* Container for all controls */
+    .schedule header .date-nav { display: flex; align-items: center; gap: 4px; } /* Container for nav */
+    .schedule header button { padding: 6px 10px; background:#0e58a5; border:none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1;} /* Style all header buttons */
+    .schedule header .date-nav button { padding: 4px 8px; font-size: 16px;} /* Smaller buttons for nav */
+    .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; } /* Style for copy/paste icons */
+
+
     .slot{border-bottom:1px dashed #244b78}.slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
     .slot .time{font-weight:700;font-size:11px;color:#9fc1ff}
     .slot .cards{display:none;padding:4px;min-height:28px}.slot.has-items .cards{display:block}
@@ -175,6 +199,14 @@
     .modal .row button.cancel{background:#6b7a93}
     /* Style for import options modal */
     .import-options button { margin: 5px; flex-grow: 1;}
+    /* Palette editor */
+    .palette-editor { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px;}
+    .palette-editor.editing { display: flex; }
+    .palette-grid.editing { display: none; }
+    .palette-editor-row { display: flex; align-items: center; gap: 8px; }
+    .palette-editor-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #375b86; flex-shrink: 0;}
+    .palette-editor input { background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; padding: 6px 8px; flex: 1; }
+    .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; } /* Pushes to the left */
 
 
     @keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}
@@ -208,7 +240,15 @@
 </head>
 <body>
 <header class="app" id="appHeader">
-  <h1>Mini Trello</h1>
+  <h1>
+    <!-- Opção 2: Folha -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="header-icon">
+      <path d="M17.32 10c.88.88 1.39 2.07 1.39 3.32 0 2.65-2.15 4.8-4.8 4.8s-4.8-2.15-4.8-4.8c0-1.25.51-2.44 1.39-3.32"></path>
+      <path d="M12 18.12V22"></path>
+      <path d="M12 2a9.99 9.99 0 0 1 8.61 14.61A9.99 9.99 0 0 1 12 22a9.99 9.99 0 0 1-8.61-5.39A9.99 9.99 0 0 1 12 2z"></path>
+    </svg>
+    TEA PLANNER
+  </h1>
   <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
   <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
   <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
@@ -224,6 +264,11 @@
   <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
   <!-- End Panel Toggle Buttons -->
   <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button> <!-- Quick Save Button -->
+  <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
+      <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+      <span class="toggle-switch-label">⚙️</span>
+      <span class="toggle-switch-button">OFF</span>
+  </label>
   <button id="addList">+ Lista</button>
   <button id="exportJson" title="Baixar backup JSON">Exportar JSON</button>
   <button id="importJsonBtn" title="Restaurar de JSON">Importar JSON</button>
@@ -242,10 +287,19 @@
     <aside id="agenda-sidebar">
         <div class="schedule" id="schedule">
             <header>
-                <strong>AGENDA</strong>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <input id="agendaDate" type="date" />
-                    <button id="copyDay" title="Copiar agenda de outra data">Copiar</button>
+                <div class="header-row"> <!-- Row 1: Title and Copy/Paste -->
+                    <strong>AGENDA</strong>
+                    <div class="copy-paste-buttons">
+                        <button id="copyDayBtn" title="Copiar dia atual">📋</button>
+                        <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
+                    </div>
+                </div>
+                <div class="header-row"> <!-- Row 2: Date Nav -->
+                    <div class="date-nav">
+                        <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
+                        <input id="agendaDate" type="date" />
+                        <button id="nextDayBtn" title="Próximo Dia">&gt;</button>
+                    </div>
                 </div>
             </header>
             <div id="slots"></div>
@@ -297,6 +351,8 @@
   }
 
   var LS_KEY='mini-trello-restore';
+  var LS_LABELS_KEY = 'tea-planner-labels'; // Key for custom labels
+  var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config'; // Key for toggle switch
   var __persistTick=null, __muteHistory=0;
   function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
 
@@ -309,6 +365,7 @@
   var globalTimerInterval = null;
   var selected = new Set(); // Moved selection set here to be accessible by timer sum
   var lastMouseX = 0, lastMouseY = 0; // Track mouse position
+  var agendaClipboard = []; // For copy/paste agenda
 
   // Track mouse position
   document.addEventListener('mousemove', (e) => {
@@ -456,7 +513,7 @@
         q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); // Cor Q1, 120 min
       }
       // Add a demo goal
-      createCard({ text: "Definir meta principal da semana", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); // 15 min
+      createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); // 15 min
 
     });
     applyFilters(); // Apply filters first
@@ -669,7 +726,7 @@
   }
 
 
-  function startInlineEdit(card){
+  function startInlineEdit(card, isNewCard = false){ // Added flag
     var tEl=card.querySelector('.text'); if(!tEl) return; if(card.classList.contains('editing')) return;
     card.classList.add('editing'); var original=tEl.textContent; tEl.setAttribute('contenteditable','true'); tEl.focus();
     // Move cursor to end
@@ -685,15 +742,39 @@
         tEl.removeEventListener('blur',onBlur);
         tEl.removeAttribute('contenteditable');
         card.classList.remove('editing');
+
+        const quickConfigToggle = document.getElementById('quickConfigToggle');
+        const textWasEmpty = original.trim() === '';
+        const textIsNowEmpty = tEl.textContent.trim() === '';
+
         if(!save) {
-            tEl.textContent=original;
-        } else if (tEl.textContent.trim() === '') {
+            tEl.textContent = original;
+            if (textWasEmpty && textIsNowEmpty) { // If was new and still empty, remove
+                removeCard(card);
+            }
+        } else if (textIsNowEmpty) {
              // Ask for confirmation before deleting empty card
-            showConfirm('Excluir cartão vazio?', function() {
-                 removeCard(card);
-            });
+             if (!textWasEmpty) { // Only confirm if it wasn't a new blank card
+                showConfirm('Excluir cartão vazio?', function() {
+                     removeCard(card);
+                });
+             } else {
+                 removeCard(card); // Silently remove new blank card
+             }
+        } else {
+             // Text is saved
+             persist(); // Persist text change *now*
+             // Check if it was a new card and toggle is on
+             if (isNewCard && quickConfigToggle && quickConfigToggle.checked) {
+                 // Open timer, then color dialog
+                 openTimerDialog([card], function() {
+                     // This callback executes after Timer OK
+                     setTimeout(function() { // Use timeout to let first modal close
+                         openColorDialog([card]);
+                     }, 1); // 1ms delay is enough for browser to process close
+                 });
+             }
         }
-        persist();
     }
     function onKey(ev){
         if(ev.key==='Escape'){
@@ -880,7 +961,15 @@
     input.type='text';
     input.placeholder='Novo cartão…';
     input.setAttribute('enterkeyhint','go');
-    function addCard(){ var v=(input.value||'').trim(); if(!v) return; var card=createCard({text:v}); cards.appendChild(card); input.value=''; input.focus(); persist(); /* updateTotalTimerDisplay called in createCard */}
+    function addCard(){
+        var v=(input.value||'').trim();
+        if(!v) return;
+        var card=createCard({text:v});
+        cards.appendChild(card);
+        input.value='';
+        // persist(); // Persist is called inside createCard's inline edit finish
+        startInlineEdit(card, true); // Pass true for isNewCard
+    }
     form.addEventListener('submit',function(e){ e.preventDefault(); addCard(); });
     form.appendChild(input);
     add.appendChild(form);
@@ -1281,8 +1370,50 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
   // ===== Modal helpers + Paleta =====
   var MATRIX_COLORS = { Q1:'#104239', Q2:'#0e3155', Q3:'#5a4014', Q4:'#5a1419' };
-  var EXTRA_COLORS = [{id:'krav', name:'Azul claro (Krav Maga)', hex:'#5dade2'},{id:'gdf', name:'Amarelo claro (GDF)', hex:'#f9e79f'},{id:'pessoal', name:'Laranja (Pessoal)', hex:'#f5b041'},{id:'teal', name:'Verde-água', hex:'#1abc9c'},{id:'lilas', name:'Lilás', hex:'#8e44ad'},{id:'navy', name:'Azul escuro', hex:'#1f3a93'},{id:'grafite', name:'Grafite', hex:'#2c3e50'},{id:'turquesa', name:'Turquesa', hex:'#48c9b0'}];
-  function buildFullPalette(){ return [{id:'q1',name:'Verde (Faça agora)',hex:MATRIX_COLORS.Q1},{id:'q2',name:'Azul (Agende)',hex:MATRIX_COLORS.Q2},{id:'q3',name:'Âmbar (Delegue)',hex:MATRIX_COLORS.Q3},{id:'q4',name:'Vermelho (Elimine)',hex:MATRIX_COLORS.Q4}].concat(EXTRA_COLORS); }
+  // Load custom labels from localStorage, or set defaults
+  var customColorLabels = JSON.parse(localStorage.getItem(LS_LABELS_KEY)) || {
+    '#5dade2': 'Azul claro (Krav Maga)',
+    '#f9e79f': 'Amarelo claro (GDF)',
+    '#f5b041': 'Laranja (Pessoal)',
+    '#1abc9c': 'Verde-água',
+    '#8e44ad': 'Lilás',
+    '#1f3a93': 'Azul escuro',
+    '#2c3e50': 'Grafite',
+    '#48c9b0': 'Turquesa'
+  };
+  function saveCustomLabels() {
+      localStorage.setItem(LS_LABELS_KEY, JSON.stringify(customColorLabels));
+  }
+  var EXTRA_COLORS = [
+    {id:'krav', name: customColorLabels['#5dade2'], hex:'#5dade2'},
+    {id:'gdf', name: customColorLabels['#f9e79f'], hex:'#f9e79f'},
+    {id:'pessoal', name: customColorLabels['#f5b041'], hex:'#f5b041'},
+    {id:'teal', name: customColorLabels['#1abc9c'], hex:'#1abc9c'},
+    {id:'lilas', name: customColorLabels['#8e44ad'], hex:'#8e44ad'},
+    {id:'navy', name: customColorLabels['#1f3a93'], hex:'#1f3a93'},
+    {id:'grafite', name: customColorLabels['#2c3e50'], hex:'#2c3e50'},
+    {id:'turquesa', name: customColorLabels['#48c9b0'], hex:'#48c9b0'}
+  ];
+  
+  function buildFullPalette(){
+    // Rebuild EXTRA_COLORS array with up-to-date labels
+    EXTRA_COLORS = [
+        {id:'krav', name: customColorLabels['#5dade2'] || 'Azul claro (Krav Maga)', hex:'#5dade2'},
+        {id:'gdf', name: customColorLabels['#f9e79f'] || 'Amarelo claro (GDF)', hex:'#f9e79f'},
+        {id:'pessoal', name: customColorLabels['#f5b041'] || 'Laranja (Pessoal)', hex:'#f5b041'},
+        {id:'teal', name: customColorLabels['#1abc9c'] || 'Verde-água', hex:'#1abc9c'},
+        {id:'lilas', name: customColorLabels['#8e44ad'] || 'Lilás', hex:'#8e44ad'},
+        {id:'navy', name: customColorLabels['#1f3a93'] || 'Azul escuro', hex:'#1f3a93'},
+        {id:'grafite', name: customColorLabels['#2c3e50'] || 'Grafite', hex:'#2c3e50'},
+        {id:'turquesa', name: customColorLabels['#48c9b0'] || 'Turquesa', hex:'#48c9b0'}
+    ];
+    return [
+      {id:'q1',name:'Verde (Faça agora)',hex:MATRIX_COLORS.Q1, noEdit: true},
+      {id:'q2',name:'Azul (Agende)',hex:MATRIX_COLORS.Q2, noEdit: true},
+      {id:'q3',name:'Âmbar (Delegue)',hex:MATRIX_COLORS.Q3, noEdit: true},
+      {id:'q4',name:'Vermelho (Elimine)',hex:MATRIX_COLORS.Q4, noEdit: true}
+    ].concat(EXTRA_COLORS);
+  }
   function routeByColor(card, hex){ if(!hex||!matrixEl) return; var map={}; map[MATRIX_COLORS.Q1]='Q1'; map[MATRIX_COLORS.Q2]='Q2'; map[MATRIX_COLORS.Q3]='Q3'; map[MATRIX_COLORS.Q4]='Q4'; var quad=map[(hex||'').toLowerCase()]; if(!quad) return; var dest=matrixEl.querySelector('.list[data-quad="'+quad+'"] .cards'); if(dest){ dest.appendChild(card); card.dataset.when=''; updateSlotsHasItems(); /* Update agenda if card moved from it */ } }
   function showModal(title,builder,onOk){
       var wrap=el('div','modal-wrap');
@@ -1299,7 +1430,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       const modalKeyListener = function(e) {
           if (e.key === 'Enter') {
               // Only trigger OK if the active element isn't a button (like the custom ones in import)
-              if (document.activeElement.tagName !== 'BUTTON') {
+              if (document.activeElement.tagName !== 'BUTTON' && !document.activeElement.closest('.import-options')) {
                  e.preventDefault();
                  ok.click(); // Trigger the default OK button click
               }
@@ -1319,26 +1450,161 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       // Modified ok.onclick to pass the ok button itself to onOk
       ok.onclick=function(){
            wrap.removeEventListener('keydown', modalKeyListener); // Clean up listener
-           onOk(body, ok); // Let onOk handle removal if needed, otherwise remove below
+           onOk(body, wrap); // <<< PASSING WRAP
            // Ensure modal is removed if onOk doesn't handle it
            if (wrap.parentNode === document.body) {
                document.body.removeChild(wrap);
            }
+           persist(); // Persist on OK
       };
       var firstInput = body.querySelector('input'); if(firstInput) firstInput.focus();
-      return { wrap: wrap, okButton: ok, cancelButton: cancel }; // Return wrap and buttons
+      return { wrap: wrap, okButton: ok, cancelButton: cancel, body: body };
   }
 
   function showConfirm(message,onYes){
-      const { wrap, okButton, cancelButton } = showModal('Confirmação', function(){ var d=el('div'); d.textContent=message; return d; }, function(body, okBtn){ if(typeof onYes==='function') onYes(); /* Removal handled by default click */ });
-      // No specific Enter handling needed here as showModal already adds it.
+      showModal('Confirmação', function(){ var d=el('div'); d.textContent=message; return d; }, 
+      function(body, wrap){ if(typeof onYes==='function') onYes(); /* Modal removal handled by showModal */ });
   }
 
-  function openColorDialog(cards){ if(!cards.length) return; var PALETTE=[{id:'none',name:'Sem cor',hex:''}].concat(buildFullPalette()); showModal('Editar cor',function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.style.border='1px solid #2a4e78'; b.style.borderRadius='8px'; b.style.padding='10px'; b.style.cursor='pointer'; b.style.background=p.hex||'#0b2240'; b.style.color='#fff'; b.textContent=p.name; b.addEventListener('click',function(){ [].slice.call(wrap.querySelectorAll('button')).forEach(function(x){x.style.outline='';}); b.style.outline='2px solid #fff'; wrap._chosen=p.hex; }); if(p.hex===(cards[0].dataset.color||'')) b.style.outline='2px solid #fff'; wrap.appendChild(b); }); return wrap; }, function(wrap, okBtn){ var v=(wrap._chosen===undefined)? (cards[0].dataset.color||'') : wrap._chosen; cards.forEach(function(c){ c.dataset.color=v||''; paintCard(c); routeByColor(c, v||''); }); applyFilters(); }); }
-  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, okBtn){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; paintCard(c); }); applyFilters(); }); }
-  function openTimerDialog(cards) {
+  function openColorDialog(cards){
+    if (!cards.length) return;
+    
+    var modalElements = showModal('Editar cor', function() {
+        var wrap = el('div');
+        
+        // Grid for color buttons
+        var grid = el('div', 'palette-grid');
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
+        grid.style.gap = '8px';
+        
+        var PALETTE = [{id:'none', name:'Sem cor', hex:''}].concat(buildFullPalette());
+        PALETTE.forEach(function(p) {
+            var b = el('button');
+            b.type = 'button';
+            b.style.border = '1px solid #2a4e78';
+            b.style.borderRadius = '8px';
+            b.style.padding = '10px';
+            b.style.cursor = 'pointer';
+            b.style.background = p.hex || '#0b2240';
+            b.style.color = '#fff';
+            b.textContent = p.name;
+            b.dataset.hex = p.hex; // Store hex
+            b.addEventListener('click', function() {
+                [].slice.call(grid.querySelectorAll('button')).forEach(function(x){x.style.outline='';});
+                b.style.outline='2px solid #fff';
+                wrap._chosen = p.hex;
+                // Trigger OK click automatically to apply color
+                modalElements.okButton.click();
+            });
+            if (p.hex === (cards[0].dataset.color || '')) b.style.outline = '2px solid #fff';
+            grid.appendChild(b);
+        });
+        
+        // Editor for labels
+        var editor = el('div', 'palette-editor');
+        EXTRA_COLORS.forEach(function(p) { // Use EXTRA_COLORS which has the current names
+            var row = el('div', 'palette-editor-row');
+            var swatch = el('div', 'palette-editor-swatch');
+            swatch.style.background = p.hex;
+            var input = el('input');
+            input.type = 'text';
+            input.value = p.name;
+            input.dataset.hex = p.hex; // Link input to hex color
+            row.appendChild(swatch);
+            row.appendChild(input);
+            editor.appendChild(row);
+        });
+        
+        wrap.appendChild(grid);
+        wrap.appendChild(editor);
+        return wrap;
+    }, function(body, wrap) { // onOK
+        const editor = body.querySelector('.palette-editor');
+        if (editor.classList.contains('editing')) {
+            // Save new labels from inputs
+            $$('.palette-editor-row input', editor).forEach(input => {
+                customColorLabels[input.dataset.hex] = input.value; // Update the global labels object
+            });
+            saveCustomLabels(); // Save to localStorage
+            // Rebuild palette array with new names
+            EXTRA_COLORS.forEach(p => p.name = customColorLabels[p.hex]); 
+            
+            // Toggle back to grid view
+            editor.classList.remove('editing');
+            body.querySelector('.palette-grid').classList.remove('editing');
+            body.querySelector('.manage-labels-btn').textContent = 'Gerir Etiquetas 🏷️';
+            modalElements.okButton.textContent = 'OK';
+            
+            // Re-render the grid with new names *without* closing
+            const grid = body.querySelector('.palette-grid');
+            grid.innerHTML = ''; // Clear grid
+            var PALETTE = [{id:'none', name:'Sem cor', hex:''}].concat(buildFullPalette());
+            PALETTE.forEach(function(p) {
+                var b = el('button');
+                b.type = 'button';
+                b.style.border = '1px solid #2a4e78';
+                b.style.borderRadius = '8px';
+                b.style.padding = '10px';
+                b.style.cursor = 'pointer';
+                b.style.background = p.hex || '#0b2240';
+                b.style.color = '#fff';
+                b.textContent = p.name; // Use new name
+                b.dataset.hex = p.hex;
+                b.addEventListener('click', function() {
+                    [].slice.call(grid.querySelectorAll('button')).forEach(function(x){x.style.outline='';});
+                    b.style.outline='2px solid #fff';
+                    body._chosen = p.hex;
+                    modalElements.okButton.click();
+                });
+                if (p.hex === (cards[0].dataset.color || '')) b.style.outline = '2px solid #fff';
+                grid.appendChild(b);
+            });
+            // Do NOT remove wrap here, keep modal open
+            persist(); // Persist label changes
+            return; // Exit onOk to prevent modal close
+        }
+        
+        // Else (not editing), apply selected color
+        var v = (body._chosen === undefined) ? (cards[0].dataset.color || '') : body._chosen;
+        cards.forEach(function(c) {
+            c.dataset.color = v || '';
+            paintCard(c);
+            routeByColor(c, v || '');
+        });
+        applyFilters();
+        document.body.removeChild(wrap); // Close modal only when applying color
+        persist(); // Persist color change
+    });
+
+    // Add "Manage Labels" button to the modal row
+    const manageBtn = el('button');
+    manageBtn.textContent = 'Gerir Etiquetas 🏷️';
+    manageBtn.className = 'manage-labels-btn';
+    
+    const editorEl = modalElements.body.querySelector('.palette-editor');
+    const gridEl = modalElements.body.querySelector('.palette-grid');
+
+    manageBtn.onclick = function(e) {
+        e.preventDefault();
+        editorEl.classList.toggle('editing');
+        gridEl.classList.toggle('editing');
+        const isEditing = editorEl.classList.contains('editing');
+        manageBtn.textContent = isEditing ? 'Voltar à Seleção' : 'Gerir Etiquetas 🏷️';
+        modalElements.okButton.textContent = isEditing ? 'Guardar Nomes' : 'OK';
+        // Focus first input if entering edit mode
+        if(isEditing) {
+            editorEl.querySelector('input').focus();
+        }
+    };
+    
+    modalElements.wrap.querySelector('.row').prepend(manageBtn); // Add button to modal
+}
+
+  function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, wrap){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; paintCard(c); }); applyFilters(); }); }
+  function openTimerDialog(cards, onOkCallback) { // Added callback
       if (!cards.length) return;
-      var modalElements = showModal('Definir Timer (minutos)', function() { // Capture return value
+      var modalElements = showModal('Definir Timer (minutos)', function() { 
           var r = el('div');
           var timerVal = Math.round(parseInt(cards[0].dataset.timerTotal || '0', 10) / 60) || '';
           r.innerHTML = `
@@ -1347,18 +1613,17 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   <input type="number" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; margin-top: 4px;">
               </label>
           `;
-           // Enter key listener added directly within showModal now
            const input = r.querySelector('.timer-input');
-           if (input) { // Add safety check
+           if (input) { 
              input.addEventListener('keydown', function(e) {
                  if (e.key === 'Enter') {
                      e.preventDefault();
-                     modalElements.okButton.click(); // Simulate OK button click
+                     modalElements.okButton.click(); 
                  }
              });
            }
           return r;
-      }, function(r, okBtn) { // onOk receives the ok button
+      }, function(r, wrap) { // onOk
           var timerMins = r.querySelector('.timer-input').value;
           cards.forEach(function(c) {
               var newTotal = (parseInt(timerMins, 10) || 0) * 60;
@@ -1369,11 +1634,57 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
               paintCard(c);
           });
           applyFilters();
-          // Modal removal handled by default showModal ok click
-          updateTotalTimerDisplay(); // Update total after setting timer
+          updateTotalTimerDisplay(); 
+          if (onOkCallback) onOkCallback(); // Call the chain callback
       });
+      // Handle "Cancel" click for the chained process
+      modalElements.cancelButton.onclick = function() {
+           modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); // Clean up listener
+           document.body.removeChild(modalElements.wrap);
+           persist(); // Persist any changes *before* the modal was opened (e.g. text edit)
+      }
   }
-  function openColorFilters(){ var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};})); showModal('Filtrar por cor', function(){ var wrap=el('div'); wrap.style.display='grid'; wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap='8px'; PALETTE.forEach(function(p){ var b=el('button'); b.type='button'; b.textContent=p.name; b.dataset.hex=p.hex; b.style.padding='10px'; b.style.borderRadius='8px'; b.style.border='1px solid #2a4e78'; b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); b.style.color='#fff'; if((p.hex==='*' && selectedColors.size === 0) || selectedColors.has(p.hex)) b.style.outline='2px solid #fff'; b.onclick=function(){ if(p.hex==='*'){ selectedColors.clear(); } else { if(selectedColors.has(p.hex)) selectedColors.delete(p.hex); else selectedColors.add(p.hex); } [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ btn.style.outline=''; if((btn.dataset.hex==='*' && selectedColors.size === 0) || selectedColors.has(btn.dataset.hex)) btn.style.outline='2px solid #fff'; }); }; wrap.appendChild(b); }); return wrap; }, function(body, okBtn){ applyFilters(); /* Modal removal handled by default */ }); }
+  function openColorFilters(){
+      var PALETTE=[{name:'Todas',hex:'*'},{name:'Sem cor',hex:''}].concat(buildFullPalette().map(function(p){return {name:p.name,hex:p.hex};}));
+      showModal('Filtrar por cor', function(){ 
+          var wrap=el('div'); 
+          wrap.style.display='grid'; 
+          wrap.style.gridTemplateColumns='repeat(auto-fill, minmax(120px, 1fr))'; 
+          wrap.style.gap='8px'; 
+          
+          PALETTE.forEach(function(p){ 
+              var b=el('button'); 
+              b.type='button'; 
+              b.textContent=p.name; 
+              b.dataset.hex=p.hex; 
+              b.style.padding='10px'; 
+              b.style.borderRadius='8px'; 
+              b.style.border='1px solid #2a4e78'; 
+              b.style.background=(p.hex&&p.hex!=='*'?p.hex:'#0b2240'); 
+              b.style.color='#fff'; 
+              if((p.hex==='*' && selectedColors.size === 0) || selectedColors.has(p.hex.toLowerCase())) b.style.outline='2px solid #fff'; 
+              b.onclick=function(){ 
+                  if(p.hex==='*'){ 
+                      selectedColors.clear(); 
+                  } else { 
+                      if(selectedColors.has(p.hex.toLowerCase())) selectedColors.delete(p.hex.toLowerCase()); 
+                      else selectedColors.add(p.hex.toLowerCase()); 
+                  } 
+                  // Update UI for all buttons
+                  [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ 
+                      btn.style.outline=''; 
+                      const btnHex = (btn.dataset.hex || '').toLowerCase();
+                      if((btnHex==='*' && selectedColors.size === 0) || selectedColors.has(btnHex)) {
+                          btn.style.outline='2px solid #fff';
+                      }
+                  }); 
+              }; 
+              wrap.appendChild(b); 
+          }); 
+          return wrap; 
+      }, 
+      function(body, wrap){ applyFilters(); /* Modal removal handled by default */ }); 
+  }
 
   // ===== Gemini API Integration =====
   function showLoader(message) {
@@ -1456,7 +1767,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           var d=el('div');
           d.textContent = 'Não foi possível gerar as subtarefas. Por favor, tente novamente mais tarde.';
           return d;
-      }, function(body, okBtn){ document.body.removeChild(okBtn.closest('.modal-wrap'));}); // Allow closing error modal
+      }, function(body, wrap){ /* Modal removal handled by showModal */}); // Allow closing error modal
     } finally {
       hideLoader();
     }
@@ -1493,7 +1804,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           var d=el('div');
           d.textContent = 'Não foi possível organizar o cartão. Por favor, tente novamente mais tarde.';
           return d;
-      }, function(body, okBtn){ document.body.removeChild(okBtn.closest('.modal-wrap'));}); // Allow closing error modal
+      }, function(body, wrap){ /* Modal removal handled by showModal */}); // Allow closing error modal
     } finally {
       hideLoader();
     }
@@ -1514,6 +1825,8 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   const mainContent = document.getElementById('main-content');
   const BOARD_STATE_KEY = 'mini-trello-board-state';
   const MATRIX_STATE_KEY = 'mini-trello-matrix-state';
+  const quickConfigToggle = document.getElementById('quickConfigToggle');
+  const quickConfigToggleBtn = quickConfigToggle.nextElementSibling; // The button span
 
 
   function saveState() {
@@ -1526,6 +1839,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       const agendaState = localStorage.getItem(AGENDA_STATE_KEY);
       const boardState = localStorage.getItem(BOARD_STATE_KEY);
       const matrixState = localStorage.getItem(MATRIX_STATE_KEY);
+      const quickConfigState = localStorage.getItem(LS_QUICK_CONFIG_KEY);
 
       if (agendaState === 'collapsed') {
           agendaSidebar.classList.add('collapsed');
@@ -1556,6 +1870,14 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
            mainContent.classList.remove('matrix-collapsed');
            toggleMatrixBtn.classList.add('active');
       }
+      
+      if (quickConfigState === 'true') {
+          quickConfigToggle.checked = true;
+          quickConfigToggleBtn.textContent = 'ON';
+      } else {
+          quickConfigToggle.checked = false;
+          quickConfigToggleBtn.textContent = 'OFF';
+      }
   }
 
   toggleBoardBtn.addEventListener('click', () => {
@@ -1578,14 +1900,70 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       toggleAgendaBtn.classList.toggle('active');
       saveState();
   });
+  
+  quickConfigToggle.addEventListener('change', () => {
+      const isChecked = quickConfigToggle.checked;
+      quickConfigToggleBtn.textContent = isChecked ? 'ON' : 'OFF';
+      localStorage.setItem(LS_QUICK_CONFIG_KEY, isChecked);
+  });
 
 
   document.getElementById('addList').onclick=function(){ createList('Nova lista'); persist(); };
   document.getElementById('filterColorsBtn').addEventListener('click', openColorFilters);
   document.getElementById('undo').onclick=doUndo; document.getElementById('redo').onclick=doRedo;
   document.getElementById('clearFilters').onclick=function(){ selectedColors.clear(); document.getElementById('fFrom').value=''; document.getElementById('fTo').value=''; document.getElementById('fTime').value=''; applyFilters(); };
-  document.getElementById('agendaDate').addEventListener('change', applyFilters ); // Use applyFilters directly
-  document.getElementById('copyDay').addEventListener('click',function(){ showModal('Copiar agenda de…',function(){ var w=el('div'); var i=el('input'); i.type='date'; i.style.width='100%'; w.appendChild(i); return w; },function(w, okBtn){ var from=w.querySelector('input').value; if(!from) return; copyAgendaFrom(from, getActiveDay()); /* Modal removal handled by default click */ }); });
+  
+  // --- Agenda Nav ---
+  const agendaDateInput = document.getElementById('agendaDate');
+  function changeDay(days) {
+        let currentDate = new Date(agendaDateInput.value + 'T12:00:00'); // Use T12 to avoid timezone issues
+        currentDate.setDate(currentDate.getDate() + days);
+        agendaDateInput.value = currentDate.toISOString().slice(0, 10);
+        applyFilters(); // Manually trigger filter/agenda update
+  }
+  document.getElementById('prevDayBtn').addEventListener('click', () => changeDay(-1));
+  document.getElementById('nextDayBtn').addEventListener('click', () => changeDay(1));
+  agendaDateInput.addEventListener('change', applyFilters ); // Use applyFilters directly
+  
+  document.getElementById('copyDayBtn').addEventListener('click', function() {
+      const day = getActiveDay();
+      agendaClipboard = allCards
+          .filter(c => (c.dataset.when || '').startsWith(day + 'T'))
+          .map(c => ({
+              ...cardToData(c), // Get base data
+              timeOrGoal: (c.dataset.when || '').substring(11) // Store "HH:MM" or "GOAL"
+          }));
+      // Simple feedback:
+      const btn = document.getElementById('copyDayBtn');
+      btn.textContent = 'Copiado!';
+      setTimeout(() => { btn.textContent = '📋'; }, 1000);
+  });
+  document.getElementById('pasteDayBtn').addEventListener('click', function() {
+      if (agendaClipboard.length === 0) {
+           const btn = document.getElementById('pasteDayBtn');
+           btn.textContent = 'Vazio!';
+           setTimeout(() => { btn.textContent = '📥'; }, 1000);
+           return;
+      }
+      const day = getActiveDay();
+      agendaClipboard.forEach(cardData => {
+          const newData = { ...cardData };
+          newData.when = day + 'T' + newData.timeOrGoal; // Set 'when' for the new day
+          
+          // Check if card already exists in cache (simple check)
+          const existsInCache = allCards.some(c => 
+              c.dataset.when === newData.when && 
+              c.querySelector('.text').textContent.trim() === newData.text.trim()
+          );
+          if (!existsInCache) {
+              createCard(newData); // Add to cache, updateSlotsHasItems will handle DOM placement
+          }
+      });
+      updateSlotsHasItems();
+      persist();
+  });
+  // --- End Agenda Nav ---
+
   $$('#fFrom, #fTo, #fTime').forEach(function(el){ el.addEventListener('input', applyFilters); });
 
   // Keyboard Shortcuts Listener
@@ -1650,7 +2028,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                   applyWhen(targetList, [newCard]); // Handle agenda 'when' if needed
                  persist();
                  updateTotalTimerDisplay();
-                 startInlineEdit(newCard); // Focus and edit immediately
+                 startInlineEdit(newCard, true); // Focus and edit immediately, pass new card flag
             }
         }
         return; // Stop further key processing
@@ -1813,7 +2191,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             var d=el('div');
             d.textContent='Não foi possível ler o arquivo JSON. Verifique se o arquivo está no formato correto. Erro: ' + err.message;
             return d;
-        },function(body, okBtn){ /* Modal removal handled by default click */ }); // Allow closing error modal
+        },function(body, wrap){ /* Modal removal handled by showModal */ }); // Allow closing error modal
       }
     };
     reader.readAsText(file);
@@ -1846,7 +2224,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
           // Return only the content part for showModal
           return container;
-      }, function(body, okBtn) {
+      }, function(body, wrap) {
            // This function is only called when OK or Enter is pressed,
            // but we handle actions via custom buttons. So, do nothing here.
            // We keep the OK button hidden.
@@ -1947,4 +2325,3 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 </script>
 </body>
 </html>
-
