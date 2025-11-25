@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>TEA PLANNER (v9.5)</title>
-  <!-- Favicon (Ícone da Aba) -->
+  <title>TEA PLANNER (v9.6 - Alt Scroll Fix)</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
   <style>
     :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
@@ -13,14 +12,15 @@
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg); display: flex; flex-direction: column;}
     header.app{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--brand);color:#fff;flex-wrap:wrap;transition:background-color .3s; flex-shrink: 0;}
     header.app.filters-active{background:#b85d00}
-    header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto; display: flex; align-items: center;} /* Push buttons to the right */
-    .header-icon { width: 22px; height: 22px; stroke: #fff; vertical-align: -4px; margin-right: 8px; } /* Ícone do Cabeçalho */
+    header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto; display: flex; align-items: center;} 
+    .header-icon { width: 22px; height: 22px; stroke: #fff; vertical-align: -4px; margin-right: 8px; }
     header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px;background:#0e58a5;color:#fff}
     header.app button{cursor:pointer}
-    header.app button.active{background:#ffd54f;color:#10243a} /* Style for active toggle buttons */
-    #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;} /* Added cursor */
+    header.app button.active{background:#ffd54f;color:#10243a}
+    #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;}
     .badge{display:inline-block;background:#ffd54f;color:#10243a;font-weight:700;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid rgba(0,0,0,.15)}
     .badge[hidden]{display:none!important}
+    
     /* Toggle Switch styles */
     .toggle-switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
     .toggle-switch-input { display: none; }
@@ -29,31 +29,30 @@
     .toggle-switch-input:checked + .toggle-switch-label + .toggle-switch-button { background: #ffd54f; }
     .toggle-switch-button { font-size: 12px; padding: 2px 4px; border-radius: 6px; background: #0e58a5; color: #10243a; transition: background .2s; }
     
-
     .workspace {
         display: flex;
         flex-direction: row;
-        height: calc(100vh - 58px); /* Full height minus header */
+        height: calc(100vh - 58px);
         padding: 12px;
         gap: 12px;
         transition: gap .3s ease-in-out;
-        position: relative; /* Needed for absolute positioning of toggles */
-        overflow: hidden; /* Prevent body scroll */
+        position: relative;
+        overflow: hidden;
     }
 
     #main-content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow-y: auto; /* Allow this main area to scroll */
+        overflow-y: auto;
         min-width: 0;
-        position: relative; /* For toggle buttons */
+        position: relative;
         transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
         width: 100%;
     }
 
     #main-content.collapsed {
-        flex: 0 0 0px; /* Collapse completely */
+        flex: 0 0 0px;
         min-width: 0;
         opacity: 0;
         padding: 0;
@@ -63,8 +62,8 @@
     .board-container, .matrix-container {
         position: relative;
         transition: height .3s ease-in-out, min-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, flex-grow .3s ease-in-out, flex-shrink .3s ease-in-out;
-        overflow: hidden; /* Hide content during collapse */
-        flex-shrink: 0; /* Prevent shrinking initially */
+        overflow: hidden;
+        flex-shrink: 0;
     }
      .board-container.collapsed, .matrix-container.collapsed {
         height: 0 !important;
@@ -72,39 +71,39 @@
         padding-top: 0;
         padding-bottom: 0;
         opacity: 0;
-        border: none; /* Avoid border showing when collapsed */
+        border: none;
         margin: 0;
-        flex-grow: 0; /* Don't grow when collapsed */
-        flex-shrink: 1; /* Allow shrinking when collapsed */
+        flex-grow: 0;
+        flex-shrink: 1;
     }
 
-    /* Adjust flex properties, Kanban less likely to grow than Matrix if space is tight */
     .board-container { flex-grow: 0; display: flex; flex-direction: column;}
-    .matrix-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 300px; /* Ensure matrix has minimum space */}
+    .matrix-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 300px; }
 
 
+    /* GARANTINDO SCROLL HORIZONTAL */
     .board {
         display: flex;
         gap: 12px;
         align-items: flex-start;
         padding-bottom: 10px;
-        overflow-x: auto;
-        min-height: 150px; /* Give it some initial height */
+        overflow-x: auto; /* Permite scroll horizontal */
+        min-height: 150px;
     }
 
     .matrix {
         display: grid;
         grid-template-columns: 40px 1fr 1fr;
-        grid-template-rows: 40px minmax(100px, auto) minmax(100px, auto); /* Ensure rows have min height */
+        grid-template-rows: 40px minmax(100px, auto) minmax(100px, auto);
         gap: 12px;
-        align-items: stretch; /* Stretch items vertically */
+        align-items: stretch;
         padding-top: 16px;
-        min-height: 300px; /* Minimum height for the grid */
-        flex-grow: 1; /* Allow matrix grid to take available space */
+        min-height: 300px;
+        flex-grow: 1;
     }
-     .matrix .list { /* Make lists inside matrix stretch */
+     .matrix .list {
         align-self: stretch;
-        min-height: 100px; /* Ensure list has some height */
+        min-height: 100px;
     }
 
     #agenda-sidebar {
@@ -112,10 +111,10 @@
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-        overflow: hidden; /* Control overflow for transition */
+        overflow: hidden;
         transition: flex-basis .3s ease-in-out, min-width .3s ease-in-out, padding .3s ease-in-out, opacity .3s ease-in-out;
         min-width: 260px;
-        position: relative; /* For toggle button */
+        position: relative;
     }
 
     .workspace.agenda-collapsed #agenda-sidebar {
@@ -125,29 +124,28 @@
         padding: 0;
     }
 
-    /* Remove toggle tabs */
     .toggle-tab { display: none; }
 
     .list{background:var(--panel);border:1px solid #183453;border-radius:10px;display:flex;flex-direction:column;min-width:240px;flex-shrink:0}
-    .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a; flex-shrink: 0;} /* Prevent header shrink */
+    .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a; flex-shrink: 0;}
     .list header input.title{flex:1;border:none;border-radius:8px;padding:6px 8px;background:#0e2542;color:var(--ink)}
-    .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px; overflow-y: auto; flex-grow: 1;} /* Allow cards area to scroll if needed */
+    .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px; overflow-y: auto; flex-grow: 1;}
     .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative;transition:opacity .2s, transform .2s}
     .card.dragging{opacity:0.5;transform:rotate(3deg)}
     .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
-    .card.editing { background: #1a4b7f; } /* Highlight while editing */
-    .card .text{white-space:pre-wrap; min-height: 1em; transition: opacity .2s, text-decoration .2s;} /* Ensure editable area has height */
-    .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; } /* Completed Style */
+    .card.editing { background: #1a4b7f; }
+    .card .text{white-space:pre-wrap; min-height: 1em; transition: opacity .2s, text-decoration .2s;}
+    .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; }
     
     .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .dot{width:10px;height:10px;border-radius:50%;display:inline-flex;border:1px solid #375b86; position: relative; align-items: center; justify-content: center; cursor: pointer;} /* Changed to inline-flex */
-    .dot-check { display: none; color: #fff; font-weight: bold; font-size: 10px; line-height: 10px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); user-select: none; } /* Checkmark */
-    .card[data-completed="true"] .dot-check { display: block; } /* Show checkmark when completed */
+    .dot{width:10px;height:10px;border-radius:50%;display:inline-flex;border:1px solid #375b86; position: relative; align-items: center; justify-content: center; cursor: pointer;}
+    .dot-check { display: none; color: #fff; font-weight: bold; font-size: 10px; line-height: 10px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); user-select: none; }
+    .card[data-completed="true"] .dot-check { display: block; }
 
     .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
-    .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; } /* Date display */
+    .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; }
     .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-    .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px} /* Prevent add section shrink */
+    .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px}
     .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink)}
 
     .axis{display:flex;align-items:center;justify-content:center;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a4e78;border-radius:10px}
@@ -162,32 +160,31 @@
 
     .schedule{background:var(--panel);border:1px solid #183453;border-radius:12px;width:100%; height:100%; display: flex; flex-direction: column; overflow: hidden;}
     .schedule header{
-        position:sticky;top:0;z-index:1;display:flex;flex-direction:column; /* Changed to column */
-        gap: 8px; /* Added gap between rows */
+        position:sticky;top:0;z-index:1;display:flex;flex-direction:column;
+        gap: 8px;
         padding:8px 10px;background:#0b437e;color:#fff;
         border-top-left-radius:12px;border-top-right-radius:12px
     }
-    .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; } /* New row wrapper */
+    .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
     #slots { overflow-y: auto; flex-grow: 1; }
-    .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px; width: 120px;} /* Fixed width */
-    .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; } /* Container for all controls */
-    .schedule header .date-nav { display: flex; align-items: center; gap: 4px; } /* Container for nav */
-    .schedule header button { padding: 6px 10px; background:#0e58a5; border:none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1;} /* Style all header buttons */
-    .schedule header .date-nav button { padding: 4px 8px; font-size: 16px;} /* Smaller buttons for nav */
-    .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; } /* Style for copy/paste icons */
-
+    .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px; width: 120px;}
+    .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; }
+    .schedule header .date-nav { display: flex; align-items: center; gap: 4px; }
+    .schedule header button { padding: 6px 10px; background:#0e58a5; border:none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1;}
+    .schedule header .date-nav button { padding: 4px 8px; font-size: 16px;}
+    .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; }
 
     .slot{border-bottom:1px dashed #244b78}.slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
     .slot .time{font-weight:700;font-size:11px;color:#9fc1ff}
     .slot .cards{display:none;padding:4px;min-height:28px}.slot.has-items .cards{display:block}
     .slot.hover{background:#0e2446;box-shadow:inset 0 0 0 2px #1976d2}
-    .goal-slot { background: #1c3a61; border-bottom: 1px solid #3a6a9e; } /* Highlight for goal slot */
+    .goal-slot { background: #1c3a61; border-bottom: 1px solid #3a6a9e; }
     .goal-slot > .head .goal-label { font-weight: bold; color: #ffd54f; }
 
     .placeholder{height:38px;border:2px dashed #1976d2;border-radius:8px;background:#0e2446;margin:4px 0}
-    .ctx{position:fixed;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:1000} /* Increased min-width slightly */
+    .ctx{position:fixed;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:1000}
     .ctx button{display:flex; align-items: center; gap: 8px; width:100%;text-align:left;background:transparent;border:none;color:#dbe7ff;padding:10px 12px;border-radius:0;cursor:pointer}.ctx button:hover{background:#1a2842}
-    .ctx .shortcut { margin-left: auto; font-size: 0.8em; color: var(--muted); padding-left: 10px; } /* Style for shortcuts */
+    .ctx .shortcut { margin-left: auto; font-size: 0.8em; color: var(--muted); padding-left: 10px; }
     .ctx .sep{height:1px;background:#23314a;margin:6px 0}
     .ctx-sub{position:absolute;left:100%;top:0;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;max-height:300px;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none}
     .list header .more{margin-left:auto;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
@@ -197,43 +194,28 @@
     .modal .row{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
     .modal .row button{background:#1976d2;border:none;border-radius:8px;color:#fff;padding:8px 10px;cursor:pointer}
     .modal .row button.cancel{background:#6b7a93}
-    /* Style for import options modal */
     .import-options button { margin: 5px; flex-grow: 1;}
-    /* Palette editor */
     .palette-editor { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px;}
     .palette-editor.editing { display: flex; }
     .palette-grid.editing { display: none; }
     .palette-editor-row { display: flex; align-items: center; gap: 8px; }
     .palette-editor-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #375b86; flex-shrink: 0;}
     .palette-editor input { background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; padding: 6px 8px; flex: 1; }
-    .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; } /* Pushes to the left */
-
+    .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; }
 
     @keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}
     .spinner_V8m1{transform-origin:center;animation:spinner_zKoa 2s linear infinite}.spinner_V8m1 circle{stroke-linecap:round;animation:spinner_YpZS 1.5s ease-in-out infinite}
     @keyframes flash { 0%, 100% { background-color: var(--card); } 50% { background-color: #ffcc00; color: #000; } }
 
     @media (max-width: 700px){
-        .workspace{
-            flex-direction: column;
-            overflow-y: auto;
-            padding: 8px; /* Reduce padding on small screens */
-            gap: 8px;
-        }
-        #main-content {
-             overflow: visible; /* Allow content to determine height */
-             height: auto;
-        }
+        .workspace{ flex-direction: column; overflow-y: auto; padding: 8px; gap: 8px; }
+        #main-content { overflow: visible; height: auto; }
         #agenda-sidebar{display:none}
-        .board { order: 1; overflow: visible; min-height: unset;} /* Kanban first */
-        .matrix { order: 2; margin-top: 16px; min-height: unset;} /* Matrix second */
+        .board { order: 1; overflow: visible; min-height: unset;}
+        .matrix { order: 2; margin-top: 16px; min-height: unset;}
         .list { min-width: unset; width: 100%; margin-bottom: 12px; }
-        header.app { /* Allow header buttons to wrap */
-             height: auto;
-             padding-bottom: 10px; /* Add padding if buttons wrap */
-        }
-        header.app h1 { margin-right: 10px; } /* Reduce margin for title */
-        /* Hide toggle buttons on small screens as panels are handled differently */
+        header.app { height: auto; padding-bottom: 10px; }
+        header.app h1 { margin-right: 10px; }
         #toggleBoardBtn, #toggleMatrixBtn, #toggleAgendaBtn { display: none; }
     }
   </style>
@@ -241,7 +223,6 @@
 <body>
 <header class="app" id="appHeader">
   <h1>
-    <!-- Opção 2: Folha -->
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="header-icon">
       <path d="M17.32 10c.88.88 1.39 2.07 1.39 3.32 0 2.65-2.15 4.8-4.8 4.8s-4.8-2.15-4.8-4.8c0-1.25.51-2.44 1.39-3.32"></path>
       <path d="M12 18.12V22"></path>
@@ -254,16 +235,16 @@
   <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
   <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
   <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px" title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m ou 1h 30m">
-  <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong> <!-- Display updated -->
+  <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
   <label>De <input id="fFrom" type="date"></label>
   <label>Até <input id="fTo" type="date"></label>
   <button id="clearFilters">Limpar filtros</button>
-   <!-- Panel Toggle Buttons -->
+  
   <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
   <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
   <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
-  <!-- End Panel Toggle Buttons -->
-  <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button> <!-- Quick Save Button -->
+  
+  <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button>
   <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
       <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
       <span class="toggle-switch-label">⚙️</span>
@@ -272,7 +253,7 @@
   <button id="addList">+ Lista</button>
   <button id="exportJson" title="Baixar backup JSON">Exportar JSON</button>
   <button id="importJsonBtn" title="Restaurar de JSON">Importar JSON</button>
-  <input id="importFile" type="file" style="display:none" /> <!-- Accept attribute removed -->
+  <input id="importFile" type="file" style="display:none" />
   <button id="reset">Resetar</button>
 </header>
 <section class="workspace">
@@ -287,14 +268,14 @@
     <aside id="agenda-sidebar">
         <div class="schedule" id="schedule">
             <header>
-                <div class="header-row"> <!-- Row 1: Title and Copy/Paste -->
+                <div class="header-row">
                     <strong>AGENDA</strong>
                     <div class="copy-paste-buttons">
                         <button id="copyDayBtn" title="Copiar dia atual">📋</button>
                         <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
                     </div>
                 </div>
-                <div class="header-row"> <!-- Row 2: Date Nav -->
+                <div class="header-row">
                     <div class="date-nav">
                         <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
                         <input id="agendaDate" type="date" />
@@ -307,7 +288,6 @@
     </aside>
 </section>
 
-<!-- Updated Context Menu Structure -->
 <div id="ctx" class="ctx">
   <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
   <div class="sep"></div>
@@ -343,31 +323,30 @@
   function el(t,c){var n=document.createElement(t); if(c) n.className=c; return n;}
   function $$(s,r){if(!r) r=document; return Array.prototype.slice.call(r.querySelectorAll(s));}
   function to2(n){return (n<10?'0'+n:''+n);}
-  function formatSecondsToTime(totalSeconds) { // Helper to format time
-      if (totalSeconds <= 0) return '0:00 min'; // Add min here too for consistency if desired
+  function formatSecondsToTime(totalSeconds) {
+      if (totalSeconds <= 0) return '0:00 min';
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
-      return `${hours > 0 ? hours + ':' : ''}${to2(minutes)} min`; // Append ' min'
+      return `${hours > 0 ? hours + ':' : ''}${to2(minutes)} min`;
   }
 
   var LS_KEY='mini-trello-restore';
-  var LS_LABELS_KEY = 'tea-planner-labels'; // Key for custom labels
-  var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config'; // Key for toggle switch
+  var LS_LABELS_KEY = 'tea-planner-labels'; 
+  var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config';
   var __persistTick=null, __muteHistory=0;
   function withMute(fn){ __muteHistory++; try{ return fn(); } finally { __muteHistory--; } }
 
-  var boardEl=document.getElementById('board'); // Renamed from board to avoid conflict
+  var boardEl=document.getElementById('board'); 
   var schedule=document.getElementById('schedule');
   var slotsRoot=document.getElementById('slots');
-  var matrixEl=document.getElementById('matrix'); // Renamed from matrix
-  var sumTimersDisplay = document.getElementById('sumTimersDisplay'); // Get the display element
-  var allCards = []; // Cache de todos os elementos de cartão para performance
+  var matrixEl=document.getElementById('matrix'); 
+  var sumTimersDisplay = document.getElementById('sumTimersDisplay');
+  var allCards = []; 
   var globalTimerInterval = null;
-  var selected = new Set(); // Moved selection set here to be accessible by timer sum
-  var lastMouseX = 0, lastMouseY = 0; // Track mouse position
-  var agendaClipboard = []; // For copy/paste agenda
+  var selected = new Set();
+  var lastMouseX = 0, lastMouseY = 0;
+  var agendaClipboard = [];
 
-  // Track mouse position
   document.addEventListener('mousemove', (e) => {
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
@@ -378,34 +357,23 @@
       let selectedSeconds = 0;
       let visibleSeconds = 0;
       let totalSecondsAll = 0;
-
-      // Calculate sum for selected cards
       if (selected.size > 0) {
           selected.forEach(card => {
               selectedSeconds += parseInt(card.dataset.timerTotal || '0', 10);
           });
       }
-
-      // Calculate sum for all *visible* cards and *total* cards
       allCards.forEach(card => {
           const cardTime = parseInt(card.dataset.timerTotal || '0', 10);
           totalSecondsAll += cardTime;
-          // Check if card is currently displayed (not display: none)
-          // Use computed style for a more robust visibility check
           const style = window.getComputedStyle(card);
           if (style.display !== 'none' && style.visibility !== 'hidden') {
-               // Check offsetParent as a final check for truly visible
                if (card.offsetParent !== null) {
                     visibleSeconds += cardTime;
                }
           }
       });
-
-      // Determine text content based on selection
       const displayText = selected.size > 0 ? formatSecondsToTime(selectedSeconds) : formatSecondsToTime(visibleSeconds);
       sumTimersDisplay.textContent = displayText;
-
-      // Update tooltip with all three values
       sumTimersDisplay.title = `Selecionado: ${formatSecondsToTime(selectedSeconds)} / Filtrado: ${formatSecondsToTime(visibleSeconds)} / Total: ${formatSecondsToTime(totalSecondsAll)}`;
   }
 
@@ -421,36 +389,27 @@
         timerTotal:c.dataset.timerTotal||'',
         timerLeft:c.dataset.timerLeft||'',
         timerState:c.dataset.timerState||'',
-        completed: c.dataset.completed || 'false' // Add completed state
+        completed: c.dataset.completed || 'false'
     };
   }
   function serialize(){
          var data=[];
-
-         // 1. Serialize Kanban lists IN DOM ORDER
          $$('.list[data-type="kanban"]', boardEl).forEach(function(l) {
              const title = l.querySelector('.title').value;
-             // Get cards from this list that are in the main cache
              const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
              data.push({ type: 'kanban', title: title, cards: cardsInList });
          });
-
-         // 2. Serialize Matrix lists IN DOM ORDER
          if (matrixEl) {
              $$('.list[data-type="quad"]', matrixEl).forEach(function(l) {
                  const quad = l.dataset.quad;
-                 // Get cards from this list that are in the main cache
                  const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
                  data.push({ type: 'quad', quad: quad, cards: cardsInList });
              });
          }
-
-         // 3. Serialize Agenda cards FROM CACHE (as they might not be in DOM)
          const agendaGoalCards = allCards.filter(c => c.dataset.when && c.dataset.when.endsWith('TGOAL')).map(cardToData);
          if (agendaGoalCards.length > 0) {
              data.push({ type: 'goal', goal: true, cards: agendaGoalCards });
          }
-
          const agendaTimeCards = {};
           allCards.filter(c => c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
               const time = c.dataset.when.substring(11);
@@ -460,10 +419,8 @@
           for (const time in agendaTimeCards) {
                data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
           }
-
         return data;
   }
-
 
   var HIST_LIMIT=120; var hist=[], cursor=-1;
   function pushHistory(snap){ hist=hist.slice(0,cursor+1); hist.push(snap); if(hist.length>HIST_LIMIT) { hist.shift(); } cursor=hist.length-1; updateUndoUi(); }
@@ -478,91 +435,77 @@
 
   function duplicateCards(cards) {
     if (!cards || !cards.length) return;
-    let newCards = []; // Keep track of newly created cards
+    let newCards = []; 
     cards.forEach(function(c) {
       var newData = cardToData(c);
-      // Remove 'when' data if duplicating outside agenda context
       if (!c.closest('#agenda-sidebar')) {
           newData.when = '';
       }
       var newCard = createCard(newData);
-      newCards.push(newCard); // Add to list
+      newCards.push(newCard); 
       c.parentElement.insertBefore(newCard, c.nextSibling);
-      if (newData.when) { // If it had a 'when', ensure it stays in allCards cache
-        // It's added to allCards automatically by createCard
-      }
     });
     persist();
-    updateSlotsHasItems(); // Update agenda view if needed
-    updateTotalTimerDisplay(); // Update total time
+    updateSlotsHasItems(); 
+    updateTotalTimerDisplay(); 
   }
-
 
   function initDemo() {
     withMute(function() {
       var toDo = createList('Para Fazer');
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); // Cor Q1, 30 min
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); // Cor Q2, 60 min
-      toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas', completed: 'true'})); // Completed demo
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); 
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); 
+      toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas', completed: 'true'})); 
 
       createList('Em Andamento');
       createList('Feito');
 
       if (matrixEl) {
         var q1 = matrixEl.querySelector('.list[data-quad="Q1"] .cards');
-        q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); // Cor Q1, 120 min
+        q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); 
       }
-      // Add a demo goal
-      createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); // 15 min
+      createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); 
 
     });
-    applyFilters(); // Apply filters first
-    updateSlotsHasItems(); // Then render the agenda based on filtered items
-    updateTotalTimerDisplay(); // Initial total time calculation
+    applyFilters(); 
+    updateSlotsHasItems(); 
+    updateTotalTimerDisplay(); 
   }
-
 
   function initApp() {
     ensureMatrix();
-    ensureSchedule(false); // Create schedule structure
-    loadState(); // Load collapsed states
+    ensureSchedule(false); 
+    loadState(); 
     try{
         var raw=localStorage.getItem(LS_KEY);
         if(raw){
              var d=JSON.parse(raw);
              var dataToRestore = Array.isArray(d.data) ? d.data : d;
              if(Array.isArray(dataToRestore) && dataToRestore.length){
-                 // Restore logic needs to handle putting cards into allCards cache
-                 // and then letting updateSlotsHasItems render the agenda
                  restore(dataToRestore);
-                 pushHistory(dataToRestore); // Push the raw data structure
-                 updateTotalTimerDisplay(); // Calculate total after restore
+                 pushHistory(dataToRestore); 
+                 updateTotalTimerDisplay(); 
                  return;
             }
         }
     }catch(e){ console.error("Error loading data:", e); }
-    // If load failed or no data, init demo
     initDemo();
-    pushHistory(serialize()); // Push initial state
-    // updateTotalTimerDisplay(); // Already called in initDemo -> applyFilters -> updateSlotsHasItems
+    pushHistory(serialize()); 
   }
 
-
-  // ===== Restauração (undo/redo/import) =====
+  // ===== Restauração =====
   function restore(data){
     if(!data||!data.length){ return; }
-    allCards = []; // Clear the cache first
+    allCards = []; 
 
-    // Clear visible lists in DOM
-    boardEl.innerHTML = ''; // << Clear the Kanban board
-    matrixEl.innerHTML = ''; // << Clear the Matrix
-    slotsRoot.innerHTML = ''; // << Clear the Agenda slots
+    boardEl.innerHTML = ''; 
+    matrixEl.innerHTML = ''; 
+    slotsRoot.innerHTML = ''; 
 
-    // Rebuild empty structures
     ensureMatrix();
     ensureSchedule(false);
 
-    var quadMap = { // Get quadrant containers *after* rebuilding
+    var quadMap = { 
       Q1:matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
       Q2:matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
       Q3:matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
@@ -573,7 +516,7 @@
       if(!container || !cardsData || !cardsData.length) return;
       var fragment = document.createDocumentFragment();
       cardsData.forEach(function(cd){
-           const cardEl = createCard(cd); // Adds to allCards cache
+           const cardEl = createCard(cd); 
            fragment.appendChild(cardEl);
       });
       container.appendChild(fragment);
@@ -581,31 +524,26 @@
 
     data.forEach(function(entry){
       if(entry.type==='kanban'){
-        // THIS IS THE FIX: Create the list first, then append
         var l = createList(entry.title || 'Lista');
         appendCardsToDOM(l.querySelector('.cards'), entry.cards);
       } else if(entry.type==='quad' && quadMap[entry.quad]){
         appendCardsToDOM(quadMap[entry.quad], entry.cards);
       } else if(entry.type==='time' || entry.type === 'goal'){
-        // Add to cache only, updateSlotsHasItems will render
         (entry.cards || []).forEach(cardData => {
-            // Ensure 'when' is correctly formatted or assigned for goals
             if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
-                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL'; // Ensure date part exists
+                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL'; 
             } else if (entry.time && cardData.when && !cardData.when.includes('T'+entry.time)) {
-                // Fix potential mismatch if time is stored separately
-                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time; // Ensure date part exists
+                 cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time; 
             }
-             createCard(cardData); // Adds to allCards cache
+             createCard(cardData); 
         });
       }
     });
 
-    applyFilters(); // Apply general filters (color, date range, time estimate)
-    updateSlotsHasItems(); // Render the agenda for the current day
-    updateTotalTimerDisplay(); // Update total time after restore
+    applyFilters(); 
+    updateSlotsHasItems(); 
+    updateTotalTimerDisplay(); 
   }
-
 
   // ===== Cartões =====
   function updateTimerDisplay(card) {
@@ -622,12 +560,12 @@
           var secs = seconds % 60;
           disp.textContent = `⏱️ ${to2(mins)}:${to2(secs)}`;
 
-          if (state === 'running') { disp.style.color = '#66bb6a'; disp.style.background = 'rgba(102, 187, 106, 0.2)'; } // green
-          else if (state === 'paused') { disp.style.color = '#ffa726'; disp.style.background = 'rgba(255, 167, 38, 0.2)'; } // orange
-          else if (state === 'finished') { disp.style.color = '#ef5350'; disp.style.background = 'rgba(239, 83, 80, 0.2)'; } // red
-          else { // stopped
+          if (state === 'running') { disp.style.color = '#66bb6a'; disp.style.background = 'rgba(102, 187, 106, 0.2)'; } 
+          else if (state === 'paused') { disp.style.color = '#ffa726'; disp.style.background = 'rgba(255, 167, 38, 0.2)'; } 
+          else if (state === 'finished') { disp.style.color = '#ef5350'; disp.style.background = 'rgba(239, 83, 80, 0.2)'; } 
+          else { 
              var totalMins = Math.round(totalSeconds / 60);
-             disp.textContent = `⏳ ${totalMins} min`; // Changed 'm' to ' min'
+             disp.textContent = `⏳ ${totalMins} min`; 
              disp.style.color = ''; disp.style.background = 'rgba(0,0,0,.2)';
           }
       } else {
@@ -635,17 +573,14 @@
       }
   }
 
-  // New function to toggle card completion state
   function toggleCardCompletion(e) {
-      e.stopPropagation(); // Stop click from bubbling to card (for selection/dblclick)
+      e.stopPropagation(); 
       const card = e.target.closest('.card');
       if (!card) return;
       const isCompleted = card.dataset.completed === 'true';
       card.dataset.completed = isCompleted ? 'false' : 'true';
       persist();
-      // CSS handles the visual update (strikethrough and checkmark)
   }
-
 
   function paintCard(c){
     var color = c.dataset.color || '';
@@ -666,7 +601,7 @@
         }
         dateEl.style.display = '';
     } else if (dateEl) {
-        dateEl.style.display = 'none'; // Hide if no date
+        dateEl.style.display = 'none'; 
     }
     updateTimerDisplay(c);
   }
@@ -676,43 +611,41 @@
     var c=el('div','card'); c.draggable=true;
     c.dataset.color=_d.color||''; c.dataset.due=_d.due||''; c.dataset.when=_d.when||'';
     c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerTotal || ''; c.dataset.timerState = _d.timerState || 'stopped';
-    c.dataset.completed = _d.completed || 'false'; // Add completed state
+    c.dataset.completed = _d.completed || 'false'; 
 
     var t=el('span','text'); t.textContent=_d.text||'';
     var meta=el('div','meta');
     var dot=el('span','dot');
-    var dotCheck = el('span', 'dot-check'); dotCheck.textContent = '✓'; // Add checkmark
-    dot.appendChild(dotCheck); // Add checkmark inside dot
+    var dotCheck = el('span', 'dot-check'); dotCheck.textContent = '✓'; 
+    dot.appendChild(dotCheck); 
     var timerDisp=el('span','timer-display');
-    var dateDisp = el('span', 'due-date'); // Create element for date
+    var dateDisp = el('span', 'due-date'); 
     meta.appendChild(dot);
     meta.appendChild(timerDisp);
-    meta.appendChild(dateDisp); // Add to meta
+    meta.appendChild(dateDisp); 
     var kb=el('button','kebab'); kb.type='button'; kb.textContent='⋮';
     kb.addEventListener('click',function(ev){ ev.stopPropagation(); clearSelection(); addSelection(c); var r=kb.getBoundingClientRect(); showCtx(r.right,r.bottom,c); });
     c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
 
-    // Event Listeners
-    dot.addEventListener('click', toggleCardCompletion); // Click on dot toggles complete
-    dot.addEventListener('dblclick', (e) => e.stopPropagation()); // Stop dblclick on dot from firing timer
+    dot.addEventListener('click', toggleCardCompletion); 
+    dot.addEventListener('dblclick', (e) => e.stopPropagation()); 
 
-    c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); } else if(e.ctrlKey||e.metaKey){ toggleSelection(c); } else if(!selected.has(c)) { clearSelection(); addSelection(c); } updateTotalTimerDisplay(); }); // Update timer on selection change
+    c.addEventListener('mousedown',function(e){ if(e.button!==0) return; if(e.shiftKey){ rangeSelect(c); } else if(e.ctrlKey||e.metaKey){ toggleSelection(c); } else if(!selected.has(c)) { clearSelection(); addSelection(c); } updateTotalTimerDisplay(); }); 
     c.addEventListener('dragstart',function(e){ e.stopPropagation(); var block = selected.has(c)? Array.from(selected) : [c]; dragState={leader:c, block:block}; block.forEach(function(n){ n.classList.add('dragging'); }); pushPH(); try{e.dataTransfer.setData('text/plain','drag'); e.dataTransfer.effectAllowed='move';}catch(_){} });
-    c.addEventListener('dragend',function(){ if(dragState&&dragState.block){ dragState.block.forEach(function(n){ n.classList.remove('dragging'); }); } cleanupPH(); dragState=null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); }); // Update timer after drag
+    c.addEventListener('dragend',function(){ if(dragState&&dragState.block){ dragState.block.forEach(function(n){ n.classList.remove('dragging'); }); } cleanupPH(); dragState=null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); }); 
     c.addEventListener('contextmenu',function(e){ e.preventDefault(); if(!selected.has(c)){ clearSelection(); addSelection(c);} showCtx(e.clientX,e.clientY,c); });
     c.addEventListener('dblclick',function(e){
         if (e.target.classList.contains('dot') || e.target.classList.contains('dot-check')) {
-            e.stopPropagation(); // Prevent dblclick on dot
+            e.stopPropagation(); 
             return;
         }
-        handleCardDblClick(c); // Handle dblclick for timer
+        handleCardDblClick(c); 
     });
 
-    // Add to cache only if it doesn't already exist (important for restore)
     if (!allCards.includes(c)) {
         allCards.push(c);
     }
-    updateTotalTimerDisplay(); // Update total when adding card
+    updateTotalTimerDisplay(); 
     return c;
   }
 
@@ -720,20 +653,19 @@
       var index = allCards.indexOf(c);
       if (index > -1) allCards.splice(index, 1);
       c.remove();
-      persist(); // Persist after removing from cache and DOM
-      updateSlotsHasItems(); // Update agenda display if it was an agenda card
-      updateTotalTimerDisplay(); // Update total after removing
+      persist(); 
+      updateSlotsHasItems(); 
+      updateTotalTimerDisplay(); 
   }
 
 
-  function startInlineEdit(card, isNewCard = false){ // Added flag
+  function startInlineEdit(card, isNewCard = false){ 
     var tEl=card.querySelector('.text'); if(!tEl) return; if(card.classList.contains('editing')) return;
     card.classList.add('editing'); var original=tEl.textContent; tEl.setAttribute('contenteditable','true'); tEl.focus();
-    // Move cursor to end
     var sel=window.getSelection();
     var range=document.createRange();
     range.selectNodeContents(tEl);
-    range.collapse(false); // false collapses to the end
+    range.collapse(false); 
     sel.removeAllRanges();
     sel.addRange(range);
 
@@ -749,29 +681,24 @@
 
         if(!save) {
             tEl.textContent = original;
-            if (textWasEmpty && textIsNowEmpty) { // If was new and still empty, remove
+            if (textWasEmpty && textIsNowEmpty) { 
                 removeCard(card);
             }
         } else if (textIsNowEmpty) {
-             // Ask for confirmation before deleting empty card
-             if (!textWasEmpty) { // Only confirm if it wasn't a new blank card
+             if (!textWasEmpty) { 
                 showConfirm('Excluir cartão vazio?', function() {
                      removeCard(card);
                 });
              } else {
-                 removeCard(card); // Silently remove new blank card
+                 removeCard(card); 
              }
         } else {
-             // Text is saved
-             persist(); // Persist text change *now*
-             // Check if it was a new card and toggle is on
+             persist(); 
              if (isNewCard && quickConfigToggle && quickConfigToggle.checked) {
-                 // Open timer, then color dialog
                  openTimerDialog([card], function() {
-                     // This callback executes after Timer OK
-                     setTimeout(function() { // Use timeout to let first modal close
+                     setTimeout(function() { 
                          openColorDialog([card]);
-                     }, 1); // 1ms delay is enough for browser to process close
+                     }, 1); 
                  });
              }
         }
@@ -781,8 +708,7 @@
             ev.preventDefault();
             finish(false);
         }
-        // Save on Enter or Ctrl+Enter/Meta+Enter
-        if(ev.key==='Enter' && !ev.shiftKey){ // Allow Shift+Enter for new lines
+        if(ev.key==='Enter' && !ev.shiftKey){ 
             ev.preventDefault();
             finish(true);
         }
@@ -839,7 +765,7 @@
           var left = parseInt(c.dataset.timerLeft, 10);
           if (state === 'finished' || left <= 0) left = total;
           c.dataset.timerEnd = Date.now() + left * 1000;
-          c.style.animation = ''; // remove flash animation if it was there
+          c.style.animation = ''; 
           startGlobalTimer();
       }
       updateTimerDisplay(c);
@@ -847,18 +773,18 @@
   }
 
   // ===== DnD =====
-  var dragState=null; var draggingList=null; var lastAnchor=null; // `selected` moved to top
-  function clearSelection(){ selected.forEach(function(c){c.classList.remove('selected');}); selected.clear(); updateTotalTimerDisplay();} // Update timer on clear
-  function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; } updateTotalTimerDisplay(); } // Update timer on add
-  function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c);} updateTotalTimerDisplay(); } // Update timer on toggle
-  function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } var parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return;} var cards=[].slice.call(parent.querySelectorAll('.card')); var a=cards.indexOf(lastAnchor); var b=cards.indexOf(to); var i=a<b?a:b; var j=a<b?b:a; clearSelection(); for(var k=i;k<=j;k++){ if(cards[k].style.display !== 'none') addSelection(cards[k]); } updateTotalTimerDisplay(); } // Update timer after range select
+  var dragState=null; var draggingList=null; var lastAnchor=null; 
+  function clearSelection(){ selected.forEach(function(c){c.classList.remove('selected');}); selected.clear(); updateTotalTimerDisplay();} 
+  function addSelection(c){ if(!selected.has(c)){ selected.add(c); c.classList.add('selected'); lastAnchor=c; } updateTotalTimerDisplay(); } 
+  function toggleSelection(c){ if(selected.has(c)){ selected.delete(c); c.classList.remove('selected'); } else { addSelection(c);} updateTotalTimerDisplay(); } 
+  function rangeSelect(to){ if(!lastAnchor){ addSelection(to); return; } var parent=lastAnchor.parentElement; if(to.parentElement!==parent){ addSelection(to); return;} var cards=[].slice.call(parent.querySelectorAll('.card')); var a=cards.indexOf(lastAnchor); var b=cards.indexOf(to); var i=a<b?a:b; var j=a<b?b:a; clearSelection(); for(var k=i;k<=j;k++){ if(cards[k].style.display !== 'none') addSelection(cards[k]); } updateTotalTimerDisplay(); } 
   function getSelectionOr(target){ return selected.size? Array.from(selected) : (target? [target] : []); }
   function pushPH(){ if(!dragState) dragState={}; var ph=el('div','placeholder'); dragState.placeholder=ph; return ph; }
   function cleanupPH(){ if(dragState&&dragState.placeholder) dragState.placeholder.remove(); }
   function nearestAfter(container,y){ var els=[].slice.call(container.querySelectorAll('.card:not(.dragging)')); var best={offset:-Infinity,element:null}; els.forEach(function(child){ var r=child.getBoundingClientRect(); var o=y-(r.top+r.height/2); if(o<0 && o>best.offset) best={offset:o,element:child}; }); return best.element; }
 
   function wireDropZone(container){
-    var isSlot = container.classList.contains('slot') || container.classList.contains('goal-slot'); // Include goal slot
+    var isSlot = container.classList.contains('slot') || container.classList.contains('goal-slot'); 
     var cardsContainer = isSlot ? container.querySelector('.cards') : container;
 
     function handleDrop(e) {
@@ -869,10 +795,8 @@
       var ref = dragState.placeholder;
       var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
 
-      // Important: Update dataset.when BEFORE moving nodes in the DOM cache
-      applyWhen(container, block); // Update 'when' attribute in the cache
+      applyWhen(container, block); 
 
-      // Now physically move elements in the DOM (needed for Kanban/Matrix)
       if (!isSlot) {
          block.forEach(function(n){ parent.insertBefore(n, ref); });
       }
@@ -882,16 +806,14 @@
       if (isSlot) container.classList.remove('hover');
       dragState=null;
 
-      // Refresh agenda view after drop and persist changes
       updateSlotsHasItems();
       persist();
-      updateTotalTimerDisplay(); // Update total after drop potentially changes visibility
+      updateTotalTimerDisplay(); 
     }
 
     function handleDragOver(e) {
       if(!dragState) return;
       e.preventDefault();
-      // Only append placeholder in the DOM, actual card adding is on drop
       var after = nearestAfter(cardsContainer, e.clientY);
       var ph = dragState.placeholder;
       if (!after) cardsContainer.appendChild(ph);
@@ -915,23 +837,18 @@
     } else if (listElement && listElement.dataset.type === 'goal') {
       targetWhen = day + 'TGOAL';
     } else {
-      // Dropped outside agenda, clear 'when'
       targetWhen = '';
     }
 
     nodes.forEach(function(n){
-        // Update the actual card element in the cache (allCards)
         const cardInCache = allCards.find(card => card === n);
         if (cardInCache) {
             cardInCache.dataset.when = targetWhen;
         } else {
-            // This case should ideally not happen if createCard always adds to cache
             console.warn("Dragged card not found in cache:", n);
-            n.dataset.when = targetWhen; // Update DOM node as fallback
+            n.dataset.when = targetWhen; 
         }
     });
-
-    // Don't call updateSlotsHasItems here, call it after drop completes
   }
 
 
@@ -952,7 +869,7 @@
     list.appendChild(h);
     var cards=el('div','cards');
     list.appendChild(cards);
-    wireDropZone(cards); // Wire the inner cards container for kanban/matrix
+    wireDropZone(cards); 
     var add=el('div','add');
     var form=el('form');
     form.className='row';
@@ -967,8 +884,7 @@
         var card=createCard({text:v});
         cards.appendChild(card);
         input.value='';
-        // persist(); // Persist is called inside createCard's inline edit finish
-        startInlineEdit(card, true); // Pass true for isNewCard
+        startInlineEdit(card, true); 
     }
     form.addEventListener('submit',function(e){ e.preventDefault(); addCard(); });
     form.appendChild(input);
@@ -984,7 +900,7 @@
 
   // ===== Matriz =====
   function ensureMatrix(){
-    matrixEl.innerHTML = ''; // Clear previous content to be safe
+    matrixEl.innerHTML = ''; 
 
     var corner=el('div','axis corner');
     corner.style.gridArea = '1 / 1';
@@ -1024,7 +940,7 @@
       h.appendChild(t);
 
       var cs=el('div','cards');
-      wireDropZone(cs); // Wire cards container
+      wireDropZone(cs); 
       l.appendChild(h);
       l.appendChild(cs);
       matrixEl.appendChild(l);
@@ -1033,23 +949,21 @@
 
   // ===== Agenda =====
   function ensureSchedule(){
-     if (slotsRoot.querySelector('.goal-slot')) return; // Already created including goal slot
+     if (slotsRoot.querySelector('.goal-slot')) return; 
 
-     // Add Goal Slot first
-     var goalSlot = el('section', 'list goal-slot'); // Changed class for styling
-     goalSlot.dataset.type = 'goal'; // Use 'goal' type
+     var goalSlot = el('section', 'list goal-slot'); 
+     goalSlot.dataset.type = 'goal'; 
      var goalHead = el('div', 'head');
-     var goalLabel = el('span', 'goal-label'); // Changed class for styling
+     var goalLabel = el('span', 'goal-label'); 
      goalLabel.textContent = '🎯 OBJETIVO DO DIA';
      goalHead.appendChild(goalLabel);
      goalSlot.appendChild(goalHead);
      var goalCards = el('div', 'cards');
      goalSlot.appendChild(goalCards);
-     wireDropZone(goalSlot); // Wire the entire goal slot
+     wireDropZone(goalSlot); 
      slotsRoot.appendChild(goalSlot);
 
-    // Add Time Slots starting from 6:00
-    for(var h=6; h<=23; h++){ // Start loop from h=6
+    for(var h=6; h<=23; h++){ 
       for(var m=0; m<=30; m+=30){
         if(h===23 && m===30) break;
         var t=to2(h)+':'+to2(m);
@@ -1063,7 +977,7 @@
         slot.appendChild(head);
         var cards=el('div','cards');
         slot.appendChild(cards);
-        wireDropZone(slot); // Wire the entire time slot
+        wireDropZone(slot); 
         slotsRoot.appendChild(slot);
       }
     }
@@ -1076,51 +990,48 @@
     const dayPrefix = fromDay + 'T';
     allCards.forEach(function(c) {
         if ((c.dataset.when || '').startsWith(dayPrefix)) {
-            const timeOrGoal = (c.dataset.when || '').substring(11); // "HH:MM" or "GOAL"
+            const timeOrGoal = (c.dataset.when || '').substring(11); 
             const newData = cardToData(c);
             newData.when = toDay + 'T' + timeOrGoal;
-            createCard(newData); // Add the copied card to the main cache
+            createCard(newData); 
         }
     });
-    updateSlotsHasItems(); // Refresh the agenda view for the 'toDay'
+    updateSlotsHasItems(); 
     persist();
-    updateTotalTimerDisplay(); // Update total after copying
+    updateTotalTimerDisplay(); 
   }
 
   function getActiveDay(){ var i=document.getElementById('agendaDate'); return (i&&i.value)?i.value:new Date().toISOString().slice(0,10); }
 
-  // Renders the agenda based on allCards cache and selected date
   function updateSlotsHasItems() {
     const day = getActiveDay();
     const dayPrefixGoal = day + 'TGOAL';
     const dayPrefixTime = day + 'T';
-    const visibleCardsInSlots = new Set(); // Keep track of cards shown in agenda
+    const visibleCardsInSlots = new Set(); 
 
-    // Clear and refill Goal slot
     const goalSlot = slotsRoot.querySelector('.goal-slot');
     const goalCardsContainer = goalSlot.querySelector('.cards');
-    goalCardsContainer.innerHTML = ''; // Clear previous cards
+    goalCardsContainer.innerHTML = ''; 
     let goalHasVisible = false;
     allCards.forEach(card => {
         if (card.dataset.when === dayPrefixGoal && cardPassesFilters(card)) {
-            goalCardsContainer.appendChild(card); // Append card element from cache
+            goalCardsContainer.appendChild(card); 
             goalHasVisible = true;
             visibleCardsInSlots.add(card);
         }
     });
     goalSlot.classList.toggle('has-items', goalHasVisible);
 
-    // Clear and refill Time slots
     $$('.list.slot', schedule).forEach(function(slot) {
         const time = slot.dataset.time;
         const cardsContainer = slot.querySelector('.cards');
-        cardsContainer.innerHTML = ''; // Clear previous cards
+        cardsContainer.innerHTML = ''; 
         let slotHasVisible = false;
         const targetWhen = dayPrefixTime + time;
 
         allCards.forEach(card => {
             if (card.dataset.when === targetWhen && cardPassesFilters(card)) {
-                cardsContainer.appendChild(card); // Append card element from cache
+                cardsContainer.appendChild(card); 
                 slotHasVisible = true;
                 visibleCardsInSlots.add(card);
             }
@@ -1128,17 +1039,16 @@
         slot.classList.toggle('has-items', slotHasVisible);
     });
 
-     // Hide cards in Kanban/Matrix if they are shown in the agenda for the current day
      $$('.board .card, .matrix .card').forEach(card => {
          if (visibleCardsInSlots.has(card)) {
              card.style.display = 'none';
-         } else if (cardPassesFilters(card)) { // Check general filters otherwise
+         } else if (cardPassesFilters(card)) { 
              card.style.display = '';
          } else {
              card.style.display = 'none';
          }
      });
-     updateTotalTimerDisplay(); // Update total after visibility changes
+     updateTotalTimerDisplay(); 
   }
 
 
@@ -1156,7 +1066,6 @@
       }
       return totalMinutes;
   }
-  // This checks filters *other than* date matching for agenda
   function cardPassesFilters(c){
     var fFrom=(document.getElementById('fFrom').value)||'';
     var fTo=(document.getElementById('fTo').value)||'';
@@ -1173,24 +1082,21 @@
     return ok;
   }
 
-  // Applies general filters AND triggers agenda refresh for the current date
   function applyFilters(){
-    // Update non-agenda cards based on filters
     let visibleCount = 0;
     allCards.forEach(function(c){
        const passesGeneralFilters = cardPassesFilters(c);
-       // We only hide/show non-agenda cards here. Agenda cards are handled by updateSlotsHasItems
        if (!c.dataset.when || !c.dataset.when.includes('T')) {
           c.style.display = passesGeneralFilters ? '' : 'none';
        }
        if (passesGeneralFilters) {
-           visibleCount++; // Count all potentially visible cards
+           visibleCount++; 
        }
     });
 
-    updateSlotsHasItems(); // Refresh agenda based on current date AND general filters
-    updateFiltersUi(allCards.length, $$('.card[style*="display: none"]').length); // Update UI based on hidden cards count
-    updateTotalTimerDisplay(); // Update total after filtering
+    updateSlotsHasItems(); 
+    updateFiltersUi(allCards.length, $$('.card[style*="display: none"]').length); 
+    updateTotalTimerDisplay(); 
   }
 
 
@@ -1203,30 +1109,25 @@
   function isAnyFilterActive(){
       return selectedColors.size>0 || !!document.getElementById('fFrom').value || !!document.getElementById('fTo').value || !!document.getElementById('fTime').value;
   }
- function updateFiltersUi(totalCards, hiddenCardsCount){ // Changed parameter
+ function updateFiltersUi(totalCards, hiddenCardsCount){ 
       var badge=document.getElementById('filtersOn');
       var header=document.getElementById('appHeader');
       if(isAnyFilterActive()){
-          // Use the count of actually hidden cards
           badge.textContent = hiddenCardsCount > 0 ? ('Filtros: '+hiddenCardsCount+' oculto'+(hiddenCardsCount>1?'s':'')) : 'Filtros ativos';
           badge.hidden=false;
           header.classList.add('filters-active');
       } else {
-          // If no filters are active, ensure all cards are visible (except potentially agenda cards for other days)
           allCards.forEach(c => {
-               if (!c.dataset.when || !c.dataset.when.includes('T')) { // Only touch non-agenda cards here
+               if (!c.dataset.when || !c.dataset.when.includes('T')) { 
                     c.style.display = '';
                }
           });
-          updateSlotsHasItems(); // Refresh agenda to ensure cards for the day are shown
+          updateSlotsHasItems(); 
           badge.hidden=true;
           header.classList.remove('filters-active');
-          // Recalculate hidden count *after* potentially showing cards again
           hiddenCardsCount = $$('.card[style*="display: none"]').length;
       }
-       // Update badge based on final hidden count even if filters are cleared
        if (hiddenCardsCount > 0 && !isAnyFilterActive()) {
-            // This happens if cards are hidden only because they belong to another day's agenda
             badge.textContent = `Agenda: ${hiddenCardsCount} oculto${hiddenCardsCount > 1 ? 's' : ''}`;
             badge.hidden = false;
         } else if (!isAnyFilterActive()) {
@@ -1237,18 +1138,14 @@
 
   function buildMoveSubmenu(){
     ctxMoveSub.innerHTML = '';
-    // Add Kanban lists
     $$('.list[data-type="kanban"]', boardEl).forEach(function(l, i){
         addMoveButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || ('Lista ' + (i + 1)), ctxMoveSub);
     });
-    // Add Matrix quadrants
     $$('.list[data-type="quad"]', matrixEl).forEach(function(l){
         addMoveButton(l, l.dataset.quad, ctxMoveSub);
     });
-     // Add Goal slot
     const goalSlot = slotsRoot.querySelector('.goal-slot');
     if (goalSlot) addMoveButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveSub);
-    // Add Time slots
     $$('.list[data-type="time"]', schedule).forEach(function(l){
         addMoveButton(l, l.dataset.time, ctxMoveSub);
     });
@@ -1262,22 +1159,20 @@ function addMoveButton(targetListElement, name, submenuContainer) {
         var block = getSelectionOr(ctxTarget);
         if (!block.length) return;
 
-        var destContainer = targetListElement.querySelector('.cards') || targetListElement; // Target the .cards div or the element itself
+        var destContainer = targetListElement.querySelector('.cards') || targetListElement; 
         var isAgendaDrop = targetListElement.closest('#agenda-sidebar');
 
-        // Update data-when attribute first
         applyWhen(targetListElement, block);
 
-        // Move elements in DOM only if NOT dropping into agenda
         if (!isAgendaDrop) {
             block.forEach(function(cardElement) {
-                destContainer.appendChild(cardElement); // Move to new non-agenda list
+                destContainer.appendChild(cardElement); 
             });
         }
 
-        updateSlotsHasItems(); // Refresh agenda view
+        updateSlotsHasItems(); 
         persist();
-        applyFilters(); // Re-apply general filters
+        applyFilters(); 
         hideCtx();
     });
     submenuContainer.appendChild(b);
@@ -1290,10 +1185,9 @@ function addMoveButton(targetListElement, name, submenuContainer) {
       if (!sourceCardsContainer) return;
 
       $$('.list').forEach(function(l, i){
-          if(l === fromList) return; // Don't move to self
+          if(l === fromList) return; 
           addMoveAllButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || l.dataset.quad || l.dataset.time || ('Lista ' + (i + 1)), ctxMoveAllSub, fromList);
       });
-       // Add Goal slot specifically if it exists
       const goalSlot = slotsRoot.querySelector('.goal-slot');
       if (goalSlot && goalSlot !== fromList) {
            addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveAllSub, fromList);
@@ -1314,22 +1208,19 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         var destContainer = targetListElement.querySelector('.cards') || targetListElement;
         var isAgendaDrop = targetListElement.closest('#agenda-sidebar');
 
-        // Update data-when attribute first
         applyWhen(targetListElement, cardsToMove);
 
-        // Move elements in DOM only if NOT dropping into agenda
         if (!isAgendaDrop) {
             cardsToMove.forEach(function(cardElement) {
-                destContainer.appendChild(cardElement); // Move to new non-agenda list
+                destContainer.appendChild(cardElement); 
             });
         } else {
-             // If moving to agenda, remove from original DOM list
              cardsToMove.forEach(c => c.remove());
         }
 
-        updateSlotsHasItems(); // Refresh agenda view
+        updateSlotsHasItems(); 
         persist();
-        applyFilters(); // Re-apply general filters
+        applyFilters(); 
         hideCtx();
     });
     submenuContainer.appendChild(b);
@@ -1339,15 +1230,15 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
     if(action==='move'){ ctxMoveSub.style.display=(ctxMoveSub.style.display==='block'?'none':'block'); ctxMoveAllSub.style.display='none'; return; }
     if(action==='move-all'){ var list=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display=(ctxMoveAllSub.style.display==='block'?'none':'block'); ctxMoveSub.style.display='none'; return; }
     hideCtx();
-    if(action==='edit'){ if(block.length) startInlineEdit(block[0]); } // F2 action
+    if(action==='edit'){ if(block.length) startInlineEdit(block[0]); } 
     else if(action==='gemini-subtasks'){ generateSubtasks(block); }
     else if(action==='gemini-organize'){ organizeCardWithGemini(block); }
     else if(action==='dup'){ duplicateCards(block); }
-    else if(action==='del'){ block.forEach(function(n){ removeCard(n); }); /* Persist is called within removeCard */ }
+    else if(action==='del'){ block.forEach(function(n){ removeCard(n); }); }
     else if(action==='color'){ openColorDialog(block); }
     else if(action==='date'){ openDateDialog(block); }
     else if(action==='timer'){ openTimerDialog(block); }
-    else if(action==='del-all'){ var list2=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list2) return; showConfirm('Excluir TODOS os cartões desta lista?',function(){ $$('.card',list2).forEach(function(c){ removeCard(c); }); /* Persist is called within removeCard */ }); }
+    else if(action==='del-all'){ var list2=(ctxTarget||block[0])? (ctxTarget||block[0]).closest('.list'):null; if(!list2) return; showConfirm('Excluir TODOS os cartões desta lista?',function(){ $$('.card',list2).forEach(function(c){ removeCard(c); }); }); }
   });
 
   function showListCtx(x,y,list){ listCtxTarget=list; buildListMoveSub(); listMoveSub.style.display='none'; listCtx.style.display='block'; var r=listCtx.getBoundingClientRect(); listCtx.style.left=Math.min(x,innerWidth-r.width-8)+'px'; listCtx.style.top=Math.min(y,innerHeight-r.height-8)+'px'; }
@@ -1356,10 +1247,9 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       if (!listCtxTarget) return;
 
        $$('.list').forEach(function(l, i){
-          if(l === listCtxTarget) return; // Don't move to self
+          if(l === listCtxTarget) return; 
           addMoveAllButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || l.dataset.quad || l.dataset.time || ('Lista ' + (i + 1)), listMoveSub, listCtxTarget);
       });
-       // Add Goal slot specifically if it exists
       const goalSlot = slotsRoot.querySelector('.goal-slot');
       if (goalSlot && goalSlot !== listCtxTarget) {
            addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', listMoveSub, listCtxTarget);
@@ -1370,7 +1260,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
   // ===== Modal helpers + Paleta =====
   var MATRIX_COLORS = { Q1:'#104239', Q2:'#0e3155', Q3:'#5a4014', Q4:'#5a1419' };
-  // Load custom labels from localStorage, or set defaults
   var customColorLabels = JSON.parse(localStorage.getItem(LS_LABELS_KEY)) || {
     '#5dade2': 'Azul claro (Krav Maga)',
     '#f9e79f': 'Amarelo claro (GDF)',
@@ -1396,7 +1285,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   ];
   
   function buildFullPalette(){
-    // Rebuild EXTRA_COLORS array with up-to-date labels
     EXTRA_COLORS = [
         {id:'krav', name: customColorLabels['#5dade2'] || 'Azul claro (Krav Maga)', hex:'#5dade2'},
         {id:'gdf', name: customColorLabels['#f9e79f'] || 'Amarelo claro (GDF)', hex:'#f9e79f'},
@@ -1414,7 +1302,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       {id:'q4',name:'Vermelho (Elimine)',hex:MATRIX_COLORS.Q4, noEdit: true}
     ].concat(EXTRA_COLORS);
   }
-  function routeByColor(card, hex){ if(!hex||!matrixEl) return; var map={}; map[MATRIX_COLORS.Q1]='Q1'; map[MATRIX_COLORS.Q2]='Q2'; map[MATRIX_COLORS.Q3]='Q3'; map[MATRIX_COLORS.Q4]='Q4'; var quad=map[(hex||'').toLowerCase()]; if(!quad) return; var dest=matrixEl.querySelector('.list[data-quad="'+quad+'"] .cards'); if(dest){ dest.appendChild(card); card.dataset.when=''; updateSlotsHasItems(); /* Update agenda if card moved from it */ } }
+  function routeByColor(card, hex){ if(!hex||!matrixEl) return; var map={}; map[MATRIX_COLORS.Q1]='Q1'; map[MATRIX_COLORS.Q2]='Q2'; map[MATRIX_COLORS.Q3]='Q3'; map[MATRIX_COLORS.Q4]='Q4'; var quad=map[(hex||'').toLowerCase()]; if(!quad) return; var dest=matrixEl.querySelector('.list[data-quad="'+quad+'"] .cards'); if(dest){ dest.appendChild(card); card.dataset.when=''; updateSlotsHasItems(); } }
   function showModal(title,builder,onOk){
       var wrap=el('div','modal-wrap');
       var box=el('div','modal');
@@ -1426,36 +1314,32 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       row.appendChild(cancel); row.appendChild(ok); box.appendChild(row);
       wrap.appendChild(box); document.body.appendChild(wrap);
 
-      // Enter key listener for the modal
       const modalKeyListener = function(e) {
           if (e.key === 'Enter') {
-              // Only trigger OK if the active element isn't a button (like the custom ones in import)
               if (document.activeElement.tagName !== 'BUTTON' && !document.activeElement.closest('.import-options')) {
                  e.preventDefault();
-                 ok.click(); // Trigger the default OK button click
+                 ok.click(); 
               }
           } else if (e.key === 'Escape') {
                e.preventDefault();
-               cancel.click(); // Trigger Cancel on Escape
+               cancel.click(); 
           }
       };
-      wrap.setAttribute('tabindex', '-1'); // Make the modal focusable
-      wrap.focus(); // Focus the modal itself
+      wrap.setAttribute('tabindex', '-1'); 
+      wrap.focus(); 
       wrap.addEventListener('keydown', modalKeyListener);
 
       cancel.onclick=function(){
-          wrap.removeEventListener('keydown', modalKeyListener); // Clean up listener
+          wrap.removeEventListener('keydown', modalKeyListener); 
           document.body.removeChild(wrap);
       };
-      // Modified ok.onclick to pass the ok button itself to onOk
       ok.onclick=function(){
-           wrap.removeEventListener('keydown', modalKeyListener); // Clean up listener
-           onOk(body, wrap); // <<< PASSING WRAP
-           // Ensure modal is removed if onOk doesn't handle it
+           wrap.removeEventListener('keydown', modalKeyListener); 
+           onOk(body, wrap); 
            if (wrap.parentNode === document.body) {
                document.body.removeChild(wrap);
            }
-           persist(); // Persist on OK
+           persist(); 
       };
       var firstInput = body.querySelector('input'); if(firstInput) firstInput.focus();
       return { wrap: wrap, okButton: ok, cancelButton: cancel, body: body };
@@ -1463,7 +1347,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
   function showConfirm(message,onYes){
       showModal('Confirmação', function(){ var d=el('div'); d.textContent=message; return d; }, 
-      function(body, wrap){ if(typeof onYes==='function') onYes(); /* Modal removal handled by showModal */ });
+      function(body, wrap){ if(typeof onYes==='function') onYes(); });
   }
 
   function openColorDialog(cards){
@@ -1472,7 +1356,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
     var modalElements = showModal('Editar cor', function() {
         var wrap = el('div');
         
-        // Grid for color buttons
         var grid = el('div', 'palette-grid');
         grid.style.display = 'grid';
         grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
@@ -1489,28 +1372,26 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             b.style.background = p.hex || '#0b2240';
             b.style.color = '#fff';
             b.textContent = p.name;
-            b.dataset.hex = p.hex; // Store hex
+            b.dataset.hex = p.hex; 
             b.addEventListener('click', function() {
                 [].slice.call(grid.querySelectorAll('button')).forEach(function(x){x.style.outline='';});
                 b.style.outline='2px solid #fff';
                 wrap._chosen = p.hex;
-                // Trigger OK click automatically to apply color
                 modalElements.okButton.click();
             });
             if (p.hex === (cards[0].dataset.color || '')) b.style.outline = '2px solid #fff';
             grid.appendChild(b);
         });
         
-        // Editor for labels
         var editor = el('div', 'palette-editor');
-        EXTRA_COLORS.forEach(function(p) { // Use EXTRA_COLORS which has the current names
+        EXTRA_COLORS.forEach(function(p) { 
             var row = el('div', 'palette-editor-row');
             var swatch = el('div', 'palette-editor-swatch');
             swatch.style.background = p.hex;
             var input = el('input');
             input.type = 'text';
             input.value = p.name;
-            input.dataset.hex = p.hex; // Link input to hex color
+            input.dataset.hex = p.hex; 
             row.appendChild(swatch);
             row.appendChild(input);
             editor.appendChild(row);
@@ -1519,26 +1400,22 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         wrap.appendChild(grid);
         wrap.appendChild(editor);
         return wrap;
-    }, function(body, wrap) { // onOK
+    }, function(body, wrap) { 
         const editor = body.querySelector('.palette-editor');
         if (editor.classList.contains('editing')) {
-            // Save new labels from inputs
             $$('.palette-editor-row input', editor).forEach(input => {
-                customColorLabels[input.dataset.hex] = input.value; // Update the global labels object
+                customColorLabels[input.dataset.hex] = input.value; 
             });
-            saveCustomLabels(); // Save to localStorage
-            // Rebuild palette array with new names
+            saveCustomLabels(); 
             EXTRA_COLORS.forEach(p => p.name = customColorLabels[p.hex]); 
             
-            // Toggle back to grid view
             editor.classList.remove('editing');
             body.querySelector('.palette-grid').classList.remove('editing');
             body.querySelector('.manage-labels-btn').textContent = 'Gerir Etiquetas 🏷️';
             modalElements.okButton.textContent = 'OK';
             
-            // Re-render the grid with new names *without* closing
             const grid = body.querySelector('.palette-grid');
-            grid.innerHTML = ''; // Clear grid
+            grid.innerHTML = ''; 
             var PALETTE = [{id:'none', name:'Sem cor', hex:''}].concat(buildFullPalette());
             PALETTE.forEach(function(p) {
                 var b = el('button');
@@ -1549,7 +1426,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                 b.style.cursor = 'pointer';
                 b.style.background = p.hex || '#0b2240';
                 b.style.color = '#fff';
-                b.textContent = p.name; // Use new name
+                b.textContent = p.name; 
                 b.dataset.hex = p.hex;
                 b.addEventListener('click', function() {
                     [].slice.call(grid.querySelectorAll('button')).forEach(function(x){x.style.outline='';});
@@ -1560,12 +1437,10 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                 if (p.hex === (cards[0].dataset.color || '')) b.style.outline = '2px solid #fff';
                 grid.appendChild(b);
             });
-            // Do NOT remove wrap here, keep modal open
-            persist(); // Persist label changes
-            return; // Exit onOk to prevent modal close
+            persist(); 
+            return; 
         }
         
-        // Else (not editing), apply selected color
         var v = (body._chosen === undefined) ? (cards[0].dataset.color || '') : body._chosen;
         cards.forEach(function(c) {
             c.dataset.color = v || '';
@@ -1573,11 +1448,10 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             routeByColor(c, v || '');
         });
         applyFilters();
-        document.body.removeChild(wrap); // Close modal only when applying color
-        persist(); // Persist color change
+        document.body.removeChild(wrap); 
+        persist(); 
     });
 
-    // Add "Manage Labels" button to the modal row
     const manageBtn = el('button');
     manageBtn.textContent = 'Gerir Etiquetas 🏷️';
     manageBtn.className = 'manage-labels-btn';
@@ -1592,17 +1466,16 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         const isEditing = editorEl.classList.contains('editing');
         manageBtn.textContent = isEditing ? 'Voltar à Seleção' : 'Gerir Etiquetas 🏷️';
         modalElements.okButton.textContent = isEditing ? 'Guardar Nomes' : 'OK';
-        // Focus first input if entering edit mode
         if(isEditing) {
             editorEl.querySelector('input').focus();
         }
     };
     
-    modalElements.wrap.querySelector('.row').prepend(manageBtn); // Add button to modal
+    modalElements.wrap.querySelector('.row').prepend(manageBtn); 
 }
 
   function openDateDialog(cards){ if(!cards.length) return; showModal('Editar data',function(){ var r=el('div'); var i=el('input'); i.type='date'; if(cards[0].dataset.due) i.value=cards[0].dataset.due; r.appendChild(i); return r; }, function(r, wrap){ var v=r.querySelector('input').value; cards.forEach(function(c){ c.dataset.due=v||''; paintCard(c); }); applyFilters(); }); }
-  function openTimerDialog(cards, onOkCallback) { // Added callback
+  function openTimerDialog(cards, onOkCallback) { 
       if (!cards.length) return;
       var modalElements = showModal('Definir Timer (minutos)', function() { 
           var r = el('div');
@@ -1623,25 +1496,24 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
              });
            }
           return r;
-      }, function(r, wrap) { // onOk
+      }, function(r, wrap) { 
           var timerMins = r.querySelector('.timer-input').value;
           cards.forEach(function(c) {
               var newTotal = (parseInt(timerMins, 10) || 0) * 60;
               c.dataset.timerTotal = newTotal;
               c.dataset.timerLeft = newTotal;
               c.dataset.timerState = 'stopped';
-              c.style.animation = ''; // Clear flash
+              c.style.animation = ''; 
               paintCard(c);
           });
           applyFilters();
           updateTotalTimerDisplay(); 
-          if (onOkCallback) onOkCallback(); // Call the chain callback
+          if (onOkCallback) onOkCallback(); 
       });
-      // Handle "Cancel" click for the chained process
       modalElements.cancelButton.onclick = function() {
-           modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); // Clean up listener
+           modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 
            document.body.removeChild(modalElements.wrap);
-           persist(); // Persist any changes *before* the modal was opened (e.g. text edit)
+           persist(); 
       }
   }
   function openColorFilters(){
@@ -1670,7 +1542,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                       if(selectedColors.has(p.hex.toLowerCase())) selectedColors.delete(p.hex.toLowerCase()); 
                       else selectedColors.add(p.hex.toLowerCase()); 
                   } 
-                  // Update UI for all buttons
                   [].slice.call(wrap.querySelectorAll('button')).forEach(function(btn){ 
                       btn.style.outline=''; 
                       const btnHex = (btn.dataset.hex || '').toLowerCase();
@@ -1683,7 +1554,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           }); 
           return wrap; 
       }, 
-      function(body, wrap){ applyFilters(); /* Modal removal handled by default */ }); 
+      function(body, wrap){ applyFilters(); }); 
   }
 
   // ===== Gemini API Integration =====
@@ -1711,7 +1582,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   }
 
   async function callGemini(prompt, retries = 3, delay = 1000) {
-    const apiKey = ""; // Provided by the environment
+    const apiKey = ""; // <--- INSIRA SUA API KEY AQUI
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
     const payload = { contents: [{ parts: [{ text: prompt }] }] };
 
@@ -1733,7 +1604,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           throw error;
         }
         await new Promise(res => setTimeout(res, delay));
-        delay *= 2; // Exponential backoff
+        delay *= 2; 
       }
     }
   }
@@ -1751,7 +1622,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           let lastCard = card;
           subtasks.forEach(taskText => {
             const newCard = createCard({ text: "・ " + taskText, color: card.dataset.color, due: card.dataset.due });
-            // Add to DOM only if parent is Kanban/Matrix
              if (!card.closest('#agenda-sidebar')) {
                  lastCard.parentElement.insertBefore(newCard, lastCard.nextSibling);
                  lastCard = newCard;
@@ -1759,15 +1629,15 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           });
         } else { throw new Error('Nenhuma subtarefa foi gerada.'); }
       }
-       updateSlotsHasItems(); // Refresh agenda if needed
+       updateSlotsHasItems(); 
       persist();
-      updateTotalTimerDisplay(); // Update total after potentially adding cards
+      updateTotalTimerDisplay(); 
     } catch (error) {
       showModal('Erro de IA', function() {
           var d=el('div');
-          d.textContent = 'Não foi possível gerar as subtarefas. Por favor, tente novamente mais tarde.';
+          d.textContent = 'Não foi possível gerar as subtarefas. Verifique se inseriu a API Key no código.';
           return d;
-      }, function(body, wrap){ /* Modal removal handled by showModal */}); // Allow closing error modal
+      }, function(body, wrap){ }); 
     } finally {
       hideLoader();
     }
@@ -1785,26 +1655,25 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         if (quadToColor[resultQuad]) {
           const dest = matrixEl.querySelector('.list[data-quad="'+resultQuad+'"] .cards');
           if (dest) {
-            // Update cache first
              const cardInCache = allCards.find(c => c === card);
              if (cardInCache) cardInCache.dataset.when = '';
-             card.dataset.when = ''; // Also update DOM node just in case
+             card.dataset.when = ''; 
 
-            dest.appendChild(card); // Move in DOM
+            dest.appendChild(card); 
             card.dataset.color = quadToColor[resultQuad];
             paintCard(card);
           }
         } else { console.warn('Resposta inesperada da IA:', resultQuad); }
       }
-      updateSlotsHasItems(); // Update agenda view as cards might have moved out
+      updateSlotsHasItems(); 
       persist();
-      updateTotalTimerDisplay(); // Update total as card visibility might change
+      updateTotalTimerDisplay(); 
     } catch (error) {
       showModal('Erro de IA', function() {
           var d=el('div');
-          d.textContent = 'Não foi possível organizar o cartão. Por favor, tente novamente mais tarde.';
+          d.textContent = 'Não foi possível organizar o cartão. Verifique se inseriu a API Key no código.';
           return d;
-      }, function(body, wrap){ /* Modal removal handled by showModal */}); // Allow closing error modal
+      }, function(body, wrap){ }); 
     } finally {
       hideLoader();
     }
@@ -1816,7 +1685,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   const workspaceEl = document.querySelector('.workspace');
   const AGENDA_STATE_KEY = 'mini-trello-agenda-state';
 
-  // Toggle buttons from header
   const toggleBoardBtn = document.getElementById('toggleBoardBtn');
   const toggleMatrixBtn = document.getElementById('toggleMatrixBtn');
   const boardContainer = document.querySelector('.board-container');
@@ -1826,7 +1694,7 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   const BOARD_STATE_KEY = 'mini-trello-board-state';
   const MATRIX_STATE_KEY = 'mini-trello-matrix-state';
   const quickConfigToggle = document.getElementById('quickConfigToggle');
-  const quickConfigToggleBtn = quickConfigToggle.nextElementSibling; // The button span
+  const quickConfigToggleBtn = quickConfigToggle.nextElementSibling; 
 
 
   function saveState() {
@@ -1913,27 +1781,36 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   document.getElementById('undo').onclick=doUndo; document.getElementById('redo').onclick=doRedo;
   document.getElementById('clearFilters').onclick=function(){ selectedColors.clear(); document.getElementById('fFrom').value=''; document.getElementById('fTo').value=''; document.getElementById('fTime').value=''; applyFilters(); };
   
-  // --- Agenda Nav ---
   const agendaDateInput = document.getElementById('agendaDate');
   function changeDay(days) {
-        let currentDate = new Date(agendaDateInput.value + 'T12:00:00'); // Use T12 to avoid timezone issues
+        let currentDate = new Date(agendaDateInput.value + 'T12:00:00'); 
         currentDate.setDate(currentDate.getDate() + days);
         agendaDateInput.value = currentDate.toISOString().slice(0, 10);
-        applyFilters(); // Manually trigger filter/agenda update
+        applyFilters(); 
   }
   document.getElementById('prevDayBtn').addEventListener('click', () => changeDay(-1));
   document.getElementById('nextDayBtn').addEventListener('click', () => changeDay(1));
-  agendaDateInput.addEventListener('change', applyFilters ); // Use applyFilters directly
+  agendaDateInput.addEventListener('change', applyFilters ); 
   
+  // ============================================
+  // >>>>> CORREÇÃO DO SCROLL HORIZONTAL <<<<<
+  // ============================================
+  boardEl.addEventListener('wheel', (e) => {
+    // Se a tecla ALT estiver pressionada, rolar horizontalmente
+    if (e.altKey) {
+        e.preventDefault();
+        boardEl.scrollLeft += e.deltaY; // Usa o movimento vertical da roda para mover o scroll horizontal
+    }
+  });
+
   document.getElementById('copyDayBtn').addEventListener('click', function() {
       const day = getActiveDay();
       agendaClipboard = allCards
           .filter(c => (c.dataset.when || '').startsWith(day + 'T'))
           .map(c => ({
-              ...cardToData(c), // Get base data
-              timeOrGoal: (c.dataset.when || '').substring(11) // Store "HH:MM" or "GOAL"
+              ...cardToData(c), 
+              timeOrGoal: (c.dataset.when || '').substring(11) 
           }));
-      // Simple feedback:
       const btn = document.getElementById('copyDayBtn');
       btn.textContent = 'Copiado!';
       setTimeout(() => { btn.textContent = '📋'; }, 1000);
@@ -1948,70 +1825,56 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       const day = getActiveDay();
       agendaClipboard.forEach(cardData => {
           const newData = { ...cardData };
-          newData.when = day + 'T' + newData.timeOrGoal; // Set 'when' for the new day
+          newData.when = day + 'T' + newData.timeOrGoal; 
           
-          // Check if card already exists in cache (simple check)
           const existsInCache = allCards.some(c => 
               c.dataset.when === newData.when && 
               c.querySelector('.text').textContent.trim() === newData.text.trim()
           );
           if (!existsInCache) {
-              createCard(newData); // Add to cache, updateSlotsHasItems will handle DOM placement
+              createCard(newData); 
           }
       });
       updateSlotsHasItems();
       persist();
   });
-  // --- End Agenda Nav ---
 
   $$('#fFrom, #fTo, #fTime').forEach(function(el){ el.addEventListener('input', applyFilters); });
 
-  // Keyboard Shortcuts Listener
   document.addEventListener('keydown',function(e){
-    // Undo/Redo
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey? doRedo() : doUndo(); return; }
 
-    // Ctrl+Enter to create card
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-         // Allow creating card even if input/editable is focused
         if (document.activeElement.tagName === 'INPUT' && document.activeElement.closest('.add')) {
-             // If Enter is pressed in the 'New card...' input, let the form handle it
              return;
         }
-         // Prevent default Enter behavior elsewhere
          e.preventDefault();
 
         let targetList = null;
         let insertAfterCard = null;
 
         if (selected.size > 0) {
-            // Get the last selected card
             insertAfterCard = Array.from(selected).pop();
             targetList = insertAfterCard.closest('.list');
         } else {
-            // Find list under mouse
-            const lists = $$('.list'); // All list types
+            const lists = $$('.list'); 
             targetList = lists.find(l => {
-                // Only consider lists that are currently visible
                 if (l.offsetParent === null) return false;
                 const rect = l.getBoundingClientRect();
                 return lastMouseX >= rect.left && lastMouseX <= rect.right &&
                        lastMouseY >= rect.top && lastMouseY <= rect.bottom;
             });
-            // Default to first Kanban list if no list found under mouse or if it's hidden
             if (!targetList || targetList.offsetParent === null) {
                 targetList = boardEl.querySelector('.list[data-type="kanban"]');
-                // Ensure the default list is visible
                  if (!targetList || targetList.offsetParent === null) {
-                    targetList = $$('.list[data-type="kanban"]').find(l => l.offsetParent !== null); // Find *any* visible kanban list
+                    targetList = $$('.list[data-type="kanban"]').find(l => l.offsetParent !== null); 
                  }
             }
-             // Further fallback if even Kanban is hidden
              if (!targetList || targetList.offsetParent === null) {
-                  targetList = $$('.list[data-type="quad"]').find(l => l.offsetParent !== null); // Try Matrix
+                  targetList = $$('.list[data-type="quad"]').find(l => l.offsetParent !== null); 
              }
               if (!targetList || targetList.offsetParent === null) {
-                  targetList = $$('.list[data-type="goal"], .list[data-type="time"]').find(l => l.offsetParent !== null); // Try Agenda
+                  targetList = $$('.list[data-type="goal"], .list[data-type="time"]').find(l => l.offsetParent !== null); 
              }
 
         }
@@ -2019,42 +1882,37 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         if (targetList) {
             const cardsContainer = targetList.querySelector('.cards');
             if (cardsContainer) {
-                 const newCard = createCard({ text: '' }); // Create blank
+                 const newCard = createCard({ text: '' }); 
                  if (insertAfterCard && insertAfterCard.parentElement === cardsContainer) {
                      cardsContainer.insertBefore(newCard, insertAfterCard.nextSibling);
                  } else {
-                     cardsContainer.appendChild(newCard); // Append to end if no selection or different list
+                     cardsContainer.appendChild(newCard); 
                  }
-                  applyWhen(targetList, [newCard]); // Handle agenda 'when' if needed
+                  applyWhen(targetList, [newCard]); 
                  persist();
                  updateTotalTimerDisplay();
-                 startInlineEdit(newCard, true); // Focus and edit immediately, pass new card flag
+                 startInlineEdit(newCard, true); 
             }
         }
-        return; // Stop further key processing
+        return; 
     }
 
-    // Shortcuts requiring selected cards or context menu target
     var currentSelection = getSelectionOr(ctxTarget);
     
-     // Ensure we don't interfere with text input UNLESS it's Del/Backspace on empty card text
      const activeEl = document.activeElement;
      const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
      
-     // F2 can be triggered even when editing
      if (e.key === 'F2') {
          e.preventDefault();
-         if (isEditingCard) { // If editing, finish editing
+         if (isEditingCard) { 
              activeEl.blur(); 
-         } else if (currentSelection.length > 0) { // If not editing, start editing
-            startInlineEdit(currentSelection[0]); // Edit the first selected card
+         } else if (currentSelection.length > 0) { 
+            startInlineEdit(currentSelection[0]); 
          }
          return;
     }
      
-     // If in an input (but not modal) or editing card text, block other shortcuts
      if ((activeEl.tagName === 'INPUT' && !activeEl.closest('.modal')) || (isEditingCard)) {
-         // Special case: allow Del/Backspace to delete empty card
          if (isEditingCard && (e.key === 'Delete' || e.key === 'Backspace') && activeEl.textContent.trim() === '') {
              e.preventDefault();
              const cardToDelete = [activeEl.closest('.card')];
@@ -2063,16 +1921,13 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
                  clearSelection();
              });
          }
-         return; // Otherwise, let editor handle the key
+         return; 
      }
      
-    // Allow Del globally ONLY if nothing specific is focused/selected
     if (!currentSelection.length && !ctxTarget && (e.key==='Delete' || e.key==='Backspace')) {
-         return; // Let browser handle if nothing relevant is targeted
+         return; 
     }
 
-
-    // Context Menu Shortcuts (only if cards are selected)
     if (currentSelection.length > 0 && e.altKey) {
         if (e.key.toLowerCase() === 't') { e.preventDefault(); openTimerDialog(currentSelection); }
         else if (e.key.toLowerCase() === 'c') { e.preventDefault(); openColorDialog(currentSelection); }
@@ -2080,36 +1935,32 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         return;
     }
 
-     // Duplication Shortcut (only if cards are selected)
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
         e.preventDefault();
         duplicateCards(currentSelection);
         return;
     }
 
-    // Deletion Shortcut (only if cards are selected AND not editing)
      if( currentSelection.length > 0 && (e.key==='Delete' || e.key==='Backspace')){
-        e.preventDefault(); // Prevent browser back navigation on Backspace
+        e.preventDefault(); 
         showConfirm('Excluir '+currentSelection.length+' cartão(s)?', function() {
             currentSelection.forEach(function(n){ removeCard(n); });
-            clearSelection(); // Clear selection after delete
-            // Persist called in removeCard
+            clearSelection(); 
         });
         return;
     }
 
-    // Card Movement Shortcut (Ctrl + Arrows) (only if cards are selected)
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey)) {
         let moved = false;
-        let targetCard = currentSelection[0]; // Use first selected as reference
+        let targetCard = currentSelection[0]; 
         let parentCards = targetCard.parentElement;
         let parentList = targetCard.closest('.list');
-        if (!parentCards || !parentList) return; // Card might be detached temporarily
+        if (!parentCards || !parentList) return; 
 
         if (e.key === 'ArrowUp') {
             e.preventDefault();
             let previousCard = targetCard.previousElementSibling;
-             while(previousCard && previousCard.style.display === 'none') { // Skip hidden cards
+             while(previousCard && previousCard.style.display === 'none') { 
                 previousCard = previousCard.previousElementSibling;
             }
             if (previousCard) {
@@ -2120,39 +1971,37 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             e.preventDefault();
              let lastCardInSelection = currentSelection[currentSelection.length - 1];
              let nextCard = lastCardInSelection.nextElementSibling;
-              while(nextCard && nextCard.style.display === 'none') { // Skip hidden cards
+              while(nextCard && nextCard.style.display === 'none') { 
                  nextCard = nextCard.nextElementSibling;
              }
              if (nextCard) {
-                 // Move block before the next visible card
                  currentSelection.forEach(card => parentCards.insertBefore(card, nextCard));
                   moved = true;
              } else {
-                  // Move block to the end
                   currentSelection.forEach(card => parentCards.appendChild(card));
-                  moved = true; // Allow moving to end
+                  moved = true; 
              }
-        } else if (e.key === 'ArrowLeft' && parentList.dataset.type === 'kanban') { // Only between Kanban lists
+        } else if (e.key === 'ArrowLeft' && parentList.dataset.type === 'kanban') { 
              e.preventDefault();
              let prevList = parentList.previousElementSibling;
-             while(prevList && !prevList.matches('.list[data-type="kanban"]')) { // Find previous Kanban list
+             while(prevList && !prevList.matches('.list[data-type="kanban"]')) { 
                  prevList = prevList.previousElementSibling;
              }
              if (prevList) {
                  let destCards = prevList.querySelector('.cards');
-                  applyWhen(prevList, currentSelection); // Update 'when' before moving DOM
+                  applyWhen(prevList, currentSelection); 
                  currentSelection.forEach(card => destCards.appendChild(card));
                  moved = true;
              }
-        } else if (e.key === 'ArrowRight' && parentList.dataset.type === 'kanban') { // Only between Kanban lists
+        } else if (e.key === 'ArrowRight' && parentList.dataset.type === 'kanban') { 
              e.preventDefault();
              let nextList = parentList.nextElementSibling;
-              while(nextList && !nextList.matches('.list[data-type="kanban"]')) { // Find next Kanban list
+              while(nextList && !nextList.matches('.list[data-type="kanban"]')) { 
                  nextList = nextList.nextElementSibling;
              }
              if (nextList) {
                  let destCards = nextList.querySelector('.cards');
-                  applyWhen(nextList, currentSelection); // Update 'when' before moving DOM
+                  applyWhen(nextList, currentSelection); 
                  currentSelection.forEach(card => destCards.appendChild(card));
                  moved = true;
              }
@@ -2160,16 +2009,13 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
 
         if (moved) {
              persist();
-             applyFilters(); // Re-apply filters which also calls updateSlotsHasItems
-             // Optionally scroll the moved card into view
-             // currentSelection[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+             applyFilters(); 
          }
     }
 
   });
   document.addEventListener('click',function(e){ if(!ctx.contains(e.target) && !listCtx.contains(e.target)) { hideCtx(); listCtx.style.display='none'; } });
 
-  // Import/Export/Reset
   var importFile = document.getElementById('importFile');
   document.getElementById('importJsonBtn').onclick=function(){ importFile.click(); };
   importFile.onchange = function(e){
@@ -2183,7 +2029,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
         if (!Array.isArray(dataToRestore)) {
             throw new Error("Formato JSON inválido. Array de dados não encontrado.");
         }
-        // Prompt user for action
         promptImportAction(dataToRestore);
 
       }catch(err){
@@ -2191,19 +2036,18 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
             var d=el('div');
             d.textContent='Não foi possível ler o arquivo JSON. Verifique se o arquivo está no formato correto. Erro: ' + err.message;
             return d;
-        },function(body, wrap){ /* Modal removal handled by showModal */ }); // Allow closing error modal
+        },function(body, wrap){ }); 
       }
     };
     reader.readAsText(file);
-    e.target.value = ''; // Reset file input to allow re-importing the same file
+    e.target.value = ''; 
   };
 
-   // Function to prompt import action
   function promptImportAction(dataToRestore) {
       const { wrap, okButton, cancelButton } = showModal('Importar Dados', function() {
           var container = el('div');
           container.textContent = 'Como deseja importar os dados do ficheiro?';
-          var btnRow = el('div', 'row import-options'); // Use row for button layout
+          var btnRow = el('div', 'row import-options'); 
           var replaceBtn = el('button'); replaceBtn.textContent = 'Substituir';
           var mergeBtn = el('button'); mergeBtn.textContent = 'Mesclar';
 
@@ -2222,19 +2066,13 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           btnRow.appendChild(mergeBtn);
           container.appendChild(btnRow);
 
-          // Return only the content part for showModal
           return container;
       }, function(body, wrap) {
-           // This function is only called when OK or Enter is pressed,
-           // but we handle actions via custom buttons. So, do nothing here.
-           // We keep the OK button hidden.
       });
-      // Hide the default OK button provided by showModal
       if(okButton) okButton.style.display = 'none';
       if(cancelButton) cancelButton.textContent = 'Cancelar Importação';
   }
 
-  // Function to merge imported data with existing data
   function mergeData(dataToMerge) {
       const currentKanbanLists = {};
       $$('.list[data-type="kanban"]', boardEl).forEach(l => {
@@ -2251,13 +2089,11 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
           if (entry.type === 'kanban') {
               let targetContainer = currentKanbanLists[entry.title];
               if (!targetContainer) {
-                  // Create list if it doesn't exist
                   const newList = createList(entry.title);
                   targetContainer = newList.querySelector('.cards');
-                  currentKanbanLists[entry.title] = targetContainer; // Add to map
+                  currentKanbanLists[entry.title] = targetContainer; 
               }
               (entry.cards || []).forEach(cardData => {
-                  // Avoid adding exact duplicates (simple check based on text) - could be more robust
                   const exists = Array.from(targetContainer.children).some(c => c.querySelector('.text').textContent.trim() === cardData.text.trim());
                   if (!exists) {
                       targetContainer.appendChild(createCard(cardData));
@@ -2272,16 +2108,14 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
               });
           } else if (entry.type === 'time' || entry.type === 'goal') {
               (entry.cards || []).forEach(cardData => {
-                   // Ensure 'when' is correctly formatted or assigned for goals
                    if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
                         cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL';
                    } else if (entry.time && cardData.when && !cardData.when.includes('T'+entry.time)) {
                        cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time;
                    }
-                   // Check if card already exists in cache (more robust check needed)
                    const existsInCache = allCards.some(c => c.dataset.when === cardData.when && c.querySelector('.text').textContent.trim() === cardData.text.trim());
                    if (!existsInCache) {
-                        createCard(cardData); // Add to cache, updateSlotsHasItems will handle DOM placement
+                        createCard(cardData); 
                    }
               });
           }
@@ -2292,7 +2126,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
   }
 
 
-   // Function to generate timestamp string
   function getTimestamp() {
       const now = new Date();
       const year = now.getFullYear();
@@ -2303,7 +2136,6 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       return `${year}-${month}-${day}_${hour}${minute}`;
   }
 
-  // Common export function used by both buttons
   function triggerExport() {
       const timestamp = getTimestamp();
       const filename = `mini-trello-backup-${timestamp}.json`;
@@ -2313,13 +2145,11 @@ function addMoveAllButton(targetListElement, name, submenuContainer, sourceListE
       a.click();
   }
 
-  // Wire up the export buttons
   document.getElementById('exportJson').onclick = triggerExport;
   document.getElementById('quickSaveBtn').onclick = triggerExport;
 
   document.getElementById('reset').onclick=function(){ showConfirm('Isso vai apagar TUDO e recomeçar com os dados de exemplo. Tem certeza?', function(){ localStorage.removeItem(LS_KEY); window.location.reload(); }); };
 
-  // Kickstart
   initApp();
 })();
 </script>
