@@ -7,149 +7,36 @@
     <title>TEA PLANNER (Sync Ativado)</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
+    
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
     <style>
-        :root {
-            --bg: #0f1a2a;
-            --panel: #0f223d;
-            --ink: #e9f1ff;
-            --brand: #1976d2;
-            --muted: #9fb3d2;
-            --card: #112b4a
-        }
-
-        * {
-            box-sizing: border-box
-        }
-
-        html,
-        body {
-            height: 100%;
-            -webkit-tap-highlight-color: transparent;
-            overflow: hidden;
-        }
-
-        body {
-            margin: 0;
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            color: var(--ink);
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-        }
-
-        header.app {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            padding: 10px 12px;
-            background: var(--brand);
-            color: #fff;
-            flex-wrap: wrap;
-            transition: background-color .3s;
-            flex-shrink: 0;
-        }
-
-        header.app.filters-active {
-            background: #b85d00
-        }
-
-        header.app h1 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 700;
-            margin-right: auto;
-            display: flex;
-            align-items: center;
-        }
-
-        .header-icon {
-            width: 22px;
-            height: 22px;
-            stroke: #fff;
-            vertical-align: -4px;
-            margin-right: 8px;
-        }
-
-        header.app input,
-        header.app button {
-            border: none;
-            border-radius: 8px;
-            padding: 6px 10px;
-            background: #0e58a5;
-            color: #fff
-        }
-
-        header.app button {
-            cursor: pointer
-        }
-
-        header.app button.active {
-            background: #ffd54f;
-            color: #10243a
-        }
-
-        #sumTimersDisplay {
-            font-weight: bold;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 4px 8px;
-            border-radius: 6px;
-            margin-left: 5px;
-            margin-right: 5px;
-            cursor: help;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #ffd54f;
-            color: #10243a;
-            font-weight: 700;
-            border-radius: 999px;
-            padding: 2px 8px;
-            font-size: 12px;
-            border: 1px solid rgba(0, 0, 0, .15)
-        }
-
-        .badge[hidden] {
-            display: none !important
-        }
-
+        :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
+        *{box-sizing:border-box}
+        html,body{height:100%;-webkit-tap-highlight-color:transparent; overflow: hidden;}
+        body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg); display: flex; flex-direction: column;}
+        header.app{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--brand);color:#fff;flex-wrap:wrap;transition:background-color .3s; flex-shrink: 0;}
+        header.app.filters-active{background:#b85d00}
+        header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto; display: flex; align-items: center;} 
+        .header-icon { width: 22px; height: 22px; stroke: #fff; vertical-align: -4px; margin-right: 8px; }
+        header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px;background:#0e58a5;color:#fff}
+        header.app button{cursor:pointer}
+        header.app button.active{background:#ffd54f;color:#10243a}
+        #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;}
+        .badge{display:inline-block;background:#ffd54f;color:#10243a;font-weight:700;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid rgba(0,0,0,.15)}
+        .badge[hidden]{display:none!important}
+        
         /* Toggle Switch styles */
-        .toggle-switch {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
-        }
-
-        .toggle-switch-input {
-            display: none;
-        }
-
-        .toggle-switch-label {
-            font-size: 16px;
-            user-select: none;
-        }
-
-        .toggle-switch-input:checked+.toggle-switch-label {
-            color: #ffd54f;
-        }
-
-        .toggle-switch-input:checked+.toggle-switch-label+.toggle-switch-button {
-            background: #ffd54f;
-        }
-
-        .toggle-switch-button {
-            font-size: 12px;
-            padding: 2px 4px;
-            border-radius: 6px;
-            background: #0e58a5;
-            color: #10243a;
-            transition: background .2s;
-        }
-
+        .toggle-switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+        .toggle-switch-input { display: none; }
+        .toggle-switch-label { font-size: 16px; user-select: none; }
+        .toggle-switch-input:checked + .toggle-switch-label { color: #ffd54f; }
+        .toggle-switch-input:checked + .toggle-switch-label + .toggle-switch-button { background: #ffd54f; }
+        .toggle-switch-button { font-size: 12px; padding: 2px 4px; border-radius: 6px; background: #0e58a5; color: #10243a; transition: background .2s; }
+        
         .workspace {
             display: flex;
             flex-direction: row;
@@ -180,16 +67,13 @@
             overflow: hidden;
         }
 
-        .board-container,
-        .matrix-container {
+        .board-container, .matrix-container {
             position: relative;
             transition: height .3s ease-in-out, min-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, flex-grow .3s ease-in-out, flex-shrink .3s ease-in-out;
             overflow: hidden;
             flex-shrink: 0;
         }
-
-        .board-container.collapsed,
-        .matrix-container.collapsed {
+         .board-container.collapsed, .matrix-container.collapsed {
             height: 0 !important;
             min-height: 0 !important;
             padding-top: 0;
@@ -201,18 +85,8 @@
             flex-shrink: 1;
         }
 
-        .board-container {
-            flex-grow: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .matrix-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 300px;
-        }
+        .board-container { flex-grow: 0; display: flex; flex-direction: column;}
+        .matrix-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 300px; }
 
 
         /* GARANTINDO SCROLL HORIZONTAL */
@@ -221,7 +95,7 @@
             gap: 12px;
             align-items: flex-start;
             padding-bottom: 10px;
-            overflow-x: auto;
+            overflow-x: auto; /* Permite scroll horizontal */
             min-height: 150px;
         }
 
@@ -235,8 +109,7 @@
             min-height: 300px;
             flex-grow: 1;
         }
-
-        .matrix .list {
+         .matrix .list {
             align-self: stretch;
             min-height: 100px;
         }
@@ -259,636 +132,101 @@
             padding: 0;
         }
 
-        .toggle-tab {
-            display: none;
-        }
+        .toggle-tab { display: none; }
 
-        .list {
-            background: var(--panel);
-            border: 1px solid #183453;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            min-width: 240px;
-            flex-shrink: 0
-        }
+        .list{background:var(--panel);border:1px solid #183453;border-radius:10px;display:flex;flex-direction:column;min-width:240px;flex-shrink:0}
+        .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a; flex-shrink: 0;}
+        .list header input.title{flex:1;border:none;border-radius:8px;padding:6px 8px;background:#0e2542;color:var(--ink)}
+        .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px; overflow-y: auto; flex-grow: 1;}
+        .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative;transition:opacity .2s, transform .2s}
+        .card.dragging{opacity:0.5;transform:rotate(3deg)}
+        .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
+        .card.editing { background: #1a4b7f; }
+        .card .text{white-space:pre-wrap; min-height: 1em; transition: opacity .2s, text-decoration .2s;}
+        .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; }
+        
+        .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        .dot{width:10px;height:10px;border-radius:50%;display:inline-flex;border:1px solid #375b86; position: relative; align-items: center; justify-content: center; cursor: pointer;}
+        .dot-check { display: none; color: #fff; font-weight: bold; font-size: 10px; line-height: 10px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); user-select: none; }
+        .card[data-completed="true"] .dot-check { display: block; }
 
-        .list header {
-            display: flex;
+        .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
+        .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; }
+        .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
+        .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px}
+        .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink)}
+
+        .axis{display:flex;align-items:center;justify-content:center;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a4e78;border-radius:10px}
+        .axis.corner{background:transparent;border:none}
+        .axis.axis-y{writing-mode:vertical-rl;transform:rotate(180deg);padding:4px 0}
+        .quad-label{font-weight:700;color:#cfe0ff}
+        .list[data-type="quad"]{min-width:unset}
+        .list[data-type="quad"][data-quad="Q1"]{background:#0f2f2a;border-color:#1e5b4e}.list[data-type="quad"][data-quad="Q1"] header{background:#104239}
+        .list[data-type="quad"][data-quad="Q2"]{background:#0f243a;border-color:#1b4e84}.list[data-type="quad"][data-quad="Q2"] header{background:#0e3155}
+        .list[data-type="quad"][data-quad="Q3"]{background:#3a290f;border-color:#7c5a19}.list[data-type="quad"][data-quad="Q3"] header{background:#5a4014}
+        .list[data-type="quad"][data-quad="Q4"]{background:#3a0f12;border-color:#7c1920}.list[data-type="quad"][data-quad="Q4"] header{background:#5a1419}
+
+        .schedule{background:var(--panel);border:1px solid #183453;border-radius:12px;width:100%; height:100%; display: flex; flex-direction: column; overflow: hidden;}
+        .schedule header{
+            position:sticky;top:0;z-index:1;display:flex;flex-direction:column;
             gap: 8px;
-            align-items: center;
-            padding: 8px 10px;
-            border-bottom: 1px solid #19375b;
-            background: #122b4a;
-            flex-shrink: 0;
-        }
-
-        .list header input.title {
-            flex: 1;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 8px;
-            background: #0e2542;
-            color: var(--ink)
-        }
-
-        .cards {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 8px;
-            min-height: 34px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid #20486f;
-            border-left: 8px solid transparent;
-            border-radius: 8px;
-            padding: 8px;
-            cursor: grab;
-            user-select: none;
-            position: relative;
-            transition: opacity .2s, transform .2s
-        }
-
-        .card.dragging {
-            opacity: 0.5;
-            transform: rotate(3deg)
-        }
-
-        .card.selected {
-            outline: 2px solid #2a71ff;
-            background: #0f2f57
-        }
-
-        .card.editing {
-            background: #1a4b7f;
-        }
-
-        .card .text {
-            white-space: pre-wrap;
-            min-height: 1em;
-            transition: opacity .2s, text-decoration .2s;
-        }
-
-        .card[data-completed="true"] .text {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
-
-        .meta {
-            margin-top: 6px;
-            font-size: 12px;
-            color: var(--muted);
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-flex;
-            border: 1px solid #375b86;
-            position: relative;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .dot-check {
-            display: none;
-            color: #fff;
-            font-weight: bold;
-            font-size: 10px;
-            line-height: 10px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            user-select: none;
-        }
-
-        .card[data-completed="true"] .dot-check {
-            display: block;
-        }
-
-        .timer-display {
-            font-size: 11px;
-            font-weight: bold;
-            padding: 1px 5px;
-            border-radius: 4px;
-            background: rgba(0, 0, 0, .2);
-        }
-
-        .due-date {
-            font-size: 11px;
-            background: rgba(0, 0, 0, .2);
-            padding: 1px 5px;
-            border-radius: 4px;
-        }
-
-        .kebab {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: #9fc1ff;
-            border-radius: 6px;
-            padding: 0 6px;
-            line-height: 20px;
-            cursor: pointer
-        }
-
-        .add {
-            padding: 8px;
-            border-top: 1px solid #19375b;
-            flex-shrink: 0;
-        }
-
-        .add .row {
-            display: flex;
-            gap: 6px
-        }
-
-        .add input[type=text] {
-            flex: 1;
-            border: 1px solid #2a4e78;
-            border-radius: 8px;
-            padding: 8px;
-            background: #0b2240;
-            color: var(--ink)
-        }
-
-        .axis {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #cfe0ff;
-            background: #102b4f;
-            border: 1px solid #1a4e78;
-            border-radius: 10px
-        }
-
-        .axis.corner {
-            background: transparent;
-            border: none
-        }
-
-        .axis.axis-y {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            padding: 4px 0
-        }
-
-        .quad-label {
-            font-weight: 700;
-            color: #cfe0ff
-        }
-
-        .list[data-type="quad"] {
-            min-width: unset
-        }
-
-        .list[data-type="quad"][data-quad="Q1"] {
-            background: #0f2f2a;
-            border-color: #1e5b4e
-        }
-
-        .list[data-type="quad"][data-quad="Q1"] header {
-            background: #104239
-        }
-
-        .list[data-type="quad"][data-quad="Q2"] {
-            background: #0f243a;
-            border-color: #1b4e84
-        }
-
-        .list[data-type="quad"][data-quad="Q2"] header {
-            background: #0e3155
-        }
-
-        .list[data-type="quad"][data-quad="Q3"] {
-            background: #3a290f;
-            border-color: #7c5a19
-        }
-
-        .list[data-type="quad"][data-quad="Q3"] header {
-            background: #5a4014
-        }
-
-        .list[data-type="quad"][data-quad="Q4"] {
-            background: #3a0f12;
-            border-color: #7c1920
-        }
-
-        .list[data-type="quad"][data-quad="Q4"] header {
-            background: #5a1419
-        }
-
-        .schedule {
-            background: var(--panel);
-            border: 1px solid #183453;
-            border-radius: 12px;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .schedule header {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px 10px;
-            background: #0b437e;
-            color: #fff;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px
-        }
-
-        .schedule .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-
-        #slots {
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        .schedule header input[type=date] {
-            background: #0b2240;
-            color: #fff;
-            border: 1px solid #2a4e78;
-            border-radius: 8px;
-            padding: 6px 8px;
-            width: 120px;
-        }
-
-        .schedule header .agenda-controls {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .schedule header .date-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .schedule header button {
-            padding: 6px 10px;
-            background: #0e58a5;
-            border: none;
-            color: #fff;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            line-height: 1;
-        }
-
-        .schedule header .date-nav button {
-            padding: 4px 8px;
-            font-size: 16px;
-        }
-
-        .schedule header .copy-paste-buttons button {
-            font-size: 16px;
-            padding: 6px 8px;
-        }
-
-        .slot {
-            border-bottom: 1px dashed #244b78
-        }
-
-        .slot>div.head {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 4px
-        }
-
-        .slot .time {
-            font-weight: 700;
-            font-size: 11px;
-            color: #9fc1ff
-        }
-
-        .slot .cards {
-            display: none;
-            padding: 4px;
-            min-height: 28px
-        }
-
-        .slot.has-items .cards {
-            display: block
-        }
-
-        .slot.hover {
-            background: #0e2446;
-            box-shadow: inset 0 0 0 2px #1976d2
-        }
-
-        .goal-slot {
-            background: #1c3a61;
-            border-bottom: 1px solid #3a6a9e;
-        }
-
-        .goal-slot>.head .goal-label {
-            font-weight: bold;
-            color: #ffd54f;
-        }
-
-        .placeholder {
-            height: 38px;
-            border: 2px dashed #1976d2;
-            border-radius: 8px;
-            background: #0e2446;
-            margin: 4px 0
-        }
-
-        .ctx {
-            position: fixed;
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
-            border-radius: 8px;
-            min-width: 240px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
-            display: none;
-            z-index: 1000
-        }
-
-        .ctx button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            text-align: left;
-            background: transparent;
-            border: none;
-            color: #dbe7ff;
-            padding: 10px 12px;
-            border-radius: 0;
-            cursor: pointer
-        }
-
-        .ctx button:hover {
-            background: #1a2842
-        }
-
-        .ctx .shortcut {
-            margin-left: auto;
-            font-size: 0.8em;
-            color: var(--muted);
-            padding-left: 10px;
-        }
-
-        .ctx .sep {
-            height: 1px;
-            background: #23314a;
-            margin: 6px 0
-        }
-
-        .ctx-sub {
-            position: absolute;
-            left: 100%;
-            top: 0;
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
-            border-radius: 8px;
-            min-width: 240px;
-            max-height: 300px;
-            overflow: auto;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .3);
-            display: none
-        }
-
-        .list header .more {
-            margin-left: auto;
-            background: transparent;
-            border: 1px solid transparent;
-            color: #9fc1ff;
-            border-radius: 6px;
-            padding: 0 6px;
-            line-height: 20px;
-            cursor: pointer
-        }
-
-        .modal-wrap {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .45);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999
-        }
-
-        .modal {
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
-            border-radius: 12px;
-            min-width: 280px;
-            max-width: 94vw;
-            padding: 14px 14px 10px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
-        }
-
-        .modal h3 {
-            margin: 0 0 10px;
-            font-size: 16px
-        }
-
-        .modal .row {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end
-        }
-
-        .modal .row button {
-            background: #1976d2;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            padding: 8px 10px;
-            cursor: pointer
-        }
-
-        .modal .row button.cancel {
-            background: #6b7a93
-        }
-
-        .import-options button {
-            margin: 5px;
-            flex-grow: 1;
-        }
-
-        .palette-editor {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 250px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .palette-editor.editing {
-            display: flex;
-        }
-
-        .palette-grid.editing {
-            display: none;
-        }
-
-        .palette-editor-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .palette-editor-swatch {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            border: 1px solid #375b86;
-            flex-shrink: 0;
-        }
-
-        .palette-editor input {
-            background: #0b2240;
-            border: 1px solid #2a4e78;
-            border-radius: 8px;
-            color: #fff;
-            padding: 6px 8px;
-            flex: 1;
-        }
-
-        .modal .row .manage-labels-btn {
-            margin-right: auto;
-            background: #3a3f4b;
-        }
-
-        @keyframes spinner_zKoa {
-            100% {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes spinner_YpZS {
-            0% {
-                stroke-dasharray: 0 150;
-                stroke-dashoffset: 0
-            }
-
-            47.5% {
-                stroke-dasharray: 42 150;
-                stroke-dashoffset: -16
-            }
-
-            95%,
-            100% {
-                stroke-dasharray: 42 150;
-                stroke-dashoffset: -59
-            }
-        }
-
-        .spinner_V8m1 {
-            transform-origin: center;
-            animation: spinner_zKoa 2s linear infinite
-        }
-
-        .spinner_V8m1 circle {
-            stroke-linecap: round;
-            animation: spinner_YpZS 1.5s ease-in-out infinite
-        }
-
-        @keyframes flash {
-
-            0%,
-            100% {
-                background-color: var(--card);
-            }
-
-            50% {
-                background-color: #ffcc00;
-                color: #000;
-            }
-        }
-
-        @media (max-width: 700px) {
-            .workspace {
-                flex-direction: column;
-                overflow-y: auto;
-                padding: 8px;
-                gap: 8px;
-            }
-
-            #main-content {
-                overflow: visible;
-                height: auto;
-            }
-
-            #agenda-sidebar {
-                display: none
-            }
-
-            .board {
-                order: 1;
-                overflow: visible;
-                min-height: unset;
-            }
-
-            .matrix {
-                order: 2;
-                margin-top: 16px;
-                min-height: unset;
-            }
-
-            .list {
-                min-width: unset;
-                width: 100%;
-                margin-bottom: 12px;
-            }
-
-            header.app {
-                height: auto;
-                padding-bottom: 10px;
-            }
-
-            header.app h1 {
-                margin-right: 10px;
-            }
-
-            #toggleBoardBtn,
-            #toggleMatrixBtn,
-            #toggleAgendaBtn {
-                display: none;
-            }
+            padding:8px 10px;background:#0b437e;color:#fff;
+            border-top-left-radius:12px;border-top-right-radius:12px
+        }
+        .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        #slots { overflow-y: auto; flex-grow: 1; }
+        .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px; width: 120px;}
+        .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; }
+        .schedule header .date-nav { display: flex; align-items: center; gap: 4px; }
+        .schedule header button { padding: 6px 10px; background:#0e58a5; border:none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1;}
+        .schedule header .date-nav button { padding: 4px 8px; font-size: 16px;}
+        .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; }
+
+        .slot{border-bottom:1px dashed #244b78}.slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
+        .slot .time{font-weight:700;font-size:11px;color:#9fc1ff}
+        .slot .cards{display:none;padding:4px;min-height:28px}.slot.has-items .cards{display:block}
+        .slot.hover{background:#0e2446;box-shadow:inset 0 0 0 2px #1976d2}
+        .goal-slot { background: #1c3a61; border-bottom: 1px solid #3a6a9e; }
+        .goal-slot > .head .goal-label { font-weight: bold; color: #ffd54f; }
+
+        .placeholder{height:38px;border:2px dashed #1976d2;border-radius:8px;background:#0e2446;margin:4px 0}
+        .ctx{position:fixed;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:1000}
+        .ctx button{display:flex; align-items: center; gap: 8px; width:100%;text-align:left;background:transparent;border:none;color:#dbe7ff;padding:10px 12px;border-radius:0;cursor:pointer}.ctx button:hover{background:#1a2842}
+        .ctx .shortcut { margin-left: auto; font-size: 0.8em; color: var(--muted); padding-left: 10px; }
+        .ctx .sep{height:1px;background:#23314a;margin:6px 0}
+        .ctx-sub{position:absolute;left:100%;top:0;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;max-height:300px;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none}
+        .list header .more{margin-left:auto;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
+        .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+        .modal{background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:12px;min-width:280px;max-width:94vw;padding:14px 14px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+        .modal h3{margin:0 0 10px;font-size:16px}
+        .modal .row{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
+        .modal .row button{background:#1976d2;border:none;border-radius:8px;color:#fff;padding:8px 10px;cursor:pointer}
+        .modal .row button.cancel{background:#6b7a93}
+        .import-options button { margin: 5px; flex-grow: 1;}
+        .palette-editor { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px;}
+        .palette-editor.editing { display: flex; }
+        .palette-grid.editing { display: none; }
+        .palette-editor-row { display: flex; align-items: center; gap: 8px; }
+        .palette-editor-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #375b86; flex-shrink: 0;}
+        .palette-editor input { background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; padding: 6px 8px; flex: 1; }
+        .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; }
+
+        @keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}
+        .spinner_V8m1{transform-origin:center;animation:spinner_zKoa 2s linear infinite}.spinner_V8m1 circle{stroke-linecap:round;animation:spinner_YpZS 1.5s ease-in-out infinite}
+        @keyframes flash { 0%, 100% { background-color: var(--card); } 50% { background-color: #ffcc00; color: #000; } }
+
+        @media (max-width: 700px){
+            .workspace{ flex-direction: column; overflow-y: auto; padding: 8px; gap: 8px; }
+            #main-content { overflow: visible; height: auto; }
+            #agenda-sidebar{display:none}
+            .board { order: 1; overflow: visible; min-height: unset;}
+            .matrix { order: 2; margin-top: 16px; min-height: unset;}
+            .list { min-width: unset; width: 100%; margin-bottom: 12px; }
+            header.app { height: auto; padding-bottom: 10px; }
+            header.app h1 { margin-right: 10px; }
+            #toggleBoardBtn, #toggleMatrixBtn, #toggleAgendaBtn { display: none; }
         }
     </style>
-    <!-- Firebase SDKs (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -997,7 +335,9 @@
     </div>
 
     <script>
-        (function () {
+        // Aguarda a janela carregar completamente antes de rodar o script
+        window.addEventListener('load', function () {
+            
             // ===== Firebase Configuration =====
             const firebaseConfig = {
                 apiKey: "AIzaSyCk2BJMJPgLCWcjkcGs2n-MU8-2b44nnOs",
@@ -1012,18 +352,17 @@
             let app, auth, db;
             let isFirebaseReady = false;
             let currentUser = null;
-            let isRemoteUpdate = false; // Flag para evitar loop infinito de save
+            let isRemoteUpdate = false;
 
             // Inicializa Firebase
             try {
-                if (firebaseConfig.apiKey) {
+                if (typeof firebase !== 'undefined' && firebaseConfig.apiKey) {
                     app = firebase.initializeApp(firebaseConfig);
                     auth = firebase.auth();
                     db = firebase.database();
                     isFirebaseReady = true;
                     console.log("Firebase initialized successfully.");
                     
-                    // Configura listener de Auth
                     auth.onAuthStateChanged(user => {
                         currentUser = user;
                         const loginBtn = document.getElementById('loginBtn');
@@ -1032,33 +371,31 @@
                         if (user) {
                             loginBtn.textContent = 'Sair';
                             userInfo.textContent = `Olá, ${user.displayName || user.email}`;
-                            // Iniciar sincronização
                             setupFirebaseSync(user);
                         } else {
                             loginBtn.textContent = 'Login Google';
                             userInfo.textContent = '';
-                            // Se deslogar, talvez limpar ou avisar, mas mantemos dados locais por enquanto
                         }
                     });
 
-                    // Configura Botão de Login
-                    document.getElementById('loginBtn').addEventListener('click', () => {
-                        if (currentUser) {
-                            auth.signOut();
-                            window.location.reload();
-                        } else {
-                            const provider = new firebase.auth.GoogleAuthProvider();
-                            // Usa Redirect para melhor compatibilidade com Mobile/Android PWA
-                            auth.signInWithPopup(provider).catch(error => {
-                                console.error("Erro no popup, tentando redirect...", error);
-                                auth.signInWithRedirect(provider);
-                            });
-                        }
-                    });
+                    const loginBtnEl = document.getElementById('loginBtn');
+                    if (loginBtnEl) {
+                        loginBtnEl.addEventListener('click', () => {
+                            if (currentUser) {
+                                auth.signOut();
+                                window.location.reload();
+                            } else {
+                                const provider = new firebase.auth.GoogleAuthProvider();
+                                auth.signInWithPopup(provider).catch(error => {
+                                    console.error("Erro no popup, tentando redirect...", error);
+                                    auth.signInWithRedirect(provider);
+                                });
+                            }
+                        });
+                    }
 
                 } else {
-                    console.warn("Firebase config not set or script missing. Running offline.");
-                    document.getElementById('userInfo').textContent = "(Offline - Sem Config)";
+                    console.warn("Offline mode or Firebase script not loaded.");
                 }
             } catch (e) {
                 console.error("Error initializing Firebase:", e);
@@ -1067,19 +404,20 @@
             function setupFirebaseSync(user) {
                 const userRef = db.ref('users/' + user.uid + '/data');
                 
-                // Listener: Quando vier dados do servidor (Outro PC ou Android)
                 userRef.on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
-                        console.log("Recebendo dados do Firebase...");
-                        // Marca flag para que o persist() não salve de volta pro Firebase neste ciclo
+                        const currentLocalData = localStorage.getItem(LS_KEY);
+                        // CORREÇÃO CRÍTICA: GHOST DOM FIX
+                        // Se os dados forem iguais, não redesenha a tela para evitar piscar o DOM
+                        if (JSON.stringify(val) === currentLocalData) {
+                           return; 
+                        }
+
+                        console.log("Recebendo atualização remota real...");
                         isRemoteUpdate = true; 
-                        
-                        // Atualiza UI e LocalStorage
-                        // Usamos uma lógica similar ao 'restore' mas sem histórico para evitar conflitos de undo
                         localStorage.setItem(LS_KEY, JSON.stringify(val));
                         renderFromData(val);
-
                         isRemoteUpdate = false;
                     }
                 });
@@ -1119,7 +457,6 @@
                 lastMouseY = e.clientY;
             });
 
-            // ===== Sum Timers Logic =====
             function updateTotalTimerDisplay() {
                 let selectedSeconds = 0;
                 let visibleSeconds = 0;
@@ -1140,12 +477,12 @@
                     }
                 });
                 const displayText = selected.size > 0 ? formatSecondsToTime(selectedSeconds) : formatSecondsToTime(visibleSeconds);
-                sumTimersDisplay.textContent = displayText;
-                sumTimersDisplay.title = `Selecionado: ${formatSecondsToTime(selectedSeconds)} / Filtrado: ${formatSecondsToTime(visibleSeconds)} / Total: ${formatSecondsToTime(totalSecondsAll)}`;
+                if (sumTimersDisplay) {
+                    sumTimersDisplay.textContent = displayText;
+                    sumTimersDisplay.title = `Selecionado: ${formatSecondsToTime(selectedSeconds)} / Filtrado: ${formatSecondsToTime(visibleSeconds)} / Total: ${formatSecondsToTime(totalSecondsAll)}`;
+                }
             }
 
-
-            // ===== Persistência + Histórico =====
             function cardToData(c) {
                 var t = c.querySelector('.text');
                 return {
@@ -1156,6 +493,8 @@
                     timerTotal: c.dataset.timerTotal || '',
                     timerLeft: c.dataset.timerLeft || '',
                     timerState: c.dataset.timerState || '',
+                    // CRUCIAL: Salvar timerEnd e completed para sincronização
+                    timerEnd: c.dataset.timerEnd || '', 
                     completed: c.dataset.completed || 'false'
                 };
             }
@@ -1194,11 +533,15 @@
             function capture() { if (__muteHistory > 0) return; try { pushHistory(serialize()); } catch (e) { } }
             function canUndo() { return cursor > 0; }
             function canRedo() { return cursor >= 0 && cursor < hist.length - 1; }
-            function updateUndoUi() { document.getElementById('undo').disabled = !canUndo(); document.getElementById('redo').disabled = !canRedo(); }
+            function updateUndoUi() { 
+                const undoBtn = document.getElementById('undo');
+                const redoBtn = document.getElementById('redo');
+                if (undoBtn) undoBtn.disabled = !canUndo(); 
+                if (redoBtn) redoBtn.disabled = !canRedo(); 
+            }
             function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
 
-            // Função separada para desenhar a tela a partir dos dados (usada pelo persist e pelo firebase)
             function renderFromData(data) {
                 if (!data) return;
                 
@@ -1248,9 +591,15 @@
                 applyFilters();
                 updateSlotsHasItems();
                 updateTotalTimerDisplay();
+                
+                // Reinicia o loop do timer para garantir que pegue os novos elementos
+                if (globalTimerInterval) {
+                    clearInterval(globalTimerInterval);
+                    globalTimerInterval = null;
+                }
+                startGlobalTimer();
             }
 
-            // Restore usado pelo Undo/Redo e Import
             function restore(data) {
                 renderFromData(data);
             }
@@ -1261,26 +610,36 @@
                 __persistTick = setTimeout(function () {
                     try {
                         const data = serialize();
-                        // Salva localmente
-                        localStorage.setItem(LS_KEY, JSON.stringify(data));
+                        const jsonStr = JSON.stringify(data);
+                        localStorage.setItem(LS_KEY, jsonStr);
 
-                        // Sync to Firebase if logged in AND if this is a local change
                         if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
                             db.ref('users/' + auth.currentUser.uid + '/data').set(data)
                                 .catch(e => console.error("Firebase save error:", e));
                             db.ref('users/' + auth.currentUser.uid + '/lastUpdated').set(firebase.database.ServerValue.TIMESTAMP);
                         }
                     } catch (e) { }
-                    
-                    // Em vez de limpar e redesenhar do zero (que causa piscar e problemas),
-                    // mantemos o DOM como está, pois o 'persist' é chamado APÓS a alteração no DOM.
-                    // O renderFromData só é chamado pelo Firebase ou Restore.
-                    
                     capture();
                 }, 250);
             }
 
-            // ===== Cartões =====
+            function duplicateCards(cards) {
+                if (!cards || !cards.length) return;
+                let newCards = []; 
+                cards.forEach(function(c) {
+                var newData = cardToData(c);
+                if (!c.closest('#agenda-sidebar')) {
+                    newData.when = '';
+                }
+                var newCard = createCard(newData);
+                newCards.push(newCard); 
+                c.parentElement.insertBefore(newCard, c.nextSibling);
+                });
+                persist();
+                updateSlotsHasItems(); 
+                updateTotalTimerDisplay(); 
+            }
+
             function updateTimerDisplay(card) {
                 var disp = card.querySelector('.timer-display');
                 if (!disp) return;
@@ -1346,6 +705,8 @@
                 var c = el('div', 'card'); c.draggable = true;
                 c.dataset.color = _d.color || ''; c.dataset.due = _d.due || ''; c.dataset.when = _d.when || '';
                 c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerTotal || ''; c.dataset.timerState = _d.timerState || 'stopped';
+                // RESTAURADO: TimerEnd deve ser restaurado
+                c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
 
                 var t = el('span', 'text'); t.textContent = _d.text || '';
@@ -1454,7 +815,6 @@
             }
 
 
-            // ===== Timer Logic =====
             function startGlobalTimer() {
                 if (globalTimerInterval) return;
                 globalTimerInterval = setInterval(function () {
@@ -1464,6 +824,13 @@
                             activeTimers = true;
                             var now = Date.now();
                             var end = parseInt(c.dataset.timerEnd, 10);
+                            
+                            // Correção de segurança: se end for NaN ou inválido
+                            if (isNaN(end)) {
+                                c.dataset.timerState = 'paused';
+                                return;
+                            }
+
                             var left = Math.round((end - now) / 1000);
                             if (left <= 0) {
                                 c.dataset.timerState = 'finished';
@@ -1580,7 +947,6 @@
                     if (cardInCache) {
                         cardInCache.dataset.when = targetWhen;
                     } else {
-                        console.warn("Dragged card not found in cache:", n);
                         n.dataset.when = targetWhen;
                     }
                 });
@@ -2880,7 +2246,34 @@
                 a.download = filename;
                 a.click();
             }
-            
+
+            document.getElementById('exportJson').onclick = triggerExport;
+            document.getElementById('quickSaveBtn').onclick = triggerExport;
+
+            document.getElementById('reset').onclick = function () { showConfirm('Isso vai apagar TUDO e recomeçar com os dados de exemplo. Tem certeza?', function () { localStorage.removeItem(LS_KEY); window.location.reload(); }); };
+
+            function initDemo() {
+                withMute(function() {
+                var toDo = createList('Para Fazer');
+                toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); 
+                toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); 
+                toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas', completed: 'true'})); 
+
+                createList('Em Andamento');
+                createList('Feito');
+
+                if (matrixEl) {
+                    var q1 = matrixEl.querySelector('.list[data-quad="Q1"] .cards');
+                    q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); 
+                }
+                createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); 
+
+                });
+                applyFilters(); 
+                updateSlotsHasItems(); 
+                updateTotalTimerDisplay(); 
+            }
+
             function initApp() {
                 loadState();
                 var saved = localStorage.getItem(LS_KEY);
@@ -2889,22 +2282,14 @@
                         renderFromData(JSON.parse(saved));
                     } catch (e) { console.error(e); }
                 } else {
-                    // Start fresh
+                    // Start with demo data (RESTORED FROM OLD FILE)
                     ensureMatrix();
                     ensureSchedule(false);
-                    createList('A fazer');
-                    createList('Em andamento');
-                    createList('Concluído');
+                    initDemo();
                 }
             }
-
-            document.getElementById('exportJson').onclick = triggerExport;
-            document.getElementById('quickSaveBtn').onclick = triggerExport;
-
-            document.getElementById('reset').onclick = function () { showConfirm('Isso vai apagar TUDO e recomeçar com os dados de exemplo. Tem certeza?', function () { localStorage.removeItem(LS_KEY); window.location.reload(); }); };
-
             initApp();
-        })();
+        });
     </script>
 </body>
 
