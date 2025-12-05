@@ -57,6 +57,8 @@
             position: relative;
             transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
             width: 100%;
+            /* Importante para o cursor grabbing funcionar em toda a área */
+            cursor: default; 
         }
 
         #main-content.collapsed {
@@ -544,6 +546,19 @@
 
             function renderFromData(data) {
                 if (!data) return;
+
+                // === PRESERVAR SCROLL ANTES DE APAGAR O DOM ===
+                const scrollMap = new Map();
+                // Salvar scroll do kanban horizontal
+                scrollMap.set(boardEl, { left: boardEl.scrollLeft, top: boardEl.scrollTop });
+                // Salvar scroll principal vertical
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) scrollMap.set(mainContent, { left: mainContent.scrollLeft, top: mainContent.scrollTop });
+                // Salvar scroll da agenda
+                const slots = document.getElementById('slots');
+                if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
+                // Salvar scroll da matriz
+                if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
                 
                 allCards = [];
                 boardEl.innerHTML = '';
@@ -598,6 +613,14 @@
                     globalTimerInterval = null;
                 }
                 startGlobalTimer();
+
+                // === RESTAURAR SCROLL DEPOIS DE RECRIAR O DOM ===
+                scrollMap.forEach((pos, element) => {
+                    if (element) {
+                        element.scrollLeft = pos.left;
+                        element.scrollTop = pos.top;
+                    }
+                });
             }
 
             function restore(data) {
@@ -790,6 +813,7 @@
                         }
                     } else {
                         persist();
+                        // CORREÇÃO: Passa o cartão recém-criado/editado para o modal
                         if (isNewCard && quickConfigToggle && quickConfigToggle.checked) {
                             openTimerDialog([card], function () {
                                 setTimeout(function () {
@@ -1638,16 +1662,24 @@
                         b.style.color = '#fff';
                         if ((p.hex === '*' && selectedColors.size === 0) || selectedColors.has(p.hex.toLowerCase())) b.style.outline = '2px solid #fff';
                         b.onclick = function () {
-                            if (p.hex === '*') {
+                            if (p.hex === '*' && selectedColors.size > 0) {
                                 selectedColors.clear();
-                            } else {
+                            } else if (p.hex === '*' && selectedColors.size === 0) {
+                                // Se clicar em 'Todas' e já estiver em 'Todas', não faz nada
+                            } else if (p.hex !== '*') {
                                 if (selectedColors.has(p.hex.toLowerCase())) selectedColors.delete(p.hex.toLowerCase());
                                 else selectedColors.add(p.hex.toLowerCase());
                             }
+                            // Limpar a seleção de 'Todas' se uma cor específica for selecionada
+                            if (selectedColors.size > 0 && p.hex !== '*') {
+                                const allBtn = wrap.querySelector('button[data-hex="*"]');
+                                if(allBtn) allBtn.style.outline = '';
+                            }
+                            
                             [].slice.call(wrap.querySelectorAll('button')).forEach(function (btn) {
                                 btn.style.outline = '';
                                 const btnHex = (btn.dataset.hex || '').toLowerCase();
-                                if ((btnHex === '*' && selectedColors.size === 0) || selectedColors.has(btnHex)) {
+                                if((btnHex === '*' && selectedColors.size === 0) || selectedColors.has(btnHex)) {
                                     btn.style.outline = '2px solid #fff';
                                 }
                             });
@@ -1904,6 +1936,58 @@
                     boardEl.scrollLeft += e.deltaY; // Usa o movimento vertical da roda para mover o scroll horizontal
                 }
             });
+            
+            // ============================================
+            // >>>>> CLICK AND DRAG SCROLL (PAN) <<<<<
+            // ============================================
+            function applyDragScroll() {
+                const containers = [
+                    document.getElementById('board'),
+                    document.getElementById('main-content'),
+                    document.getElementById('slots')
+                ];
+                
+                containers.forEach(container => {
+                    if (!container) return;
+                    let isDown = false;
+                    let startX, startY, scrollLeft, scrollTop;
+
+                    container.addEventListener('mousedown', (e) => {
+                        if (e.target.closest('.card') || 
+                            e.target.tagName === 'BUTTON' || 
+                            e.target.tagName === 'INPUT' ||
+                            e.target.closest('.header-icon')) return;
+                        
+                        isDown = true;
+                        container.style.cursor = 'grabbing';
+                        startX = e.pageX;
+                        startY = e.pageY;
+                        scrollLeft = container.scrollLeft;
+                        scrollTop = container.scrollTop;
+                    });
+                    
+                    const stopDrag = () => {
+                        if(isDown) {
+                            isDown = false;
+                            container.style.cursor = '';
+                        }
+                    };
+
+                    container.addEventListener('mouseleave', stopDrag);
+                    container.addEventListener('mouseup', stopDrag);
+
+                    container.addEventListener('mousemove', (e) => {
+                        if (!isDown) return;
+                        e.preventDefault();
+                        const x = e.pageX;
+                        const y = e.pageY;
+                        const walkX = (x - startX) * 1;
+                        const walkY = (y - startY) * 1;
+                        container.scrollLeft = scrollLeft - walkX;
+                        container.scrollTop = scrollTop - walkY;
+                    });
+                });
+            }
 
             document.getElementById('copyDayBtn').addEventListener('click', function () {
                 const day = getActiveDay();
@@ -2275,6 +2359,9 @@
             }
 
             function initApp() {
+                // Inicia o scroll arrastável nas áreas vazias
+                applyDragScroll(); 
+                
                 loadState();
                 var saved = localStorage.getItem(LS_KEY);
                 if (saved) {
