@@ -57,8 +57,12 @@
             position: relative;
             transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
             width: 100%;
-            /* Importante para o cursor grabbing funcionar em toda a área */
-            cursor: default; 
+            /* CURSOR MUDADO PARA INDICAR QUE PODE ARRASTAR */
+            cursor: grab; 
+        }
+        /* Quando estiver arrastando */
+        #main-content:active {
+            cursor: grabbing;
         }
 
         #main-content.collapsed {
@@ -99,7 +103,9 @@
             padding-bottom: 10px;
             overflow-x: auto; /* Permite scroll horizontal */
             min-height: 150px;
+            cursor: grab; /* Cursor de mãozinha */
         }
+        .board:active { cursor: grabbing; }
 
         .matrix {
             display: grid;
@@ -1953,6 +1959,7 @@
                     let startX, startY, scrollLeft, scrollTop;
 
                     container.addEventListener('mousedown', (e) => {
+                        // Verifica se o clique NÃO é em um cartão, input, botão ou cabeçalho
                         if (e.target.closest('.card') || 
                             e.target.tagName === 'BUTTON' || 
                             e.target.tagName === 'INPUT' ||
@@ -1960,16 +1967,16 @@
                         
                         isDown = true;
                         container.style.cursor = 'grabbing';
-                        startX = e.pageX;
-                        startY = e.pageY;
-                        scrollLeft = container.scrollLeft;
-                        scrollTop = container.scrollTop;
+                        startX = e.pageX; // Posição inicial do mouse X
+                        startY = e.pageY; // Posição inicial do mouse Y
+                        scrollLeft = container.scrollLeft; // Scroll atual X
+                        scrollTop = container.scrollTop;   // Scroll atual Y
                     });
                     
                     const stopDrag = () => {
                         if(isDown) {
                             isDown = false;
-                            container.style.cursor = '';
+                            container.style.cursor = 'grab'; // Volta para 'mãozinha aberta'
                         }
                     };
 
@@ -1978,11 +1985,14 @@
 
                     container.addEventListener('mousemove', (e) => {
                         if (!isDown) return;
-                        e.preventDefault();
+                        e.preventDefault(); // Impede seleção de texto
                         const x = e.pageX;
                         const y = e.pageY;
-                        const walkX = (x - startX) * 1;
+                        // Multiplicador de velocidade (1 = normal)
+                        const walkX = (x - startX) * 1; 
                         const walkY = (y - startY) * 1;
+                        
+                        // Move o scroll na direção oposta ao arrasto
                         container.scrollLeft = scrollLeft - walkX;
                         container.scrollTop = scrollTop - walkY;
                     });
@@ -2359,8 +2369,8 @@
             }
 
             function initApp() {
-                // Inicia o scroll arrastável nas áreas vazias
-                applyDragScroll(); 
+                // INICIAR A FUNÇÃO DE DRAG-SCROLL
+                applyDragScroll();
                 
                 loadState();
                 var saved = localStorage.getItem(LS_KEY);
