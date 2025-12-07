@@ -4,6 +4,10 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- CORREÇÃO DE ERROS DO CONSOLE: Permite conexões com Google/Firebase e execução de scripts -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
+
     <title>TEA PLANNER (Sync Ativado)</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
@@ -109,17 +113,32 @@
 
         .matrix {
             display: grid;
-            grid-template-columns: 40px 1fr 1fr;
-            grid-template-rows: 40px minmax(100px, auto) minmax(100px, auto);
+            /* AJUSTE DE PROPORÇÃO: Primeira coluna (labels laterais) fixa em 40px,
+               mas a primeira LINHA (labels superiores) também tem altura definida.
+               Para equilibrar VISUALMENTE os labels "Importante" com os quadrantes,
+               vamos manter a estrutura de grid mas ajustar o CSS do eixo Y.
+            */
+            grid-template-columns: 40px 1fr 1fr; /* Volta para 40px para a barra lateral fina e elegante */
+            grid-template-rows: 40px minmax(100px, 1fr) minmax(100px, 1fr); /* Usa 1fr para dividir a altura igualmente */
             gap: 12px;
             align-items: stretch;
             padding-top: 16px;
             min-height: 300px;
             flex-grow: 1;
+            height: 100%; /* Garante que o grid ocupe a altura disponível */
         }
          .matrix .list {
             align-self: stretch;
             min-height: 100px;
+            /* AJUSTE: Remove largura fixa da lista quando dentro da matriz */
+            width: auto !important; 
+            max-width: none !important;
+            min-width: unset !important;
+        }
+
+        /* AJUSTE: Texto Justificado APENAS na matriz */
+        .matrix .card .text {
+            text-align: justify;
         }
 
         #agenda-sidebar {
@@ -148,9 +167,9 @@
             border-radius:10px;
             display:flex;
             flex-direction:column;
-            width: 5cm; /* Largura fixa de 5cm */
-            min-width: 5cm; /* Garante que não encolha */
-            max-width: 5cm; /* Garante que não cresça */
+            width: 5cm; /* Largura fixa de 5cm NO KANBAN */
+            min-width: 5cm; 
+            max-width: 5cm;
             flex-shrink:0;
         }
 
@@ -166,8 +185,9 @@
             white-space:pre-wrap; 
             min-height: 1em; 
             transition: opacity .2s, text-decoration .2s;
-            text-align: justify; /* Texto justificado */
-            word-break: break-word; /* Quebra palavras longas para não estourar */
+            /* Texto justificado GLOBAL (se quiser só na matriz, já coloquei a regra especifica acima, mas aqui garante em tudo se preferir) */
+            /* text-align: justify;  <-- Descomente se quiser em tudo */
+            word-break: break-word; 
         }
         .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; }
         
@@ -182,11 +202,28 @@
         .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px}
         .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink); min-width: 0;}
 
-        .axis{display:flex;align-items:center;justify-content:center;font-weight:700;color:#cfe0ff;background:#102b4f;border:1px solid #1a4e78;border-radius:10px}
+        .axis{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#cfe0ff;
+            background:#102b4f;
+            border:1px solid #1a4e78;
+            border-radius:10px;
+            text-align: center;
+        }
         .axis.corner{background:transparent;border:none}
-        .axis.axis-y{writing-mode:vertical-rl;transform:rotate(180deg);padding:4px 0}
+        .axis.axis-y{
+            writing-mode:vertical-rl;
+            transform:rotate(180deg);
+            padding:4px 0;
+            /* Garante que o label vertical ocupe toda a altura da célula */
+            height: 100%; 
+            max-height: 100%;
+        }
         .quad-label{font-weight:700;color:#cfe0ff}
-        .list[data-type="quad"]{min-width:unset; width: auto; max-width: none;}
+        .list[data-type="quad"]{min-width:unset}
         .list[data-type="quad"][data-quad="Q1"]{background:#0f2f2a;border-color:#1e5b4e}.list[data-type="quad"][data-quad="Q1"] header{background:#104239}
         .list[data-type="quad"][data-quad="Q2"]{background:#0f243a;border-color:#1b4e84}.list[data-type="quad"][data-quad="Q2"] header{background:#0e3155}
         .list[data-type="quad"][data-quad="Q3"]{background:#3a290f;border-color:#7c5a19}.list[data-type="quad"][data-quad="Q3"] header{background:#5a4014}
