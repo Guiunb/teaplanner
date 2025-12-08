@@ -1523,26 +1523,42 @@
             }
 
             // ===== THEMES & CROSS-BOARD =====
+            const THEMES = {
+                '#1976d2': { name: 'Azul (Padrão)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
+                '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
+                '#7b1fa2': { name: 'Roxo Profundo', brand: '#7b1fa2', bg: '#100614', panel: '#210e29', card: '#2c1236', text: '#f3e5f5' },
+                '#e65100': { name: 'Laranja Queimado', brand: '#e65100', bg: '#180d00', panel: '#2e1900', card: '#3d2200', text: '#fff3e0' },
+                '#c62828': { name: 'Vermelho Tijolo', brand: '#c62828', bg: '#140505', panel: '#2a0a0a', card: '#380d0d', text: '#ffebee' },
+                '#37474f': { name: 'Cinza Escuro', brand: '#37474f', bg: '#101416', panel: '#1c2327', card: '#263238', text: '#eceff1' },
+                '#00838f': { name: 'Ciano', brand: '#00838f', bg: '#001416', panel: '#00262b', card: '#003339', text: '#e0f7fa' },
+                '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' }
+            };
+
             function setBoardTheme(color) {
                 const r = document.querySelector(':root');
                 const safeColor = color || DEFAULT_THEME_COLOR;
-                r.style.setProperty('--brand', safeColor);
+                const theme = THEMES[safeColor] || THEMES[DEFAULT_THEME_COLOR];
+
+                if (theme) {
+                    r.style.setProperty('--brand', theme.brand);
+                    r.style.setProperty('--bg', theme.bg);
+                    r.style.setProperty('--panel', theme.panel);
+                    r.style.setProperty('--card', theme.card);
+                    r.style.setProperty('--ink', theme.text);
+                } else {
+                    // Fallback using simple opacity or just brand (basic)
+                    r.style.setProperty('--brand', safeColor);
+                    // Reset others to default blue if custom color is passed (though we only support preset list for now)
+                    r.style.setProperty('--bg', '#0f1a2a');
+                    r.style.setProperty('--panel', '#0f223d');
+                    r.style.setProperty('--card', '#112b4a');
+                    r.style.setProperty('--ink', '#e9f1ff');
+                }
             }
 
             function openBoardThemePicker() {
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
-
-                const colors = [
-                    { name: 'Azul (Padrão)', hex: '#1976d2' },
-                    { name: 'Verde Floresta', hex: '#2e7d32' },
-                    { name: 'Roxo Profundo', hex: '#7b1fa2' },
-                    { name: 'Laranja Queimado', hex: '#e65100' },
-                    { name: 'Vermelho Tijolo', hex: '#c62828' },
-                    { name: 'Cinza Escuro', hex: '#37474f' },
-                    { name: 'Ciano', hex: '#00838f' },
-                    { name: 'Rosa Choque', hex: '#ad1457' }
-                ];
 
                 showModal('Cor do Quadro', function () {
                     const grid = el('div');
@@ -1550,10 +1566,10 @@
                     grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
                     grid.style.gap = '10px';
 
-                    colors.forEach(c => {
+                    Object.values(THEMES).forEach(theme => {
                         const btn = el('button');
-                        btn.textContent = c.name;
-                        btn.style.background = c.hex;
+                        btn.textContent = theme.name;
+                        btn.style.background = theme.brand;
                         btn.style.color = 'white';
                         btn.style.border = 'none';
                         btn.style.padding = '15px';
@@ -1561,13 +1577,17 @@
                         btn.style.cursor = 'pointer';
                         btn.style.fontWeight = 'bold';
 
-                        if (c.hex.toLowerCase() === (board.color || DEFAULT_THEME_COLOR).toLowerCase()) {
-                            btn.style.boxShadow = '0 0 0 3px #fff, 0 0 0 5px ' + c.hex;
+                        // Show preview of theme bg/card on button
+                        btn.style.background = `linear-gradient(135deg, ${theme.bg} 0%, ${theme.brand} 100%)`;
+                        btn.style.border = `1px solid ${theme.panel}`;
+
+                        if (theme.brand.toLowerCase() === (board.color || DEFAULT_THEME_COLOR).toLowerCase()) {
+                            btn.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px ' + theme.brand;
                         }
 
                         btn.onclick = function () {
-                            board.color = c.hex;
-                            setBoardTheme(c.hex);
+                            board.color = theme.brand;
+                            setBoardTheme(theme.brand);
                             saveBoardsMetadata();
                             document.querySelector('.modal-wrap').remove();
                         };
