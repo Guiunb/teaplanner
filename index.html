@@ -4,43 +4,163 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
+
     <!-- CORREÇÃO DE ERROS DO CONSOLE: Permite conexões com Google/Firebase e execução de scripts -->
-    <meta http-equiv="Content-Security-Policy" content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
 
     <title>TEA PLANNER (Sync Ativado)</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
-    
+
     <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <style>
-        :root{--bg:#0f1a2a;--panel:#0f223d;--ink:#e9f1ff;--brand:#1976d2;--muted:#9fb3d2;--card:#112b4a}
-        *{box-sizing:border-box}
-        html,body{height:100%;-webkit-tap-highlight-color:transparent; overflow: hidden;}
-        body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg); display: flex; flex-direction: column;}
-        header.app{position:sticky;top:0;z-index:10;display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--brand);color:#fff;flex-wrap:wrap;transition:background-color .3s; flex-shrink: 0;}
-        header.app.filters-active{background:#b85d00}
-        header.app h1{margin:0;font-size:18px;font-weight:700; margin-right: auto; display: flex; align-items: center;} 
-        .header-icon { width: 22px; height: 22px; stroke: #fff; vertical-align: -4px; margin-right: 8px; }
-        header.app input, header.app button{border:none;border-radius:8px;padding:6px 10px;background:#0e58a5;color:#fff}
-        header.app button{cursor:pointer}
-        header.app button.active{background:#ffd54f;color:#10243a}
-        #sumTimersDisplay { font-weight: bold; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; margin-left: 5px; margin-right: 5px; cursor: help;}
-        .badge{display:inline-block;background:#ffd54f;color:#10243a;font-weight:700;border-radius:999px;padding:2px 8px;font-size:12px;border:1px solid rgba(0,0,0,.15)}
-        .badge[hidden]{display:none!important}
-        
+        :root {
+            --bg: #0f1a2a;
+            --panel: #0f223d;
+            --ink: #e9f1ff;
+            --brand: #1976d2;
+            --muted: #9fb3d2;
+            --card: #112b4a
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.app {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--brand);
+            color: #fff;
+            flex-wrap: wrap;
+            transition: background-color .3s;
+            flex-shrink: 0;
+        }
+
+        header.app.filters-active {
+            background: #b85d00
+        }
+
+        header.app h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-icon {
+            width: 22px;
+            height: 22px;
+            stroke: #fff;
+            vertical-align: -4px;
+            margin-right: 8px;
+        }
+
+        header.app input,
+        header.app button {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            background: #0e58a5;
+            color: #fff
+        }
+
+        header.app button {
+            cursor: pointer
+        }
+
+        header.app button.active {
+            background: #ffd54f;
+            color: #10243a
+        }
+
+        #sumTimersDisplay {
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-left: 5px;
+            margin-right: 5px;
+            cursor: help;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #ffd54f;
+            color: #10243a;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid rgba(0, 0, 0, .15)
+        }
+
+        .badge[hidden] {
+            display: none !important
+        }
+
         /* Toggle Switch styles */
-        .toggle-switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-        .toggle-switch-input { display: none; }
-        .toggle-switch-label { font-size: 16px; user-select: none; }
-        .toggle-switch-input:checked + .toggle-switch-label { color: #ffd54f; }
-        .toggle-switch-input:checked + .toggle-switch-label + .toggle-switch-button { background: #ffd54f; }
-        .toggle-switch-button { font-size: 12px; padding: 2px 4px; border-radius: 6px; background: #0e58a5; color: #10243a; transition: background .2s; }
-        
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .toggle-switch-input {
+            display: none;
+        }
+
+        .toggle-switch-label {
+            font-size: 16px;
+            user-select: none;
+        }
+
+        .toggle-switch-input:checked+.toggle-switch-label {
+            color: #ffd54f;
+        }
+
+        .toggle-switch-input:checked+.toggle-switch-label+.toggle-switch-button {
+            background: #ffd54f;
+        }
+
+        .toggle-switch-button {
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 6px;
+            background: #0e58a5;
+            color: #10243a;
+            transition: background .2s;
+        }
+
         .workspace {
             display: flex;
             flex-direction: row;
@@ -62,8 +182,9 @@
             transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
             width: 100%;
             /* CURSOR MUDADO PARA INDICAR QUE PODE ARRASTAR */
-            cursor: grab; 
+            cursor: grab;
         }
+
         /* Quando estiver arrastando */
         #main-content:active {
             cursor: grabbing;
@@ -77,13 +198,16 @@
             overflow: hidden;
         }
 
-        .board-container, .matrix-container {
+        .board-container,
+        .matrix-container {
             position: relative;
             transition: height .3s ease-in-out, min-height .3s ease-in-out, opacity .3s ease-in-out, padding .3s ease-in-out, flex-grow .3s ease-in-out, flex-shrink .3s ease-in-out;
             overflow: hidden;
             flex-shrink: 0;
         }
-         .board-container.collapsed, .matrix-container.collapsed {
+
+        .board-container.collapsed,
+        .matrix-container.collapsed {
             height: 0 !important;
             min-height: 0 !important;
             padding-top: 0;
@@ -95,8 +219,18 @@
             flex-shrink: 1;
         }
 
-        .board-container { flex-grow: 0; display: flex; flex-direction: column;}
-        .matrix-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 300px; }
+        .board-container {
+            flex-grow: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .matrix-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
 
 
         /* GARANTINDO SCROLL HORIZONTAL */
@@ -105,33 +239,41 @@
             gap: 12px;
             align-items: flex-start;
             padding-bottom: 10px;
-            overflow-x: auto; /* Permite scroll horizontal */
+            overflow-x: auto;
+            /* Permite scroll horizontal */
             min-height: 150px;
-            cursor: grab; /* Cursor de mãozinha */
+            cursor: grab;
+            /* Cursor de mãozinha */
+            /* CORREÇÃO VISUAL: Padding lateral para não cortar a primeira lista */
+            padding-left: 8px;
+            padding-right: 8px;
         }
-        .board:active { cursor: grabbing; }
+
+        .board:active {
+            cursor: grabbing;
+        }
 
         .matrix {
             display: grid;
-            /* AJUSTE DE PROPORÇÃO: Primeira coluna (labels laterais) fixa em 40px,
-               mas a primeira LINHA (labels superiores) também tem altura definida.
-               Para equilibrar VISUALMENTE os labels "Importante" com os quadrantes,
-               vamos manter a estrutura de grid mas ajustar o CSS do eixo Y.
-            */
-            grid-template-columns: 40px 1fr 1fr; /* Volta para 40px para a barra lateral fina e elegante */
-            grid-template-rows: 40px minmax(100px, 1fr) minmax(100px, 1fr); /* Usa 1fr para dividir a altura igualmente */
+            /* AJUSTE DE PROPORÇÃO: Primeira coluna (labels laterais) */
+            grid-template-columns: 40px 1fr 1fr;
+            /* CORREÇÃO DE CORTE: Define altura mínima generosa para as linhas (250px) ao invés de 1fr puro
+               Isso força o scroll a aparecer se a tela for pequena, garantindo que "Não Importante" apareça. */
+            grid-template-rows: 40px minmax(250px, auto) minmax(250px, auto);
             gap: 12px;
             align-items: stretch;
             padding-top: 16px;
             min-height: 300px;
             flex-grow: 1;
-            height: 100%; /* Garante que o grid ocupe a altura disponível */
+            /* Remove height: 100% fixo para permitir que cresça e role */
+            height: auto;
         }
-         .matrix .list {
+
+        .matrix .list {
             align-self: stretch;
             min-height: 100px;
             /* AJUSTE: Remove largura fixa da lista quando dentro da matriz */
-            width: auto !important; 
+            width: auto !important;
             max-width: none !important;
             min-width: unset !important;
         }
@@ -159,135 +301,653 @@
             padding: 0;
         }
 
-        .toggle-tab { display: none; }
+        .toggle-tab {
+            display: none;
+        }
 
-        .list{
-            background:var(--panel);
-            border:1px solid #183453;
-            border-radius:10px;
-            display:flex;
-            flex-direction:column;
-            width: 5cm; /* Largura fixa de 5cm NO KANBAN */
-            min-width: 5cm; 
+        .list {
+            background: var(--panel);
+            border: 1px solid #183453;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            width: 5cm;
+            /* Largura fixa de 5cm NO KANBAN */
+            min-width: 5cm;
             max-width: 5cm;
-            flex-shrink:0;
+            flex-shrink: 0;
         }
 
-        .list header{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #19375b;background:#122b4a; flex-shrink: 0;}
-        .list header input.title{flex:1;border:none;border-radius:8px;padding:6px 8px;background:#0e2542;color:var(--ink); min-width: 0;}
-        .cards{display:flex;flex-direction:column;gap:6px;padding:8px;min-height:34px; overflow-y: auto; flex-grow: 1;}
-        .card{background:var(--card);border:1px solid #20486f;border-left:8px solid transparent;border-radius:8px;padding:8px;cursor:grab;user-select:none;position:relative;transition:opacity .2s, transform .2s}
-        .card.dragging{opacity:0.5;transform:rotate(3deg)}
-        .card.selected{outline:2px solid #2a71ff;background:#0f2f57}
-        .card.editing { background: #1a4b7f; }
-        
-        .card .text{
-            white-space:pre-wrap; 
-            min-height: 1em; 
+        .list header {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #19375b;
+            background: #122b4a;
+            flex-shrink: 0;
+        }
+
+        .list header input.title {
+            flex: 1;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: #0e2542;
+            color: var(--ink);
+            min-width: 0;
+        }
+
+        .cards {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px;
+            min-height: 34px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid #20486f;
+            border-left: 8px solid transparent;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+            transition: opacity .2s, transform .2s
+        }
+
+        .card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg)
+        }
+
+        .card.selected {
+            outline: 2px solid #2a71ff;
+            background: #0f2f57
+        }
+
+        .card.editing {
+            background: #1a4b7f;
+        }
+
+        .card .text {
+            white-space: pre-wrap;
+            min-height: 1em;
             transition: opacity .2s, text-decoration .2s;
-            /* Texto justificado GLOBAL (se quiser só na matriz, já coloquei a regra especifica acima, mas aqui garante em tudo se preferir) */
-            /* text-align: justify;  <-- Descomente se quiser em tudo */
-            word-break: break-word; 
+            word-break: break-word;
         }
-        .card[data-completed="true"] .text { text-decoration: line-through; opacity: 0.6; }
-        
-        .meta{margin-top:6px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-        .dot{width:10px;height:10px;border-radius:50%;display:inline-flex;border:1px solid #375b86; position: relative; align-items: center; justify-content: center; cursor: pointer;}
-        .dot-check { display: none; color: #fff; font-weight: bold; font-size: 10px; line-height: 10px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); user-select: none; }
-        .card[data-completed="true"] .dot-check { display: block; }
 
-        .timer-display{font-size:11px;font-weight:bold;padding:1px 5px;border-radius:4px; background: rgba(0,0,0,.2);}
-        .due-date { font-size: 11px; background: rgba(0,0,0,.2); padding: 1px 5px; border-radius: 4px; }
-        .kebab{position:absolute;top:2px;right:2px;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-        .add{padding:8px;border-top:1px solid #19375b; flex-shrink: 0;}.add .row{display:flex;gap:6px}
-        .add input[type=text]{flex:1;border:1px solid #2a4e78;border-radius:8px;padding:8px;background:#0b2240;color:var(--ink); min-width: 0;}
+        .card[data-completed="true"] .text {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
 
-        .axis{
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-weight:700;
-            color:#cfe0ff;
-            background:#102b4f;
-            border:1px solid #1a4e78;
-            border-radius:10px;
+        .meta {
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-flex;
+            border: 1px solid #375b86;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .dot-check {
+            display: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 10px;
+            line-height: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            user-select: none;
+        }
+
+        .card[data-completed="true"] .dot-check {
+            display: block;
+        }
+
+        .timer-display {
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, .2);
+        }
+
+        .due-date {
+            font-size: 11px;
+            background: rgba(0, 0, 0, .2);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        .kebab {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #9fc1ff;
+            border-radius: 6px;
+            padding: 0 6px;
+            line-height: 20px;
+            cursor: pointer
+        }
+
+        .add {
+            padding: 8px;
+            border-top: 1px solid #19375b;
+            flex-shrink: 0;
+        }
+
+        .add .row {
+            display: flex;
+            gap: 6px
+        }
+
+        .add input[type=text] {
+            flex: 1;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            padding: 8px;
+            background: #0b2240;
+            color: var(--ink);
+            min-width: 0;
+        }
+
+        .axis {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #cfe0ff;
+            background: #102b4f;
+            border: 1px solid #1a4e78;
+            border-radius: 10px;
             text-align: center;
         }
-        .axis.corner{background:transparent;border:none}
-        .axis.axis-y{
-            writing-mode:vertical-rl;
-            transform:rotate(180deg);
-            padding:4px 0;
-            /* Garante que o label vertical ocupe toda a altura da célula */
-            height: 100%; 
+
+        .axis.corner {
+            background: transparent;
+            border: none
+        }
+
+        .axis.axis-y {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            padding: 4px 0;
+            /* Garante que o label vertical ocupe toda a altura da célula e centralize */
+            height: 100%;
             max-height: 100%;
+            white-space: nowrap;
+            /* Impede quebra de linha indesejada */
         }
-        .quad-label{font-weight:700;color:#cfe0ff}
-        .list[data-type="quad"]{min-width:unset}
-        .list[data-type="quad"][data-quad="Q1"]{background:#0f2f2a;border-color:#1e5b4e}.list[data-type="quad"][data-quad="Q1"] header{background:#104239}
-        .list[data-type="quad"][data-quad="Q2"]{background:#0f243a;border-color:#1b4e84}.list[data-type="quad"][data-quad="Q2"] header{background:#0e3155}
-        .list[data-type="quad"][data-quad="Q3"]{background:#3a290f;border-color:#7c5a19}.list[data-type="quad"][data-quad="Q3"] header{background:#5a4014}
-        .list[data-type="quad"][data-quad="Q4"]{background:#3a0f12;border-color:#7c1920}.list[data-type="quad"][data-quad="Q4"] header{background:#5a1419}
 
-        .schedule{background:var(--panel);border:1px solid #183453;border-radius:12px;width:100%; height:100%; display: flex; flex-direction: column; overflow: hidden;}
-        .schedule header{
-            position:sticky;top:0;z-index:1;display:flex;flex-direction:column;
+        .quad-label {
+            font-weight: 700;
+            color: #cfe0ff
+        }
+
+        .list[data-type="quad"] {
+            min-width: unset
+        }
+
+        .list[data-type="quad"][data-quad="Q1"] {
+            background: #0f2f2a;
+            border-color: #1e5b4e
+        }
+
+        .list[data-type="quad"][data-quad="Q1"] header {
+            background: #104239
+        }
+
+        .list[data-type="quad"][data-quad="Q2"] {
+            background: #0f243a;
+            border-color: #1b4e84
+        }
+
+        .list[data-type="quad"][data-quad="Q2"] header {
+            background: #0e3155
+        }
+
+        .list[data-type="quad"][data-quad="Q3"] {
+            background: #3a290f;
+            border-color: #7c5a19
+        }
+
+        .list[data-type="quad"][data-quad="Q3"] header {
+            background: #5a4014
+        }
+
+        .list[data-type="quad"][data-quad="Q4"] {
+            background: #3a0f12;
+            border-color: #7c1920
+        }
+
+        .list[data-type="quad"][data-quad="Q4"] header {
+            background: #5a1419
+        }
+
+        .schedule {
+            background: var(--panel);
+            border: 1px solid #183453;
+            border-radius: 12px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .schedule header {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            padding:8px 10px;background:#0b437e;color:#fff;
-            border-top-left-radius:12px;border-top-right-radius:12px
+            padding: 8px 10px;
+            background: #0b437e;
+            color: #fff;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px
         }
-        .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        #slots { overflow-y: auto; flex-grow: 1; }
-        .schedule header input[type=date]{background:#0b2240;color:#fff;border:1px solid #2a4e78;border-radius:8px;padding:6px 8px; width: 120px;}
-        .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; }
-        .schedule header .date-nav { display: flex; align-items: center; gap: 4px; }
-        .schedule header button { padding: 6px 10px; background:#0e58a5; border:none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1;}
-        .schedule header .date-nav button { padding: 4px 8px; font-size: 16px;}
-        .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; }
 
-        .slot{border-bottom:1px dashed #244b78}.slot>div.head{display:flex;align-items:center;gap:6px;padding:0 4px}
-        .slot .time{font-weight:700;font-size:11px;color:#9fc1ff}
-        .slot .cards{display:none;padding:4px;min-height:28px}.slot.has-items .cards{display:block}
-        .slot.hover{background:#0e2446;box-shadow:inset 0 0 0 2px #1976d2}
-        .goal-slot { background: #1c3a61; border-bottom: 1px solid #3a6a9e; }
-        .goal-slot > .head .goal-label { font-weight: bold; color: #ffd54f; }
+        .schedule .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
 
-        .placeholder{height:38px;border:2px dashed #1976d2;border-radius:8px;background:#0e2446;margin:4px 0}
-        .ctx{position:fixed;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:none;z-index:1000}
-        .ctx button{display:flex; align-items: center; gap: 8px; width:100%;text-align:left;background:transparent;border:none;color:#dbe7ff;padding:10px 12px;border-radius:0;cursor:pointer}.ctx button:hover{background:#1a2842}
-        .ctx .shortcut { margin-left: auto; font-size: 0.8em; color: var(--muted); padding-left: 10px; }
-        .ctx .sep{height:1px;background:#23314a;margin:6px 0}
-        .ctx-sub{position:absolute;left:100%;top:0;background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:8px;min-width:240px;max-height:300px;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.3);display:none}
-        .list header .more{margin-left:auto;background:transparent;border:1px solid transparent;color:#9fc1ff;border-radius:6px;padding:0 6px;line-height:20px;cursor:pointer}
-        .modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999}
-        .modal{background:#0b1220;color:#fff;border:1px solid #24314a;border-radius:12px;min-width:280px;max-width:94vw;padding:14px 14px 10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-        .modal h3{margin:0 0 10px;font-size:16px}
-        .modal .row{margin-top:12px;display:flex;gap:8px;justify-content:flex-end}
-        .modal .row button{background:#1976d2;border:none;border-radius:8px;color:#fff;padding:8px 10px;cursor:pointer}
-        .modal .row button.cancel{background:#6b7a93}
-        .import-options button { margin: 5px; flex-grow: 1;}
-        .palette-editor { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px;}
-        .palette-editor.editing { display: flex; }
-        .palette-grid.editing { display: none; }
-        .palette-editor-row { display: flex; align-items: center; gap: 8px; }
-        .palette-editor-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #375b86; flex-shrink: 0;}
-        .palette-editor input { background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; padding: 6px 8px; flex: 1; }
-        .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; }
+        #slots {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
 
-        @keyframes spinner_zKoa{100%{transform:rotate(360deg)}}@keyframes spinner_YpZS{0%{stroke-dasharray:0 150;stroke-dashoffset:0}47.5%{stroke-dasharray:42 150;stroke-dashoffset:-16}95%,100%{stroke-dasharray:42 150;stroke-dashoffset:-59}}
-        .spinner_V8m1{transform-origin:center;animation:spinner_zKoa 2s linear infinite}.spinner_V8m1 circle{stroke-linecap:round;animation:spinner_YpZS 1.5s ease-in-out infinite}
-        @keyframes flash { 0%, 100% { background-color: var(--card); } 50% { background-color: #ffcc00; color: #000; } }
+        .schedule header input[type=date] {
+            background: #0b2240;
+            color: #fff;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            padding: 6px 8px;
+            width: 120px;
+        }
 
-        @media (max-width: 700px){
-            .workspace{ flex-direction: column; overflow-y: auto; padding: 8px; gap: 8px; }
-            #main-content { overflow: visible; height: auto; }
-            #agenda-sidebar{display:none}
-            .board { order: 1; overflow: visible; min-height: unset;}
-            .matrix { order: 2; margin-top: 16px; min-height: unset;}
-            .list { min-width: unset; width: 100%; margin-bottom: 12px; }
-            header.app { height: auto; padding-bottom: 10px; }
-            header.app h1 { margin-right: 10px; }
-            #toggleBoardBtn, #toggleMatrixBtn, #toggleAgendaBtn { display: none; }
+        .schedule header .agenda-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .schedule header .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .schedule header button {
+            padding: 6px 10px;
+            background: #0e58a5;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .schedule header .date-nav button {
+            padding: 4px 8px;
+            font-size: 16px;
+        }
+
+        .schedule header .copy-paste-buttons button {
+            font-size: 16px;
+            padding: 6px 8px;
+        }
+
+        .slot {
+            border-bottom: 1px dashed #244b78
+        }
+
+        .slot>div.head {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 4px
+        }
+
+        .slot .time {
+            font-weight: 700;
+            font-size: 11px;
+            color: #9fc1ff
+        }
+
+        .slot .cards {
+            display: none;
+            padding: 4px;
+            min-height: 28px
+        }
+
+        .slot.has-items .cards {
+            display: block
+        }
+
+        .slot.hover {
+            background: #0e2446;
+            box-shadow: inset 0 0 0 2px #1976d2
+        }
+
+        .goal-slot {
+            background: #1c3a61;
+            border-bottom: 1px solid #3a6a9e;
+        }
+
+        .goal-slot>.head .goal-label {
+            font-weight: bold;
+            color: #ffd54f;
+        }
+
+        .placeholder {
+            height: 38px;
+            border: 2px dashed #1976d2;
+            border-radius: 8px;
+            background: #0e2446;
+            margin: 4px 0
+        }
+
+        .ctx {
+            position: fixed;
+            background: #0b1220;
+            color: #fff;
+            border: 1px solid #24314a;
+            border-radius: 8px;
+            min-width: 240px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+            display: none;
+            z-index: 1000
+        }
+
+        .ctx button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: #dbe7ff;
+            padding: 10px 12px;
+            border-radius: 0;
+            cursor: pointer
+        }
+
+        .ctx button:hover {
+            background: #1a2842
+        }
+
+        .ctx .shortcut {
+            margin-left: auto;
+            font-size: 0.8em;
+            color: var(--muted);
+            padding-left: 10px;
+        }
+
+        .ctx .sep {
+            height: 1px;
+            background: #23314a;
+            margin: 6px 0
+        }
+
+        .ctx-sub {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: #0b1220;
+            color: #fff;
+            border: 1px solid #24314a;
+            border-radius: 8px;
+            min-width: 240px;
+            max-height: 300px;
+            overflow: auto;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .3);
+            display: none
+        }
+
+        .list header .more {
+            margin-left: auto;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #9fc1ff;
+            border-radius: 6px;
+            padding: 0 6px;
+            line-height: 20px;
+            cursor: pointer
+        }
+
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999
+        }
+
+        .modal {
+            background: #0b1220;
+            color: #fff;
+            border: 1px solid #24314a;
+            border-radius: 12px;
+            min-width: 280px;
+            max-width: 94vw;
+            padding: 14px 14px 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        .modal h3 {
+            margin: 0 0 10px;
+            font-size: 16px
+        }
+
+        .modal .row {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end
+        }
+
+        .modal .row button {
+            background: #1976d2;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 10px;
+            cursor: pointer
+        }
+
+        .modal .row button.cancel {
+            background: #6b7a93
+        }
+
+        .import-options button {
+            margin: 5px;
+            flex-grow: 1;
+        }
+
+        .palette-editor {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .palette-editor.editing {
+            display: flex;
+        }
+
+        .palette-grid.editing {
+            display: none;
+        }
+
+        .palette-editor-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .palette-editor-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #375b86;
+            flex-shrink: 0;
+        }
+
+        .palette-editor input {
+            background: #0b2240;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            color: #fff;
+            padding: 6px 8px;
+            flex: 1;
+        }
+
+        .modal .row .manage-labels-btn {
+            margin-right: auto;
+            background: #3a3f4b;
+        }
+
+        @keyframes spinner_zKoa {
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes spinner_YpZS {
+            0% {
+                stroke-dasharray: 0 150;
+                stroke-dashoffset: 0
+            }
+
+            47.5% {
+                stroke-dasharray: 42 150;
+                stroke-dashoffset: -16
+            }
+
+            95%,
+            100% {
+                stroke-dasharray: 42 150;
+                stroke-dashoffset: -59
+            }
+        }
+
+        .spinner_V8m1 {
+            transform-origin: center;
+            animation: spinner_zKoa 2s linear infinite
+        }
+
+        .spinner_V8m1 circle {
+            stroke-linecap: round;
+            animation: spinner_YpZS 1.5s ease-in-out infinite
+        }
+
+        @keyframes flash {
+
+            0%,
+            100% {
+                background-color: var(--card);
+            }
+
+            50% {
+                background-color: #ffcc00;
+                color: #000;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .workspace {
+                flex-direction: column;
+                overflow-y: auto;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            #main-content {
+                overflow: visible;
+                height: auto;
+            }
+
+            #agenda-sidebar {
+                display: none
+            }
+
+            .board {
+                order: 1;
+                overflow: visible;
+                min-height: unset;
+            }
+
+            .matrix {
+                order: 2;
+                margin-top: 16px;
+                min-height: unset;
+            }
+
+            .list {
+                min-width: unset;
+                width: 100%;
+                margin-bottom: 12px;
+            }
+
+            header.app {
+                height: auto;
+                padding-bottom: 10px;
+            }
+
+            header.app h1 {
+                margin-right: 10px;
+            }
+
+            #toggleBoardBtn,
+            #toggleMatrixBtn,
+            #toggleAgendaBtn {
+                display: none;
+            }
+
+            .board-controls {
+                width: 100%;
+                margin: 10px 0;
+                justify-content: space-between;
+                order: 3;
+            }
+
+            .board-selector {
+                flex-grow: 1;
+            }
         }
     </style>
 </head>
@@ -309,6 +969,21 @@
         </h1>
         <button id="loginBtn" style="background:#4285F4; color:white;">Login Google</button>
         <span id="userInfo" style="font-size:12px; font-weight:bold;"></span>
+
+        <!-- BOARD CONTROLS -->
+        <div class="board-controls"
+            style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
+            <select id="boardSelect"
+                style="background:#0f223d; color:white; border:1px solid #1f4068; padding: 4px 8px; border-radius:4px; max-width: 200px; cursor: pointer;">
+                <!-- Options populated by JS -->
+            </select>
+            <button id="newBoardBtn" title="Novo Quadro" style="padding:4px 8px;">➕</button>
+            <button id="editBoardBtn" title="Renomear Quadro" style="padding:4px 8px;">✏️</button>
+            <button id="cloneBoardBtn" title="Salvar Como..." style="padding:4px 8px;">📋</button>
+            <button id="deleteBoardBtn" title="Excluir Quadro" style="padding:4px 8px; color:#ff6b6b;">🗑️</button>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        </div>
+
         <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
         <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
@@ -400,7 +1075,7 @@
     <script>
         // Aguarda a janela carregar completamente antes de rodar o script
         window.addEventListener('load', function () {
-            
+
             // ===== Firebase Configuration =====
             const firebaseConfig = {
                 apiKey: "AIzaSyCk2BJMJPgLCWcjkcGs2n-MU8-2b44nnOs",
@@ -425,12 +1100,12 @@
                     db = firebase.database();
                     isFirebaseReady = true;
                     console.log("Firebase initialized successfully.");
-                    
+
                     auth.onAuthStateChanged(user => {
                         currentUser = user;
                         const loginBtn = document.getElementById('loginBtn');
                         const userInfo = document.getElementById('userInfo');
-                        
+
                         if (user) {
                             loginBtn.textContent = 'Sair';
                             userInfo.textContent = `Olá, ${user.displayName || user.email}`;
@@ -466,7 +1141,7 @@
 
             function setupFirebaseSync(user) {
                 const userRef = db.ref('users/' + user.uid + '/data');
-                
+
                 userRef.on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
@@ -474,11 +1149,11 @@
                         // CORREÇÃO CRÍTICA: GHOST DOM FIX
                         // Se os dados forem iguais, não redesenha a tela para evitar piscar o DOM
                         if (JSON.stringify(val) === currentLocalData) {
-                           return; 
+                            return;
                         }
 
                         console.log("Recebendo atualização remota real...");
-                        isRemoteUpdate = true; 
+                        isRemoteUpdate = true;
                         localStorage.setItem(LS_KEY, JSON.stringify(val));
                         renderFromData(val);
                         isRemoteUpdate = false;
@@ -498,9 +1173,19 @@
                 return `${hours > 0 ? hours + ':' : ''}${to2(minutes)} min`;
             }
 
-            var LS_KEY = 'mini-trello-restore';
+            // ===== CONFIG & STATE =====
+            var LS_KEY = 'mini-trello-restore'; // Legacy key for migration
             var LS_LABELS_KEY = 'tea-planner-labels';
             var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config';
+
+            // New Multi-Board Keys
+            var LS_BOARDS_META = 'tea-planner-boards-meta'; // Array of {id, name, lastModified}
+            var LS_CURRENT_BOARD = 'tea-planner-current-board-id';
+            var LS_BOARD_PREFIX = 'tea-planner-board-'; // + id
+
+            var currentBoardId = null;
+            var boardsMeta = [];
+
             var __persistTick = null, __muteHistory = 0;
             function withMute(fn) { __muteHistory++; try { return fn(); } finally { __muteHistory--; } }
 
@@ -557,7 +1242,7 @@
                     timerLeft: c.dataset.timerLeft || '',
                     timerState: c.dataset.timerState || '',
                     // CRUCIAL: Salvar timerEnd e completed para sincronização
-                    timerEnd: c.dataset.timerEnd || '', 
+                    timerEnd: c.dataset.timerEnd || '',
                     completed: c.dataset.completed || 'false'
                 };
             }
@@ -596,11 +1281,11 @@
             function capture() { if (__muteHistory > 0) return; try { pushHistory(serialize()); } catch (e) { } }
             function canUndo() { return cursor > 0; }
             function canRedo() { return cursor >= 0 && cursor < hist.length - 1; }
-            function updateUndoUi() { 
+            function updateUndoUi() {
                 const undoBtn = document.getElementById('undo');
                 const redoBtn = document.getElementById('redo');
-                if (undoBtn) undoBtn.disabled = !canUndo(); 
-                if (redoBtn) redoBtn.disabled = !canRedo(); 
+                if (undoBtn) undoBtn.disabled = !canUndo();
+                if (redoBtn) redoBtn.disabled = !canRedo();
             }
             function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
@@ -620,7 +1305,7 @@
                 if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
                 // Salvar scroll da matriz
                 if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
-                
+
                 allCards = [];
                 boardEl.innerHTML = '';
                 matrixEl.innerHTML = '';
@@ -667,7 +1352,7 @@
                 applyFilters();
                 updateSlotsHasItems();
                 updateTotalTimerDisplay();
-                
+
                 // Reinicia o loop do timer para garantir que pegue os novos elementos
                 if (globalTimerInterval) {
                     clearInterval(globalTimerInterval);
@@ -688,6 +1373,163 @@
                 renderFromData(data);
             }
 
+            // ===== BOARD MANAGEMENT CORE =====
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            function loadBoardsMetadata() {
+                try {
+                    const raw = localStorage.getItem(LS_BOARDS_META);
+                    boardsMeta = raw ? JSON.parse(raw) : [];
+                } catch (e) { boardsMeta = []; }
+            }
+
+            function saveBoardsMetadata() {
+                localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
+                updateBoardSelectUI();
+            }
+
+            function migrateToMultiBoard() {
+                // If we have legacy data but no boards metadata, migrate.
+                const legacyData = localStorage.getItem(LS_KEY);
+                const hasMetadata = localStorage.getItem(LS_BOARDS_META);
+
+                if (legacyData && !hasMetadata) {
+                    console.log("Migrando para multi-board...");
+                    const newId = generateId();
+                    const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now() };
+                    boardsMeta = [mainBoard];
+
+                    // Save legacy data to new key
+                    localStorage.setItem(LS_BOARD_PREFIX + newId, legacyData);
+
+                    // Set current board
+                    currentBoardId = newId;
+                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
+
+                    saveBoardsMetadata();
+                    // Optional: Remove legacy key? For safety, let's keep it for now but maybe rename?
+                    // localStorage.removeItem(LS_KEY); 
+                } else if (!hasMetadata) {
+                    // Clean slate
+                    console.log("Iniciando limpo...");
+                    createNewBoard('Meu Quadro');
+                } else {
+                    loadBoardsMetadata();
+                    currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
+                    // Validate current ID
+                    if (!boardsMeta.find(b => b.id === currentBoardId)) {
+                        if (boardsMeta.length > 0) currentBoardId = boardsMeta[0].id;
+                        else createNewBoard('Meu Quadro');
+                    }
+                }
+            }
+
+            function createNewBoard(name) {
+                const id = generateId();
+                const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now() };
+                boardsMeta.push(newBoard);
+                saveBoardsMetadata();
+
+                // Initialize empty board state
+                const emptyState = []; // Empty array for new board
+                localStorage.setItem(LS_BOARD_PREFIX + id, JSON.stringify(emptyState));
+
+                switchBoard(id);
+            }
+
+            function renameBoard() {
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+
+                const newName = prompt("Novo nome para o quadro:", board.name);
+                if (newName && newName.trim()) {
+                    board.name = newName.trim();
+                    saveBoardsMetadata();
+                }
+            }
+
+            function deleteBoard() {
+                if (boardsMeta.length <= 1) {
+                    alert("Você não pode excluir o único quadro existente.");
+                    return;
+                }
+
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+
+                if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
+                    // Remove data
+                    localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
+
+                    // Remove from meta
+                    boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
+
+                    // Switch to first available
+                    currentBoardId = boardsMeta[0].id;
+                    saveBoardsMetadata();
+                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
+                    window.location.reload(); // Simple reload to clear state and load fresh
+                }
+            }
+
+            function cloneBoard() {
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+
+                const newName = prompt("Nome para a cópia:", board.name + " (Cópia)");
+                if (!newName) return;
+
+                const currentData = serialize(); // Get current in-memory state
+                const newId = generateId();
+
+                const newBoard = { id: newId, name: newName, lastModified: Date.now() };
+                boardsMeta.push(newBoard);
+                saveBoardsMetadata();
+
+                // Save copied data
+                localStorage.setItem(LS_BOARD_PREFIX + newId, JSON.stringify(currentData));
+
+                switchBoard(newId);
+            }
+
+            function switchBoard(id) {
+                if (id === currentBoardId && boardEl.children.length > 0) return; // Already there
+
+                console.log("Switching to board: " + id);
+                currentBoardId = id;
+                localStorage.setItem(LS_CURRENT_BOARD, id);
+
+                // Load data
+                const dataStr = localStorage.getItem(LS_BOARD_PREFIX + id);
+                let data = [];
+                try {
+                    data = dataStr ? JSON.parse(dataStr) : [];
+                } catch (e) { console.error("Error loading board data", e); }
+
+                // Restore
+                restore(data);
+                hist = []; cursor = -1; pushHistory(data); // Reset undo history for new board
+
+                updateBoardSelectUI();
+            }
+
+            function updateBoardSelectUI() {
+                const select = document.getElementById('boardSelect');
+                if (!select) return;
+
+                select.innerHTML = '';
+                boardsMeta.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.name;
+                    if (b.id === currentBoardId) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            }
+
+
             function persist() {
                 if (__muteHistory > 0) return;
                 clearTimeout(__persistTick);
@@ -695,7 +1537,21 @@
                     try {
                         const data = serialize();
                         const jsonStr = JSON.stringify(data);
-                        localStorage.setItem(LS_KEY, jsonStr);
+
+                        // SAVE TO CURRENT BOARD
+                        if (currentBoardId) {
+                            localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, jsonStr);
+
+                            // Update UpdateTime in meta
+                            const board = boardsMeta.find(b => b.id === currentBoardId);
+                            if (board) {
+                                board.lastModified = Date.now();
+                                saveBoardsMetadata();
+                            }
+                        } else {
+                            // Fallback if no board selected (should not happen after migration)
+                            localStorage.setItem(LS_KEY, jsonStr);
+                        }
 
                         if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
                             db.ref('users/' + auth.currentUser.uid + '/data').set(data)
@@ -709,19 +1565,19 @@
 
             function duplicateCards(cards) {
                 if (!cards || !cards.length) return;
-                let newCards = []; 
-                cards.forEach(function(c) {
-                var newData = cardToData(c);
-                if (!c.closest('#agenda-sidebar')) {
-                    newData.when = '';
-                }
-                var newCard = createCard(newData);
-                newCards.push(newCard); 
-                c.parentElement.insertBefore(newCard, c.nextSibling);
+                let newCards = [];
+                cards.forEach(function (c) {
+                    var newData = cardToData(c);
+                    if (!c.closest('#agenda-sidebar')) {
+                        newData.when = '';
+                    }
+                    var newCard = createCard(newData);
+                    newCards.push(newCard);
+                    c.parentElement.insertBefore(newCard, c.nextSibling);
                 });
                 persist();
-                updateSlotsHasItems(); 
-                updateTotalTimerDisplay(); 
+                updateSlotsHasItems();
+                updateTotalTimerDisplay();
             }
 
             function updateTimerDisplay(card) {
@@ -909,7 +1765,7 @@
                             activeTimers = true;
                             var now = Date.now();
                             var end = parseInt(c.dataset.timerEnd, 10);
-                            
+
                             // Correção de segurança: se end for NaN ou inválido
                             if (isNaN(end)) {
                                 c.dataset.timerState = 'paused';
@@ -1734,13 +2590,13 @@
                             // Limpar a seleção de 'Todas' se uma cor específica for selecionada
                             if (selectedColors.size > 0 && p.hex !== '*') {
                                 const allBtn = wrap.querySelector('button[data-hex="*"]');
-                                if(allBtn) allBtn.style.outline = '';
+                                if (allBtn) allBtn.style.outline = '';
                             }
-                            
+
                             [].slice.call(wrap.querySelectorAll('button')).forEach(function (btn) {
                                 btn.style.outline = '';
                                 const btnHex = (btn.dataset.hex || '').toLowerCase();
-                                if((btnHex === '*' && selectedColors.size === 0) || selectedColors.has(btnHex)) {
+                                if ((btnHex === '*' && selectedColors.size === 0) || selectedColors.has(btnHex)) {
                                     btn.style.outline = '2px solid #fff';
                                 }
                             });
@@ -1997,7 +2853,7 @@
                     boardEl.scrollLeft += e.deltaY; // Usa o movimento vertical da roda para mover o scroll horizontal
                 }
             });
-            
+
             // ============================================
             // >>>>> CLICK AND DRAG SCROLL (PAN) <<<<<
             // ============================================
@@ -2007,7 +2863,7 @@
                     document.getElementById('main-content'),
                     document.getElementById('slots')
                 ];
-                
+
                 containers.forEach(container => {
                     if (!container) return;
                     let isDown = false;
@@ -2015,11 +2871,11 @@
 
                     container.addEventListener('mousedown', (e) => {
                         // Verifica se o clique NÃO é em um cartão, input, botão ou cabeçalho
-                        if (e.target.closest('.card') || 
-                            e.target.tagName === 'BUTTON' || 
+                        if (e.target.closest('.card') ||
+                            e.target.tagName === 'BUTTON' ||
                             e.target.tagName === 'INPUT' ||
                             e.target.closest('.header-icon')) return;
-                        
+
                         isDown = true;
                         container.style.cursor = 'grabbing';
                         startX = e.pageX; // Posição inicial do mouse X
@@ -2027,9 +2883,9 @@
                         scrollLeft = container.scrollLeft; // Scroll atual X
                         scrollTop = container.scrollTop;   // Scroll atual Y
                     });
-                    
+
                     const stopDrag = () => {
-                        if(isDown) {
+                        if (isDown) {
                             isDown = false;
                             container.style.cursor = 'grab'; // Volta para 'mãozinha aberta'
                         }
@@ -2044,9 +2900,9 @@
                         const x = e.pageX;
                         const y = e.pageY;
                         // Multiplicador de velocidade (1 = normal)
-                        const walkX = (x - startX) * 1; 
+                        const walkX = (x - startX) * 1;
                         const walkY = (y - startY) * 1;
-                        
+
                         // Move o scroll na direção oposta ao arrasto
                         container.scrollLeft = scrollLeft - walkX;
                         container.scrollTop = scrollTop - walkY;
@@ -2399,42 +3255,56 @@
             document.getElementById('exportJson').onclick = triggerExport;
             document.getElementById('quickSaveBtn').onclick = triggerExport;
 
-            document.getElementById('reset').onclick = function () { showConfirm('Isso vai apagar TUDO e recomeçar com os dados de exemplo. Tem certeza?', function () { localStorage.removeItem(LS_KEY); window.location.reload(); }); };
+            document.getElementById('reset').onclick = function () {
+                showConfirm('Isso vai apagar TUDO e recomeçar do zero. Tem certeza?', function () {
+                    localStorage.clear();
+                    window.location.reload();
+                });
+            };
+
+            // Bind Board Buttons
+            document.getElementById('newBoardBtn').onclick = () => {
+                const name = prompt("Nome do novo quadro:");
+                if (name) createNewBoard(name);
+            };
+            document.getElementById('editBoardBtn').onclick = renameBoard;
+            document.getElementById('cloneBoardBtn').onclick = cloneBoard;
+            document.getElementById('deleteBoardBtn').onclick = deleteBoard;
+            document.getElementById('boardSelect').onchange = (e) => switchBoard(e.target.value);
+
 
             function initDemo() {
-                withMute(function() {
-                var toDo = createList('Para Fazer');
-                toDo.querySelector('.cards').appendChild(createCard({text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800'})); 
-                toDo.querySelector('.cards').appendChild(createCard({text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600'})); 
-                toDo.querySelector('.cards').appendChild(createCard({text: 'Revisar o relatório de vendas', completed: 'true'})); 
-
-                createList('Em Andamento');
-                createList('Feito');
-
-                if (matrixEl) {
-                    var q1 = matrixEl.querySelector('.list[data-quad="Q1"] .cards');
-                    q1.appendChild(createCard({text: 'Crise: Resolver problema no servidor de produção!', color: '#104239', timerTotal: '7200'})); 
-                }
-                createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' }); 
-
+                withMute(function () {
+                    var toDo = createList('Para Fazer');
+                    toDo.querySelector('.cards').appendChild(createCard({ text: 'Tarefa importante e urgente', color: '#104239', timerTotal: '1800' }));
+                    toDo.querySelector('.cards').appendChild(createCard({ text: 'Agendar reunião com a equipe', color: '#0e3155', timerTotal: '3600' }));
+                    createList('Em Andamento');
+                    createList('Feito');
+                    if (matrixEl) {
+                        var q1 = matrixEl.querySelector('.list[data-quad="Q1"] .cards');
+                        q1.appendChild(createCard({ text: 'Crise: Resolver problema no servidor!', color: '#104239', timerTotal: '7200' }));
+                    }
+                    createCard({ text: "Definir meta principal do dia", when: `${getActiveDay()}TGOAL`, timerTotal: '900' });
                 });
-                applyFilters(); 
-                updateSlotsHasItems(); 
-                updateTotalTimerDisplay(); 
+                applyFilters();
+                updateSlotsHasItems();
+                updateTotalTimerDisplay();
             }
 
             function initApp() {
                 // INICIAR A FUNÇÃO DE DRAG-SCROLL
                 applyDragScroll();
-                
+
                 loadState();
-                var saved = localStorage.getItem(LS_KEY);
-                if (saved) {
-                    try {
-                        renderFromData(JSON.parse(saved));
-                    } catch (e) { console.error(e); }
+
+                // MULTI-BOARD MIGRATION
+                migrateToMultiBoard();
+
+                // If we are on a valid board, switch to it (which loads data)
+                if (currentBoardId) {
+                    switchBoard(currentBoardId);
                 } else {
-                    // Start with demo data (RESTORED FROM OLD FILE)
+                    // Fallback to demo if something went wrong
                     ensureMatrix();
                     ensureSchedule(false);
                     initDemo();
