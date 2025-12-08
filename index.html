@@ -980,6 +980,7 @@
             <button id="newBoardBtn" title="Novo Quadro" style="padding:4px 8px;">➕</button>
             <button id="editBoardBtn" title="Renomear Quadro" style="padding:4px 8px;">✏️</button>
             <button id="cloneBoardBtn" title="Salvar Como..." style="padding:4px 8px;">📋</button>
+            <button id="boardThemeBtn" title="Cor do Quadro" style="padding:4px 8px;">🎨</button>
             <button id="deleteBoardBtn" title="Excluir Quadro" style="padding:4px 8px; color:#ff6b6b;">🗑️</button>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
         </div>
@@ -1058,6 +1059,10 @@
         <div id="ctx-move" style="position:relative">
             <button data-action="move">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
+        </div>
+        <div id="ctx-move-board" style="position:relative">
+            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
+            <div class="ctx-sub" id="ctx-move-board-sub"></div>
         </div>
         <div id="ctx-move-all" style="position:relative">
             <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
@@ -1179,12 +1184,13 @@
             var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config';
 
             // New Multi-Board Keys
-            var LS_BOARDS_META = 'tea-planner-boards-meta'; // Array of {id, name, lastModified}
+            var LS_BOARDS_META = 'tea-planner-boards-meta'; // Array of {id, name, lastModified, color}
             var LS_CURRENT_BOARD = 'tea-planner-current-board-id';
             var LS_BOARD_PREFIX = 'tea-planner-board-'; // + id
 
             var currentBoardId = null;
             var boardsMeta = [];
+            var DEFAULT_THEME_COLOR = '#1976d2';
 
             var __persistTick = null, __muteHistory = 0;
             function withMute(fn) { __muteHistory++; try { return fn(); } finally { __muteHistory--; } }
@@ -1398,7 +1404,7 @@
                 if (legacyData && !hasMetadata) {
                     console.log("Migrando para multi-board...");
                     const newId = generateId();
-                    const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now() };
+                    const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                     boardsMeta = [mainBoard];
 
                     // Save legacy data to new key
@@ -1409,11 +1415,8 @@
                     localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
 
                     saveBoardsMetadata();
-                    // Optional: Remove legacy key? For safety, let's keep it for now but maybe rename?
-                    // localStorage.removeItem(LS_KEY); 
                 } else if (!hasMetadata) {
                     // Clean slate
-                    console.log("Iniciando limpo...");
                     createNewBoard('Meu Quadro');
                 } else {
                     loadBoardsMetadata();
@@ -1428,7 +1431,7 @@
 
             function createNewBoard(name) {
                 const id = generateId();
-                const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now() };
+                const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                 boardsMeta.push(newBoard);
                 saveBoardsMetadata();
 
@@ -1484,7 +1487,7 @@
                 const currentData = serialize(); // Get current in-memory state
                 const newId = generateId();
 
-                const newBoard = { id: newId, name: newName, lastModified: Date.now() };
+                const newBoard = { id: newId, name: newName, lastModified: Date.now(), color: board.color || DEFAULT_THEME_COLOR };
                 boardsMeta.push(newBoard);
                 saveBoardsMetadata();
 
@@ -1501,6 +1504,10 @@
                 currentBoardId = id;
                 localStorage.setItem(LS_CURRENT_BOARD, id);
 
+                // Apply theme
+                const board = boardsMeta.find(b => b.id === id);
+                if (board) setBoardTheme(board.color);
+
                 // Load data
                 const dataStr = localStorage.getItem(LS_BOARD_PREFIX + id);
                 let data = [];
@@ -1513,6 +1520,111 @@
                 hist = []; cursor = -1; pushHistory(data); // Reset undo history for new board
 
                 updateBoardSelectUI();
+            }
+
+            // ===== THEMES & CROSS-BOARD =====
+            function setBoardTheme(color) {
+                const r = document.querySelector(':root');
+                const safeColor = color || DEFAULT_THEME_COLOR;
+                r.style.setProperty('--brand', safeColor);
+            }
+
+            function openBoardThemePicker() {
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+
+                const colors = [
+                    { name: 'Azul (Padrão)', hex: '#1976d2' },
+                    { name: 'Verde Floresta', hex: '#2e7d32' },
+                    { name: 'Roxo Profundo', hex: '#7b1fa2' },
+                    { name: 'Laranja Queimado', hex: '#e65100' },
+                    { name: 'Vermelho Tijolo', hex: '#c62828' },
+                    { name: 'Cinza Escuro', hex: '#37474f' },
+                    { name: 'Ciano', hex: '#00838f' },
+                    { name: 'Rosa Choque', hex: '#ad1457' }
+                ];
+
+                showModal('Cor do Quadro', function () {
+                    const grid = el('div');
+                    grid.style.display = 'grid';
+                    grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    grid.style.gap = '10px';
+
+                    colors.forEach(c => {
+                        const btn = el('button');
+                        btn.textContent = c.name;
+                        btn.style.background = c.hex;
+                        btn.style.color = 'white';
+                        btn.style.border = 'none';
+                        btn.style.padding = '15px';
+                        btn.style.borderRadius = '8px';
+                        btn.style.cursor = 'pointer';
+                        btn.style.fontWeight = 'bold';
+
+                        if (c.hex.toLowerCase() === (board.color || DEFAULT_THEME_COLOR).toLowerCase()) {
+                            btn.style.boxShadow = '0 0 0 3px #fff, 0 0 0 5px ' + c.hex;
+                        }
+
+                        btn.onclick = function () {
+                            board.color = c.hex;
+                            setBoardTheme(c.hex);
+                            saveBoardsMetadata();
+                            document.querySelector('.modal-wrap').remove();
+                        };
+                        grid.appendChild(btn);
+                    });
+                    return grid;
+                }, function () { });
+            }
+
+            function getBoardData(boardId) {
+                try {
+                    const str = localStorage.getItem(LS_BOARD_PREFIX + boardId);
+                    return str ? JSON.parse(str) : [];
+                } catch (e) { return []; }
+            }
+
+            function moveCardToBoard(cardElement, targetBoardId, targetListTitle) {
+                if (!cardElement) return;
+                const cardData = cardToData(cardElement);
+                cardData.when = ''; // Reset scheduling when moving to another board's list
+
+                const targetData = getBoardData(targetBoardId);
+                let moved = false;
+
+                // Find target list
+                let targetList = targetData.find(l => l.type === 'kanban' && l.title === targetListTitle);
+
+                if (targetList) {
+                    if (!targetList.cards) targetList.cards = [];
+                    targetList.cards.push(cardData);
+                    moved = true;
+                } else {
+                    if (targetData.length > 0 && targetData[0].type === 'kanban') {
+                        targetData[0].cards.push(cardData);
+                        moved = true;
+                        alert(`Lista "${targetListTitle}" não encontrada. Movido para "${targetData[0].title}".`);
+                    } else {
+                        targetData.unshift({ type: 'kanban', title: 'Inbox', cards: [cardData] });
+                        moved = true;
+                    }
+                }
+
+                if (moved) {
+                    localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
+                    const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
+                    if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
+
+                    removeCard(cardElement);
+                    persist();
+
+                    const btn = document.createElement('div');
+                    btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
+                    btn.style.position = 'fixed'; btn.style.bottom = '20px'; btn.style.left = '50%'; btn.style.transform = 'translateX(-50%)';
+                    btn.style.background = '#28a745'; btn.style.color = 'white'; btn.style.padding = '10px 20px'; btn.style.borderRadius = '5px'; btn.style.zIndex = '9999';
+                    document.body.appendChild(btn);
+                    setTimeout(() => btn.remove(), 3000);
+                }
             }
 
             function updateBoardSelectUI() {
@@ -2143,10 +2255,33 @@
 
 
             // ===== Menus =====
-            var ctxTarget = null; var ctx = document.getElementById('ctx'); var ctxMoveSub = document.getElementById('ctx-move-sub'); var ctxMoveAllSub = document.getElementById('ctx-moveall-sub');
+            var ctxTarget = null;
+            var ctx = document.getElementById('ctx');
+            var ctxMoveSub = document.getElementById('ctx-move-sub');
+            var ctxMoveAllSub = document.getElementById('ctx-moveall-sub');
+            var ctxMoveBoardSub = document.getElementById('ctx-move-board-sub');
+
             var listCtxTarget = null; var listCtx = document.getElementById('ctx-list'); var listMoveSub = document.getElementById('ctx-list-move-sub');
-            function hideCtx() { ctx.style.display = 'none'; ctxTarget = null; ctxMoveSub.style.display = 'none'; ctxMoveAllSub.style.display = 'none'; }
-            function showCtx(x, y, card) { ctxTarget = card; buildMoveSubmenu(); ctxMoveSub.style.display = 'none'; ctxMoveAllSub.style.display = 'none'; ctx.style.display = 'block'; var r = ctx.getBoundingClientRect(); ctx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px'; ctx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px'; }
+            function hideCtx() {
+                ctx.style.display = 'none';
+                ctxTarget = null;
+                ctxMoveSub.style.display = 'none';
+                ctxMoveAllSub.style.display = 'none';
+                ctxMoveBoardSub.style.display = 'none';
+            }
+
+            function showCtx(x, y, card) {
+                ctxTarget = card;
+                buildMoveSubmenu();
+                buildMoveBoardSubmenu();
+                ctxMoveSub.style.display = 'none';
+                ctxMoveAllSub.style.display = 'none';
+                ctxMoveBoardSub.style.display = 'none';
+                ctx.style.display = 'block';
+                var r = ctx.getBoundingClientRect();
+                ctx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px';
+                ctx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px';
+            }
 
             function isAnyFilterActive() {
                 return selectedColors.size > 0 || !!document.getElementById('fFrom').value || !!document.getElementById('fTo').value || !!document.getElementById('fTime').value;
@@ -2191,6 +2326,72 @@
                 $$('.list[data-type="time"]', schedule).forEach(function (l) {
                     addMoveButton(l, l.dataset.time, ctxMoveSub);
                 });
+            }
+
+            function buildMoveBoardSubmenu() {
+                ctxMoveBoardSub.innerHTML = '';
+                boardsMeta.forEach(b => {
+                    if (b.id === currentBoardId) return; // Skip current board
+
+                    const btn = document.createElement('button');
+                    btn.textContent = b.name;
+                    btn.style.justifyContent = 'space-between';
+                    btn.innerHTML += ' <span style="font-size:10px">▶</span>';
+
+                    // Create nested submenu container
+                    const nestedSub = document.createElement('div');
+                    nestedSub.className = 'ctx-sub';
+                    nestedSub.style.left = '100%';
+                    nestedSub.style.top = '0';
+                    nestedSub.style.display = 'none';
+                    btn.appendChild(nestedSub);
+
+                    btn.onclick = function (e) {
+                        e.stopPropagation();
+                        // Toggle nested
+                        const wasVisible = nestedSub.style.display === 'block';
+                        // Hide all other nested
+                        Array.from(ctxMoveBoardSub.querySelectorAll('.ctx-sub')).forEach(d => d.style.display = 'none');
+
+                        if (!wasVisible) {
+                            nestedSub.style.display = 'block';
+                            // Load lists for that board if empty
+                            if (nestedSub.children.length === 0) {
+                                const bData = getBoardData(b.id);
+                                // Add Kanban lists
+                                const kanbanLists = bData.filter(d => d.type === 'kanban');
+                                if (kanbanLists.length === 0) {
+                                    const emptyMsg = document.createElement('div');
+                                    emptyMsg.textContent = '(Vazio)';
+                                    emptyMsg.style.padding = '8px';
+                                    emptyMsg.style.color = '#777';
+                                    nestedSub.appendChild(emptyMsg);
+                                } else {
+                                    kanbanLists.forEach(l => {
+                                        const lBtn = document.createElement('button');
+                                        lBtn.textContent = l.title || 'Sem título';
+                                        lBtn.onclick = function (ev) {
+                                            ev.stopPropagation();
+                                            moveCardToBoard(ctxTarget, b.id, l.title);
+                                            hideCtx();
+                                        };
+                                        nestedSub.appendChild(lBtn);
+                                    });
+                                }
+                            }
+                        }
+                    };
+
+                    ctxMoveBoardSub.appendChild(btn);
+                });
+
+                if (ctxMoveBoardSub.children.length === 0) {
+                    const msg = document.createElement('div');
+                    msg.textContent = 'Nenhum outro quadro.';
+                    msg.style.padding = '10px';
+                    msg.style.color = '#777';
+                    ctxMoveBoardSub.appendChild(msg);
+                }
             }
 
             function addMoveButton(targetListElement, name, submenuContainer) {
@@ -2270,8 +2471,9 @@
 
             ctx.addEventListener('click', function (e) {
                 var btn = e.target.closest('button'); if (!btn) return; var action = btn.dataset.action; var block = getSelectionOr(ctxTarget);
-                if (action === 'move') { ctxMoveSub.style.display = (ctxMoveSub.style.display === 'block' ? 'none' : 'block'); ctxMoveAllSub.style.display = 'none'; return; }
-                if (action === 'move-all') { var list = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display = (ctxMoveAllSub.style.display === 'block' ? 'none' : 'block'); ctxMoveSub.style.display = 'none'; return; }
+                if (action === 'move') { ctxMoveSub.style.display = (ctxMoveSub.style.display === 'block' ? 'none' : 'block'); ctxMoveAllSub.style.display = 'none'; ctxMoveBoardSub.style.display = 'none'; return; }
+                if (action === 'move-all') { var list = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list) return; buildMoveAllSubmenu(list); ctxMoveAllSub.style.display = (ctxMoveAllSub.style.display === 'block' ? 'none' : 'block'); ctxMoveSub.style.display = 'none'; ctxMoveBoardSub.style.display = 'none'; return; }
+                if (action === 'move-board') { ctxMoveBoardSub.style.display = (ctxMoveBoardSub.style.display === 'block' ? 'none' : 'block'); ctxMoveSub.style.display = 'none'; ctxMoveAllSub.style.display = 'none'; return; }
                 hideCtx();
                 if (action === 'edit') { if (block.length) startInlineEdit(block[0]); }
                 else if (action === 'gemini-subtasks') { generateSubtasks(block); }
@@ -3268,6 +3470,7 @@
                 if (name) createNewBoard(name);
             };
             document.getElementById('editBoardBtn').onclick = renameBoard;
+            document.getElementById('boardThemeBtn').onclick = openBoardThemePicker;
             document.getElementById('cloneBoardBtn').onclick = cloneBoard;
             document.getElementById('deleteBoardBtn').onclick = deleteBoard;
             document.getElementById('boardSelect').onchange = (e) => switchBoard(e.target.value);
