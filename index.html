@@ -1006,109 +1006,10 @@
         }
 
         .day-column .cards {
-            padding: 2px;
+            padding: 6px;
             flex-grow: 1;
             overflow-y: auto;
-            min-height: 20px;
-        }
-
-        /* EXTENDED WEEKLY VIEW STYLES */
-        .weekly-mode #main-content {
-            flex-direction: row;
-            align-items: flex-start;
-            overflow-x: auto;
-        }
-
-        /* Ensure weekly container takes space in horizontal mode */
-        .weekly-mode .weekly-container {
-            flex: 0 0 auto;
-            width: max-content;
-            height: 100%;
-        }
-
-        .weekly-container .weekly-grid {
-            display: flex;
-            flex-direction: row;
-            height: 100%;
-            overflow-x: visible;
-            /* Scroll handled by main-content or container */
-        }
-
-        .weekly-grid .day-column {
-            min-width: 200px;
-            width: 200px;
-            border-right: 1px solid #1f4068;
-            display: flex;
-            flex-direction: column;
-            background: #0b1626;
-        }
-
-        .weekly-grid .day-column.today {
-            background: #0f1f33;
-            box-shadow: inset 0 0 0 1px #1976d2;
-        }
-
-        .weekly-grid .day-column header {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            text-align: center;
-            padding: 6px;
-            background: #0e2446;
-            border-bottom: 2px solid #2a4e78;
-            color: white;
-            font-weight: bold;
-        }
-
-        .weekly-grid .day-column .slot {
-            display: flex;
-            /* Flex to allow side-by-side time and cards */
-            flex-direction: row;
-            min-height: 40px;
-            border-bottom: 1px dashed #1f3a5a;
-            align-items: stretch;
-        }
-
-        .weekly-grid .day-column .slot .head {
-            font-size: 10px;
-            color: #5c7c9e;
-            padding: 2px 4px;
-            width: 35px;
-            flex-shrink: 0;
-            border-right: 1px solid #1f3a5a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            writing-mode: horizontal-tb;
-        }
-
-        .weekly-grid .day-column .goal-slot {
-            background: #102640;
-            border-bottom: 2px solid #3a6a9e;
-            min-height: auto;
-            flex-direction: column;
-        }
-
-        .weekly-grid .day-column .goal-slot .head {
-            width: 100%;
-            border-right: none;
-            justify-content: flex-start;
-            color: #ffd54f;
-            padding: 4px;
-            font-weight: bold;
-        }
-
-        .weekly-grid .day-column .slot .cards {
-            flex-grow: 1;
-            padding: 2px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .weekly-grid .card {
-            font-size: 11px;
-            padding: 4px;
+            min-height: 50px;
         }
     </style>
 </head>
@@ -1193,8 +1094,6 @@
                 <header>
                     <div class="header-row">
                         <strong>AGENDA</strong>
-                        <button id="expandAgendaBtn" title="Expandir Agenda para Visão Semanal (Ver semana inteira)"
-                            style="background:transparent; border:none; cursor:pointer;" onclick="">🔍</button>
                         <div class="copy-paste-buttons">
                             <button id="copyDayBtn" title="Copiar dia atual">📋</button>
                             <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
@@ -2176,16 +2075,12 @@
                 const day = getActiveDay();
                 let targetWhen = '';
 
-                // Prioritize explicit date on the drop target (Weekly View Slots)
-                if (listElement && listElement.dataset.type === 'goal') {
-                    const d = listElement.dataset.date || day;
-                    targetWhen = d + 'TGOAL';
-                } else if (listElement && listElement.dataset.type === 'time') {
-                    const d = listElement.dataset.date || day;
-                    targetWhen = d + 'T' + listElement.dataset.time;
-                } else if (listElement && listElement.dataset.date) {
-                    // Fallback for generic containers with date
+                if (listElement && listElement.dataset.date) {
                     targetWhen = listElement.dataset.date + 'T';
+                } else if (listElement && listElement.dataset.type === 'time') {
+                    targetWhen = day + 'T' + listElement.dataset.time;
+                } else if (listElement && listElement.dataset.type === 'goal') {
+                    targetWhen = day + 'TGOAL';
                 } else {
                     targetWhen = '';
                 }
@@ -3178,72 +3073,20 @@
                     header.innerHTML = `${dayName} <span class="date-label">${dateFormatted}</span>`;
                     col.appendChild(header);
 
-                    // 1. Goal Slot
-                    const goalSlot = el('div', 'list goal-slot');
-                    goalSlot.dataset.type = 'goal';
-                    goalSlot.dataset.date = date;
-                    const goalHead = el('div', 'head');
-                    goalHead.innerHTML = '<span class="goal-label">Objetivo</span>';
-                    goalSlot.appendChild(goalHead);
-                    const goalCards = el('div', 'cards');
-                    goalSlot.appendChild(goalCards);
-                    wireDropZone(goalSlot);
-                    col.appendChild(goalSlot);
+                    const cardsContainer = el('div', 'cards');
+                    cardsContainer.dataset.date = date; // Para drop
+                    wireDropZone(cardsContainer); // Reutiliza a lógica de drag and drop existente
 
-                    // 2. Hourly Slots (06:00 to 23:00) with 30min intervals
-                    for (let h = 6; h <= 23; h++) {
-                        for (let m = 0; m <= 30; m += 30) {
-                            if (h === 23 && m === 30) break;
-                            const timeStr = to2(h) + ':' + to2(m);
-
-                            const slot = el('div', 'list slot');
-                            slot.dataset.type = 'time';
-                            slot.dataset.time = timeStr;
-                            slot.dataset.date = date; // Allows dropping into specific date
-
-                            const head = el('div', 'head');
-                            head.textContent = timeStr;
-                            slot.appendChild(head);
-
-                            const cardsC = el('div', 'cards');
-                            slot.appendChild(cardsC);
-                            wireDropZone(slot);
-
-                            col.appendChild(slot);
-                        }
-                    }
-
-                    // 3. Populate Cards Logic
+                    // Filtrar cartões para este dia
                     const dayPrefix = date + 'T';
-
-                    // Filter cards for this specific date
-                    const dayCards = allCards.filter(c => c.dataset.when && c.dataset.when.startsWith(dayPrefix));
-
-                    dayCards.forEach(c => {
-                        const when = c.dataset.when;
-                        if (when.endsWith('TGOAL')) {
-                            goalCards.appendChild(c);
-                        } else {
-                            // Extract time HH:MM
-                            // Format: YYYY-MM-DDTHH:MM
-                            const timePart = when.split('T')[1];
-                            // Try to match exact slot
-                            let slotContainer = col.querySelector(`.slot[data-time="${timePart}"] .cards`);
-
-                            if (slotContainer) {
-                                slotContainer.appendChild(c);
-                            } else {
-                                // Fallback: if time doesn't match specific slot (e.g. 06:15), put in nearest previous slot or goal?
-                                // For simplicity, we only mapped 00, 30. 
-                                // Let's try to find closest slot? 
-                                // Or mainly, if it doesn't match, maybe it belongs to the Goal section or just append to the first slot?
-                                // Let's default to goal for "weird" times to ensure visibility.
-                                goalCards.appendChild(c);
-                            }
+                    allCards.forEach(c => {
+                        if (c.dataset.when && c.dataset.when.startsWith(dayPrefix)) {
+                            cardsContainer.appendChild(c);
+                            c.style.display = ''; // Garante visibilidade
                         }
-                        c.style.display = '';
                     });
 
+                    col.appendChild(cardsContainer);
                     weeklyGrid.appendChild(col);
                 });
             }
@@ -3333,30 +3176,11 @@
             });
 
             toggleWeeklyBtn.addEventListener('click', () => {
-                const isCollapsed = weeklyContainer.classList.contains('collapsed');
-                if (isCollapsed) {
-                    weeklyContainer.classList.remove('collapsed');
-                    toggleWeeklyBtn.classList.add('active');
-                    document.getElementById('main-content').classList.add('weekly-mode');
+                weeklyContainer.classList.toggle('collapsed');
+                toggleWeeklyBtn.classList.toggle('active');
+                if (!weeklyContainer.classList.contains('collapsed')) {
                     renderWeeklyView();
-                } else {
-                    weeklyContainer.classList.add('collapsed');
-                    toggleWeeklyBtn.classList.remove('active');
-                    document.getElementById('main-content').classList.remove('weekly-mode');
                 }
-                saveState();
-            });
-
-            document.getElementById('expandAgendaBtn').addEventListener('click', () => {
-                weeklyContainer.classList.remove('collapsed');
-                toggleWeeklyBtn.classList.add('active');
-                document.getElementById('main-content').classList.add('weekly-mode');
-
-                // Opcional: Expandir mais o espaço fechando outros painéis?
-                // matrixContainer.classList.add('collapsed');
-                // toggleMatrixBtn.classList.remove('active');
-
-                renderWeeklyView();
                 saveState();
             });
 
