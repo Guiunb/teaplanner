@@ -949,6 +949,167 @@
                 flex-grow: 1;
             }
         }
+
+        /* WEEKLY VIEW STYLES */
+        .weekly-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+            min-height: 300px;
+            transition: all .3s ease-in-out;
+        }
+
+        .weekly-container.collapsed {
+            display: none;
+        }
+
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            padding: 10px;
+            overflow-x: auto;
+            height: 100%;
+        }
+
+        .day-column {
+            background: var(--panel);
+            border: 1px solid #183453;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            /* Garante largura mínima legível */
+        }
+
+        .day-column.today {
+            border-color: #ffd54f;
+            background: #162a45;
+        }
+
+        .day-column header {
+            padding: 8px;
+            background: #122b4a;
+            border-bottom: 1px solid #19375b;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .day-column header .date-label {
+            font-size: 0.85em;
+            color: var(--muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .day-column .cards {
+            padding: 2px;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 20px;
+        }
+
+        /* EXTENDED WEEKLY VIEW STYLES */
+        .weekly-mode #main-content {
+            flex-direction: row;
+            align-items: flex-start;
+            overflow-x: auto;
+        }
+
+        /* Ensure weekly container takes space in horizontal mode */
+        .weekly-mode .weekly-container {
+            flex: 0 0 auto;
+            width: max-content;
+            height: 100%;
+        }
+
+        .weekly-container .weekly-grid {
+            display: flex;
+            flex-direction: row;
+            height: 100%;
+            overflow-x: visible;
+            /* Scroll handled by main-content or container */
+        }
+
+        .weekly-grid .day-column {
+            min-width: 200px;
+            width: 200px;
+            border-right: 1px solid #1f4068;
+            display: flex;
+            flex-direction: column;
+            background: #0b1626;
+        }
+
+        .weekly-grid .day-column.today {
+            background: #0f1f33;
+            box-shadow: inset 0 0 0 1px #1976d2;
+        }
+
+        .weekly-grid .day-column header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            text-align: center;
+            padding: 6px;
+            background: #0e2446;
+            border-bottom: 2px solid #2a4e78;
+            color: white;
+            font-weight: bold;
+        }
+
+        .weekly-grid .day-column .slot {
+            display: flex;
+            /* Flex to allow side-by-side time and cards */
+            flex-direction: row;
+            min-height: 40px;
+            border-bottom: 1px dashed #1f3a5a;
+            align-items: stretch;
+        }
+
+        .weekly-grid .day-column .slot .head {
+            font-size: 10px;
+            color: #5c7c9e;
+            padding: 2px 4px;
+            width: 35px;
+            flex-shrink: 0;
+            border-right: 1px solid #1f3a5a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: horizontal-tb;
+        }
+
+        .weekly-grid .day-column .goal-slot {
+            background: #102640;
+            border-bottom: 2px solid #3a6a9e;
+            min-height: auto;
+            flex-direction: column;
+        }
+
+        .weekly-grid .day-column .goal-slot .head {
+            width: 100%;
+            border-right: none;
+            justify-content: flex-start;
+            color: #ffd54f;
+            padding: 4px;
+            font-weight: bold;
+        }
+
+        .weekly-grid .day-column .slot .cards {
+            flex-grow: 1;
+            padding: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .weekly-grid .card {
+            font-size: 11px;
+            padding: 4px;
+        }
     </style>
 </head>
 
@@ -999,6 +1160,7 @@
         <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
         <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
         <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
+        <button id="toggleWeeklyBtn" title="Visão Semanal">📅 Semana</button>
 
         <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button>
         <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
@@ -1014,6 +1176,11 @@
     </header>
     <section class="workspace">
         <div id="main-content">
+            <div class="weekly-container collapsed">
+                <div class="weekly-grid" id="weeklyGrid">
+                    <!-- Colunas geradas via JS -->
+                </div>
+            </div>
             <div class="board-container">
                 <main class="board" id="board"></main>
             </div>
@@ -1026,6 +1193,8 @@
                 <header>
                     <div class="header-row">
                         <strong>AGENDA</strong>
+                        <button id="expandAgendaBtn" title="Expandir Agenda para Visão Semanal (Ver semana inteira)"
+                            style="background:transparent; border:none; cursor:pointer;" onclick="">🔍</button>
                         <div class="copy-paste-buttons">
                             <button id="copyDayBtn" title="Copiar dia atual">📋</button>
                             <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
@@ -2007,10 +2176,16 @@
                 const day = getActiveDay();
                 let targetWhen = '';
 
-                if (listElement && listElement.dataset.type === 'time') {
-                    targetWhen = day + 'T' + listElement.dataset.time;
-                } else if (listElement && listElement.dataset.type === 'goal') {
-                    targetWhen = day + 'TGOAL';
+                // Prioritize explicit date on the drop target (Weekly View Slots)
+                if (listElement && listElement.dataset.type === 'goal') {
+                    const d = listElement.dataset.date || day;
+                    targetWhen = d + 'TGOAL';
+                } else if (listElement && listElement.dataset.type === 'time') {
+                    const d = listElement.dataset.date || day;
+                    targetWhen = d + 'T' + listElement.dataset.time;
+                } else if (listElement && listElement.dataset.date) {
+                    // Fallback for generic containers with date
+                    targetWhen = listElement.dataset.date + 'T';
                 } else {
                     targetWhen = '';
                 }
@@ -2964,16 +3139,120 @@
             const matrixContainer = document.querySelector('.matrix-container');
             const agendaSidebar = document.getElementById('agenda-sidebar');
             const mainContent = document.getElementById('main-content');
+            const weeklyContainer = document.querySelector('.weekly-container');
+            const weeklyGrid = document.getElementById('weeklyGrid');
+            const toggleWeeklyBtn = document.getElementById('toggleWeeklyBtn');
             const BOARD_STATE_KEY = 'mini-trello-board-state';
             const MATRIX_STATE_KEY = 'mini-trello-matrix-state';
+            const WEEKLY_STATE_KEY = 'mini-trello-weekly-state';
             const quickConfigToggle = document.getElementById('quickConfigToggle');
             const quickConfigToggleBtn = quickConfigToggle.nextElementSibling;
 
+
+            function getWeekRange(dateStr) {
+                const curr = new Date(dateStr + 'T12:00:00');
+                const first = curr.getDate() - curr.getDay(); // Sunday
+                const week = [];
+                for (let i = 0; i < 7; i++) {
+                    const next = new Date(curr);
+                    next.setDate(first + i);
+                    week.push(next.toISOString().slice(0, 10));
+                }
+                return week;
+            }
+
+            function renderWeeklyView() {
+                if (!weeklyGrid) return;
+                weeklyGrid.innerHTML = '';
+                const currentDay = getActiveDay();
+                const weekDates = getWeekRange(currentDay);
+                const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+                weekDates.forEach((date, index) => {
+                    const col = el('div', 'day-column');
+                    if (date === currentDay) col.classList.add('today');
+
+                    const header = el('header');
+                    const dayName = daysOfWeek[index];
+                    const dateFormatted = date.split('-').reverse().slice(0, 2).join('/');
+                    header.innerHTML = `${dayName} <span class="date-label">${dateFormatted}</span>`;
+                    col.appendChild(header);
+
+                    // 1. Goal Slot
+                    const goalSlot = el('div', 'list goal-slot');
+                    goalSlot.dataset.type = 'goal';
+                    goalSlot.dataset.date = date;
+                    const goalHead = el('div', 'head');
+                    goalHead.innerHTML = '<span class="goal-label">Objetivo</span>';
+                    goalSlot.appendChild(goalHead);
+                    const goalCards = el('div', 'cards');
+                    goalSlot.appendChild(goalCards);
+                    wireDropZone(goalSlot);
+                    col.appendChild(goalSlot);
+
+                    // 2. Hourly Slots (06:00 to 23:00) with 30min intervals
+                    for (let h = 6; h <= 23; h++) {
+                        for (let m = 0; m <= 30; m += 30) {
+                            if (h === 23 && m === 30) break;
+                            const timeStr = to2(h) + ':' + to2(m);
+
+                            const slot = el('div', 'list slot');
+                            slot.dataset.type = 'time';
+                            slot.dataset.time = timeStr;
+                            slot.dataset.date = date; // Allows dropping into specific date
+
+                            const head = el('div', 'head');
+                            head.textContent = timeStr;
+                            slot.appendChild(head);
+
+                            const cardsC = el('div', 'cards');
+                            slot.appendChild(cardsC);
+                            wireDropZone(slot);
+
+                            col.appendChild(slot);
+                        }
+                    }
+
+                    // 3. Populate Cards Logic
+                    const dayPrefix = date + 'T';
+
+                    // Filter cards for this specific date
+                    const dayCards = allCards.filter(c => c.dataset.when && c.dataset.when.startsWith(dayPrefix));
+
+                    dayCards.forEach(c => {
+                        const when = c.dataset.when;
+                        if (when.endsWith('TGOAL')) {
+                            goalCards.appendChild(c);
+                        } else {
+                            // Extract time HH:MM
+                            // Format: YYYY-MM-DDTHH:MM
+                            const timePart = when.split('T')[1];
+                            // Try to match exact slot
+                            let slotContainer = col.querySelector(`.slot[data-time="${timePart}"] .cards`);
+
+                            if (slotContainer) {
+                                slotContainer.appendChild(c);
+                            } else {
+                                // Fallback: if time doesn't match specific slot (e.g. 06:15), put in nearest previous slot or goal?
+                                // For simplicity, we only mapped 00, 30. 
+                                // Let's try to find closest slot? 
+                                // Or mainly, if it doesn't match, maybe it belongs to the Goal section or just append to the first slot?
+                                // Let's default to goal for "weird" times to ensure visibility.
+                                goalCards.appendChild(c);
+                            }
+                        }
+                        c.style.display = '';
+                    });
+
+                    weeklyGrid.appendChild(col);
+                });
+            }
 
             function saveState() {
                 localStorage.setItem(AGENDA_STATE_KEY, agendaSidebar.classList.contains('collapsed') ? 'collapsed' : 'open');
                 localStorage.setItem(BOARD_STATE_KEY, boardContainer.classList.contains('collapsed') ? 'collapsed' : 'open');
                 localStorage.setItem(MATRIX_STATE_KEY, matrixContainer.classList.contains('collapsed') ? 'collapsed' : 'open');
+                localStorage.setItem(WEEKLY_STATE_KEY, weeklyContainer.classList.contains('collapsed') ? 'collapsed' : 'open');
             }
 
             function loadState() {
@@ -3021,6 +3300,17 @@
                 }
             }
 
+            // Weekly View State Load
+            const weeklyState = localStorage.getItem(WEEKLY_STATE_KEY);
+            if (weeklyState === 'open') {
+                weeklyContainer.classList.remove('collapsed');
+                toggleWeeklyBtn.classList.add('active');
+                renderWeeklyView();
+            } else {
+                weeklyContainer.classList.add('collapsed');
+                toggleWeeklyBtn.classList.remove('active');
+            }
+
             toggleBoardBtn.addEventListener('click', () => {
                 boardContainer.classList.toggle('collapsed');
                 mainContent.classList.toggle('board-collapsed');
@@ -3039,6 +3329,34 @@
                 agendaSidebar.classList.toggle('collapsed');
                 workspaceEl.classList.toggle('agenda-collapsed');
                 toggleAgendaBtn.classList.toggle('active');
+                saveState();
+            });
+
+            toggleWeeklyBtn.addEventListener('click', () => {
+                const isCollapsed = weeklyContainer.classList.contains('collapsed');
+                if (isCollapsed) {
+                    weeklyContainer.classList.remove('collapsed');
+                    toggleWeeklyBtn.classList.add('active');
+                    document.getElementById('main-content').classList.add('weekly-mode');
+                    renderWeeklyView();
+                } else {
+                    weeklyContainer.classList.add('collapsed');
+                    toggleWeeklyBtn.classList.remove('active');
+                    document.getElementById('main-content').classList.remove('weekly-mode');
+                }
+                saveState();
+            });
+
+            document.getElementById('expandAgendaBtn').addEventListener('click', () => {
+                weeklyContainer.classList.remove('collapsed');
+                toggleWeeklyBtn.classList.add('active');
+                document.getElementById('main-content').classList.add('weekly-mode');
+
+                // Opcional: Expandir mais o espaço fechando outros painéis?
+                // matrixContainer.classList.add('collapsed');
+                // toggleMatrixBtn.classList.remove('active');
+
+                renderWeeklyView();
                 saveState();
             });
 
