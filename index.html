@@ -1239,6 +1239,7 @@
                     <div class="header-row">
                         <strong>AGENDA</strong>
                         <div class="copy-paste-buttons">
+                            <button id="addUnscheduledBtn" title="Novo Evento (A definir)">+</button>
                             <button id="copyDayBtn" title="Copiar dia atual">📋</button>
                             <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
                         </div>
@@ -2030,7 +2031,7 @@
                 var _d = (typeof data === 'string') ? { text: data } : (data || { text: '' });
                 var c = el('div', 'card'); c.draggable = true;
                 c.dataset.color = _d.color || ''; c.dataset.due = _d.due || ''; c.dataset.when = _d.when || '';
-                c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerTotal || ''; c.dataset.timerState = _d.timerState || 'stopped';
+                c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerLeft || ''; c.dataset.timerState = _d.timerState || 'stopped';
                 // RESTAURADO: TimerEnd deve ser restaurado
                 c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
@@ -2457,6 +2458,7 @@
                 var uLabel = el('span', 'unscheduled-label');
                 uLabel.textContent = '⚠️ HORÁRIO A DEFINIR';
                 
+                // Botão + dentro do header do bucket (caso o usuário expanda manualmente ou para consistência)
                 var uAdd = el('button', 'add-btn-minimal');
                 uAdd.textContent = '+';
                 uAdd.onclick = function(e) {
@@ -2487,6 +2489,8 @@
                         var label = el('span', 'time');
                         label.textContent = t;
                         
+                        // REMOVIDO: Botão + de cada slot de tempo para limpar o visual
+                        /*
                         var sAdd = el('button', 'add-btn-minimal');
                         sAdd.textContent = '+';
                         sAdd.onclick = (function(timeVal, slotEl) {
@@ -2497,9 +2501,10 @@
                                 startInlineEdit(card, true);
                             };
                         })(t, slot);
+                        head.appendChild(sAdd);
+                        */
 
                         head.appendChild(label);
-                        head.appendChild(sAdd);
                         slot.appendChild(head);
                         var cards = el('div', 'cards');
                         slot.appendChild(cards);
@@ -2509,6 +2514,20 @@
                 }
                 var date = document.getElementById('agendaDate');
                 if (date && !date.value) { date.value = new Date().toISOString().slice(0, 10); }
+            }
+
+            // Configurar botão de adicionar evento rápido no header da agenda
+            const addUnscheduledBtn = document.getElementById('addUnscheduledBtn');
+            if (addUnscheduledBtn) {
+                addUnscheduledBtn.onclick = function() {
+                    const unscheduledSlot = document.getElementById('unscheduled-bucket');
+                    if (unscheduledSlot) {
+                        var card = createCard({ text: '', when: getActiveDay() + 'T' }); // Apenas data, sem hora
+                        unscheduledSlot.querySelector('.cards').prepend(card);
+                        startInlineEdit(card, true);
+                        updateSlotsHasItems(); // Garante que o bucket fique visível
+                    }
+                };
             }
 
             function copyAgendaFrom(fromDay, toDay) {
@@ -3725,6 +3744,20 @@
             // ============================================
             // >>>>> CLICK AND DRAG SCROLL (PAN) <<<<<
             // ============================================
+            const mainScrollContainer = document.getElementById('main-content');
+            let scrollSpeed = { x: 0, y: 0 };
+            let scrollFrame = null;
+
+            function performAutoScroll() {
+                if (scrollSpeed.x === 0 && scrollSpeed.y === 0) {
+                    scrollFrame = null;
+                    return;
+                }
+                // Rola o container suavemente
+                mainScrollContainer.scrollBy(scrollSpeed.x, scrollSpeed.y);
+                scrollFrame = requestAnimationFrame(performAutoScroll);
+            }
+
             function applyDragScroll() {
                 const containers = [
                     document.getElementById('board'),
@@ -3989,159 +4022,53 @@
                 }
 
             });
-            document.addEventListener('click', function (e) { if (!ctx.contains(e.target) && !listCtx.contains(e.target)) { hideCtx(); listCtx.style.display = 'none'; } });
 
-            var importFile = document.getElementById('importFile');
-            document.getElementById('importJsonBtn').onclick = function () { importFile.click(); };
-            importFile.onchange = function (e) {
-                var file = e.target.files[0];
-                if (!file) return;
-                var reader = new FileReader();
-                reader.onload = function (ev) {
-                    try {
-                        var content = JSON.parse(ev.target.result);
-                        var dataToRestore = Array.isArray(content.data) ? content.data : content;
-                        if (!Array.isArray(dataToRestore)) {
-                            throw new Error("Formato JSON inválido. Array de dados não encontrado.");
-                        }
-                        promptImportAction(dataToRestore);
+            document.addEventListener('dragover', (e) => {
+                // Só ativa se estivermos arrastando um cartão do sistema (dragState existe)
+                if (!dragState) return;
 
-                    } catch (err) {
-                        showModal('Erro de Importação', function () {
-                            var d = el('div');
-                            d.textContent = 'Não foi possível ler o arquivo JSON. Verifique se o arquivo está no formato correto. Erro: ' + err.message;
-                            return d;
-                        }, function (body, wrap) { });
-                    }
-                };
-                reader.readAsText(file);
-                e.target.value = '';
-            };
+                const threshold = 100; // Distância da borda em pixels para começar a rolar
+                const speed = 12;      // Velocidade da rolagem (quanto maior, mais rápido)
+                const rect = mainScrollContainer.getBoundingClientRect();
 
-            function promptImportAction(dataToRestore) {
-                const { wrap, okButton, cancelButton } = showModal('Importar Dados', function () {
-                    var container = el('div');
-                    container.textContent = 'Como deseja importar os dados do ficheiro?';
-                    var btnRow = el('div', 'row import-options');
-                    var replaceBtn = el('button'); replaceBtn.textContent = 'Substituir';
-                    var mergeBtn = el('button'); mergeBtn.textContent = 'Mesclar';
+                // Reseta velocidade
+                scrollSpeed = { x: 0, y: 0 };
 
-                    replaceBtn.onclick = function () {
-                        restore(dataToRestore);
-                        persist();
-                        document.body.removeChild(container.closest('.modal-wrap'));
-                    };
-                    mergeBtn.onclick = function () {
-                        mergeData(dataToRestore);
-                        persist();
-                        document.body.removeChild(container.closest('.modal-wrap'));
-                    };
+                // --- Lógica Vertical (Para ir do Kanban para a Matriz e vice-versa) ---
+                // Se o mouse estiver perto do TOPO da área visível
+                if (e.clientY < rect.top + threshold) {
+                    scrollSpeed.y = -speed; 
+                } 
+                // Se o mouse estiver perto do FUNDO da área visível
+                else if (e.clientY > rect.bottom - threshold) {
+                    scrollSpeed.y = speed;
+                }
 
-                    btnRow.appendChild(replaceBtn);
-                    btnRow.appendChild(mergeBtn);
-                    container.appendChild(btnRow);
+                // --- Lógica Horizontal (Para navegar entre colunas longas do Kanban) ---
+                if (e.clientX < rect.left + threshold) {
+                    scrollSpeed.x = -speed;
+                } else if (e.clientX > rect.right - threshold) {
+                    scrollSpeed.x = speed;
+                }
 
-                    return container;
-                }, function (body, wrap) {
-                });
-                if (okButton) okButton.style.display = 'none';
-                if (cancelButton) cancelButton.textContent = 'Cancelar Importação';
+                // Se houver velocidade definida e o loop não estiver rodando, inicia o loop
+                if ((scrollSpeed.x !== 0 || scrollSpeed.y !== 0) && !scrollFrame) {
+                    scrollFrame = requestAnimationFrame(performAutoScroll);
+                }
+            });
+
+            function stopScrollParams() {
+                scrollSpeed = { x: 0, y: 0 };
+                if (scrollFrame) {
+                    cancelAnimationFrame(scrollFrame);
+                    scrollFrame = null;
+                }
             }
 
-            function mergeData(dataToMerge) {
-                const currentKanbanLists = {};
-                $$('.list[data-type="kanban"]', boardEl).forEach(l => {
-                    currentKanbanLists[l.querySelector('.title').value] = l.querySelector('.cards');
-                });
-                const quadMap = {
-                    Q1: matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
-                    Q2: matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
-                    Q3: matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
-                    Q4: matrixEl.querySelector('.list[data-quad="Q4"] .cards')
-                };
-
-                dataToMerge.forEach(entry => {
-                    if (entry.type === 'kanban') {
-                        let targetContainer = currentKanbanLists[entry.title];
-                        if (!targetContainer) {
-                            const newList = createList(entry.title);
-                            targetContainer = newList.querySelector('.cards');
-                            currentKanbanLists[entry.title] = targetContainer;
-                        }
-                        (entry.cards || []).forEach(cardData => {
-                            const exists = Array.from(targetContainer.children).some(c => c.querySelector('.text').textContent.trim() === cardData.text.trim());
-                            if (!exists) {
-                                targetContainer.appendChild(createCard(cardData));
-                            }
-                        });
-                    } else if (entry.type === 'quad' && quadMap[entry.quad]) {
-                        (entry.cards || []).forEach(cardData => {
-                            const exists = Array.from(quadMap[entry.quad].children).some(c => c.querySelector('.text').textContent.trim() === cardData.text.trim());
-                            if (!exists) {
-                                quadMap[entry.quad].appendChild(createCard(cardData));
-                            }
-                        });
-                    } else if (entry.type === 'time' || entry.type === 'goal') {
-                        (entry.cards || []).forEach(cardData => {
-                            if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
-                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL';
-                            } else if (entry.time && cardData.when && !cardData.when.includes('T' + entry.time)) {
-                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time;
-                            }
-                            const existsInCache = allCards.some(c => c.dataset.when === cardData.when && c.querySelector('.text').textContent.trim() === cardData.text.trim());
-                            if (!existsInCache) {
-                                createCard(cardData);
-                            }
-                        });
-                    }
-                });
-                applyFilters();
-                updateSlotsHasItems();
-                updateTotalTimerDisplay();
-            }
-
-
-            function getTimestamp() {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = to2(now.getMonth() + 1);
-                const day = to2(now.getDate());
-                const hour = to2(now.getHours());
-                const minute = to2(now.getMinutes());
-                return `${year}-${month}-${day}_${hour}${minute}`;
-            }
-
-            function triggerExport() {
-                const timestamp = getTimestamp();
-                const filename = `mini-trello-backup-${timestamp}.json`;
-                var a = document.createElement('a');
-                a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(serialize(), null, 2));
-                a.download = filename;
-                a.click();
-            }
-
-            document.getElementById('exportJson').onclick = triggerExport;
-            document.getElementById('quickSaveBtn').onclick = triggerExport;
-
-            document.getElementById('reset').onclick = function () {
-                showConfirm('Isso vai apagar TUDO e recomeçar do zero. Tem certeza?', function () {
-                    localStorage.clear();
-                    window.location.reload();
-                });
-            };
-
-            // Bind Board Buttons
-            document.getElementById('newBoardBtn').onclick = () => {
-                const name = prompt("Nome do novo quadro:");
-                if (name) createNewBoard(name);
-            };
-            document.getElementById('editBoardBtn').onclick = renameBoard;
-            document.getElementById('boardThemeBtn').onclick = openBoardThemePicker;
-            document.getElementById('cloneBoardBtn').onclick = cloneBoard;
-            document.getElementById('deleteBoardBtn').onclick = deleteBoard;
-            document.getElementById('boardSelect').onchange = (e) => switchBoard(e.target.value);
-
-
+            document.addEventListener('dragend', stopScrollParams);
+            document.addEventListener('drop', stopScrollParams);
+            document.addEventListener('mouseleave', stopScrollParams);
+            
             function initDemo() {
                 withMute(function () {
                     var toDo = createList('Para Fazer');
@@ -4179,70 +4106,7 @@
                     initDemo();
                 }
             }
-
-            // ============================================
-            // >>>>> AUTO-SCROLL INTELIGENTE NO DRAG <<<<<
-            // ============================================
-            const mainScrollContainer = document.getElementById('main-content');
-            let scrollSpeed = { x: 0, y: 0 };
-            let scrollFrame = null;
-
-            function performAutoScroll() {
-                if (scrollSpeed.x === 0 && scrollSpeed.y === 0) {
-                    scrollFrame = null;
-                    return;
-                }
-                // Rola o container suavemente
-                mainScrollContainer.scrollBy(scrollSpeed.x, scrollSpeed.y);
-                scrollFrame = requestAnimationFrame(performAutoScroll);
-            }
-
-            document.addEventListener('dragover', (e) => {
-                // Só ativa se estivermos arrastando um cartão do sistema (dragState existe)
-                if (!dragState) return;
-
-                const threshold = 100; // Distância da borda em pixels para começar a rolar
-                const speed = 12;      // Velocidade da rolagem (quanto maior, mais rápido)
-                const rect = mainScrollContainer.getBoundingClientRect();
-
-                // Reseta velocidade
-                scrollSpeed = { x: 0, y: 0 };
-
-                // --- Lógica Vertical (Para ir do Kanban para a Matriz e vice-versa) ---
-                // Se o mouse estiver perto do TOPO da área visível
-                if (e.clientY < rect.top + threshold) {
-                    scrollSpeed.y = -speed; 
-                } 
-                // Se o mouse estiver perto do FUNDO da área visível
-                else if (e.clientY > rect.bottom - threshold) {
-                    scrollSpeed.y = speed;
-                }
-
-                // --- Lógica Horizontal (Para navegar entre colunas longas do Kanban) ---
-                if (e.clientX < rect.left + threshold) {
-                    scrollSpeed.x = -speed;
-                } else if (e.clientX > rect.right - threshold) {
-                    scrollSpeed.x = speed;
-                }
-
-                // Se houver velocidade definida e o loop não estiver rodando, inicia o loop
-                if ((scrollSpeed.x !== 0 || scrollSpeed.y !== 0) && !scrollFrame) {
-                    scrollFrame = requestAnimationFrame(performAutoScroll);
-                }
-            });
-
-            // Para a rolagem se soltar ou cancelar o arraste
-            const stopScrollParams = () => {
-                scrollSpeed = { x: 0, y: 0 };
-                if (scrollFrame) {
-                    cancelAnimationFrame(scrollFrame);
-                    scrollFrame = null;
-                }
-            };
-
-            document.addEventListener('dragend', stopScrollParams);
-            document.addEventListener('drop', stopScrollParams);
-            document.addEventListener('mouseleave', stopScrollParams);
+            
             initApp();
         });
     </script>
