@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- CORREÇÃO DE ERROS DO CONSOLE: Permite conexões com Google/Firebase e execução de scripts -->
+    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
     <meta http-equiv="Content-Security-Policy"
         content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
 
-    <title>TEA PLANNER (Sync V2)</title>
+    <title>TEA PLANNER (Sync Final Fix)</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
 
@@ -181,9 +181,11 @@
             position: relative;
             transition: flex .3s ease-in-out, width .3s ease-in-out, min-width .3s ease-in-out, opacity .3s ease-in-out;
             width: 100%;
+            /* CURSOR MUDADO PARA INDICAR QUE PODE ARRASTAR */
             cursor: grab;
         }
 
+        /* Quando estiver arrastando */
         #main-content:active {
             cursor: grabbing;
         }
@@ -230,14 +232,19 @@
             min-height: 300px;
         }
 
+
+        /* GARANTINDO SCROLL HORIZONTAL */
         .board {
             display: flex;
             gap: 12px;
             align-items: flex-start;
             padding-bottom: 10px;
             overflow-x: auto;
+            /* Permite scroll horizontal */
             min-height: 150px;
             cursor: grab;
+            /* Cursor de mãozinha */
+            /* CORREÇÃO VISUAL: Padding lateral para não cortar a primeira lista */
             padding-left: 8px;
             padding-right: 8px;
         }
@@ -248,24 +255,30 @@
 
         .matrix {
             display: grid;
+            /* AJUSTE DE PROPORÇÃO: Primeira coluna (labels laterais) */
             grid-template-columns: 40px 1fr 1fr;
+            /* CORREÇÃO DE CORTE: Define altura mínima generosa para as linhas (250px) ao invés de 1fr puro
+               Isso força o scroll a aparecer se a tela for pequena, garantindo que "Não Importante" apareça. */
             grid-template-rows: 40px minmax(250px, auto) minmax(250px, auto);
             gap: 12px;
             align-items: stretch;
             padding-top: 16px;
             min-height: 300px;
             flex-grow: 1;
+            /* Remove height: 100% fixo para permitir que cresça e role */
             height: auto;
         }
 
         .matrix .list {
             align-self: stretch;
             min-height: 100px;
+            /* AJUSTE: Remove largura fixa da lista quando dentro da matriz */
             width: auto !important;
             max-width: none !important;
             min-width: unset !important;
         }
 
+        /* AJUSTE: Texto Justificado APENAS na matriz */
         .matrix .card .text {
             text-align: justify;
         }
@@ -288,6 +301,10 @@
             padding: 0;
         }
 
+        .toggle-tab {
+            display: none;
+        }
+
         .list {
             background: var(--panel);
             border: 1px solid #183453;
@@ -295,6 +312,7 @@
             display: flex;
             flex-direction: column;
             width: 5cm;
+            /* Largura fixa de 5cm NO KANBAN */
             min-width: 5cm;
             max-width: 5cm;
             flex-shrink: 0;
@@ -320,6 +338,7 @@
             min-width: 0;
         }
 
+        /* Botão Minimalista de Adicionar Cartão */
         .list header .add-btn-minimal {
             background: transparent;
             border: 1px solid transparent;
@@ -338,8 +357,9 @@
             color: #fff;
         }
 
+        /* Ajuste para ter dois botões à direita */
         .list header .more {
-            margin-left: 4px;
+            margin-left: 4px; /* Pequeno espaço entre + e ... */
             background: transparent;
             border: 1px solid transparent;
             color: #9fc1ff;
@@ -371,6 +391,7 @@
             transition: opacity .2s, transform .2s, box-shadow 0.2s;
         }
 
+        /* ANIMAÇÕES DE TIMER */
         @keyframes pulse-orange {
             0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4); border-color: #ffa726; }
             50% { box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.2); border-color: #ffb74d; background-color: #1a140a; }
@@ -383,12 +404,27 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); border-color: #ef5350; }
         }
 
-        .card.timer-running { animation: pulse-orange 2s infinite; }
-        .card.timer-finished { animation: pulse-red 1s infinite; }
+        .card.timer-running {
+            animation: pulse-orange 2s infinite;
+        }
 
-        .card.dragging { opacity: 0.5; transform: rotate(3deg) }
-        .card.selected { outline: 2px solid #2a71ff; background: #0f2f57 }
-        .card.editing { background: #1a4b7f; }
+        .card.timer-finished {
+            animation: pulse-red 1s infinite;
+        }
+
+        .card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg)
+        }
+
+        .card.selected {
+            outline: 2px solid #2a71ff;
+            background: #0f2f57
+        }
+
+        .card.editing {
+            background: #1a4b7f;
+        }
 
         .card .text {
             white-space: pre-wrap;
@@ -437,9 +473,24 @@
             user-select: none;
         }
 
-        .card[data-completed="true"] .dot-check { display: block; }
-        .timer-display { font-size: 11px; font-weight: bold; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, .2); }
-        .due-date { font-size: 11px; background: rgba(0, 0, 0, .2); padding: 1px 5px; border-radius: 4px; }
+        .card[data-completed="true"] .dot-check {
+            display: block;
+        }
+
+        .timer-display {
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, .2);
+        }
+
+        .due-date {
+            font-size: 11px;
+            background: rgba(0, 0, 0, .2);
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
 
         .kebab {
             position: absolute;
@@ -454,9 +505,27 @@
             cursor: pointer
         }
 
-        .add { padding: 8px; border-top: 1px solid #19375b; flex-shrink: 0; display: none; }
-        .add .row { display: flex; gap: 6px }
-        .add input[type=text] { flex: 1; border: 1px solid #2a4e78; border-radius: 8px; padding: 8px; background: #0b2240; color: var(--ink); min-width: 0; }
+        .add {
+            padding: 8px;
+            border-top: 1px solid #19375b;
+            flex-shrink: 0;
+            display: none; /* ESCONDIDO POR PADRÃO - MINIMALISTA */
+        }
+
+        .add .row {
+            display: flex;
+            gap: 6px
+        }
+
+        .add input[type=text] {
+            flex: 1;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            padding: 8px;
+            background: #0b2240;
+            color: var(--ink);
+            min-width: 0;
+        }
 
         .axis {
             display: flex;
@@ -470,19 +539,67 @@
             text-align: center;
         }
 
-        .axis.corner { background: transparent; border: none }
-        .axis.axis-y { writing-mode: vertical-rl; transform: rotate(180deg); padding: 4px 0; height: 100%; max-height: 100%; white-space: nowrap; }
-        .quad-label { font-weight: 700; color: #cfe0ff; flex-grow: 1; }
+        .axis.corner {
+            background: transparent;
+            border: none
+        }
 
-        .list[data-type="quad"] { min-width: unset }
-        .list[data-type="quad"][data-quad="Q1"] { background: #0f2f2a; border-color: #1e5b4e }
-        .list[data-type="quad"][data-quad="Q1"] header { background: #104239 }
-        .list[data-type="quad"][data-quad="Q2"] { background: #0f243a; border-color: #1b4e84 }
-        .list[data-type="quad"][data-quad="Q2"] header { background: #0e3155 }
-        .list[data-type="quad"][data-quad="Q3"] { background: #3a290f; border-color: #7c5a19 }
-        .list[data-type="quad"][data-quad="Q3"] header { background: #5a4014 }
-        .list[data-type="quad"][data-quad="Q4"] { background: #3a0f12; border-color: #7c1920 }
-        .list[data-type="quad"][data-quad="Q4"] header { background: #5a1419 }
+        .axis.axis-y {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            padding: 4px 0;
+            /* Garante que o label vertical ocupe toda a altura da célula e centralize */
+            height: 100%;
+            max-height: 100%;
+            white-space: nowrap;
+            /* Impede quebra de linha indesejada */
+        }
+
+        .quad-label {
+            font-weight: 700;
+            color: #cfe0ff;
+            flex-grow: 1; /* Ocupa espaço para empurrar botões */
+        }
+
+        .list[data-type="quad"] {
+            min-width: unset
+        }
+
+        .list[data-type="quad"][data-quad="Q1"] {
+            background: #0f2f2a;
+            border-color: #1e5b4e
+        }
+
+        .list[data-type="quad"][data-quad="Q1"] header {
+            background: #104239
+        }
+
+        .list[data-type="quad"][data-quad="Q2"] {
+            background: #0f243a;
+            border-color: #1b4e84
+        }
+
+        .list[data-type="quad"][data-quad="Q2"] header {
+            background: #0e3155
+        }
+
+        .list[data-type="quad"][data-quad="Q3"] {
+            background: #3a290f;
+            border-color: #7c5a19
+        }
+
+        .list[data-type="quad"][data-quad="Q3"] header {
+            background: #5a4014
+        }
+
+        .list[data-type="quad"][data-quad="Q4"] {
+            background: #3a0f12;
+            border-color: #7c1920
+        }
+
+        .list[data-type="quad"][data-quad="Q4"] header {
+            background: #5a1419
+        }
 
         .schedule {
             background: var(--panel);
@@ -509,30 +626,129 @@
             border-top-right-radius: 12px
         }
 
-        .schedule .header-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        #slots { overflow-y: auto; flex-grow: 1; }
-        .schedule header input[type=date] { background: #0b2240; color: #fff; border: 1px solid #2a4e78; border-radius: 8px; padding: 6px 8px; width: 120px; }
-        .schedule header .agenda-controls { display: flex; align-items: center; gap: 4px; }
-        .schedule header .date-nav { display: flex; align-items: center; gap: 4px; }
-        .schedule header button { padding: 6px 10px; background: #0e58a5; border: none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; line-height: 1; }
-        .schedule header .date-nav button { padding: 4px 8px; font-size: 16px; }
-        .schedule header .copy-paste-buttons button { font-size: 16px; padding: 6px 8px; }
+        .schedule .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
 
-        .slot { border-bottom: 1px dashed #244b78 }
-        .slot>div.head { display: flex; align-items: center; gap: 6px; padding: 0 4px }
-        .slot .time { font-weight: 700; font-size: 11px; color: #9fc1ff; flex-grow: 1; }
-        .slot .cards { display: none; padding: 4px; min-height: 28px }
-        .slot.has-items .cards { display: block }
-        .slot.hover { background: #0e2446; box-shadow: inset 0 0 0 2px #1976d2 }
+        #slots {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
 
-        .goal-slot { background: #1c3a61; border-bottom: 1px solid #3a6a9e; }
-        .goal-slot>.head .goal-label { font-weight: bold; color: #ffd54f; flex-grow: 1; }
+        .schedule header input[type=date] {
+            background: #0b2240;
+            color: #fff;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            padding: 6px 8px;
+            width: 120px;
+        }
 
-        .unscheduled-slot { background: #1a2333; border-bottom: 2px solid #b85d00; display: none; }
-        .unscheduled-slot.has-items { display: flex !important; }
-        .unscheduled-slot > .head .unscheduled-label { font-weight: bold; color: #ff9800; font-size: 12px; flex-grow: 1; }
+        .schedule header .agenda-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
 
-        .placeholder { height: 38px; border: 2px dashed #1976d2; border-radius: 8px; background: #0e2446; margin: 4px 0 }
+        .schedule header .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .schedule header button {
+            padding: 6px 10px;
+            background: #0e58a5;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .schedule header .date-nav button {
+            padding: 4px 8px;
+            font-size: 16px;
+        }
+
+        .schedule header .copy-paste-buttons button {
+            font-size: 16px;
+            padding: 6px 8px;
+        }
+
+        .slot {
+            border-bottom: 1px dashed #244b78
+        }
+
+        .slot>div.head {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 4px
+        }
+
+        .slot .time {
+            font-weight: 700;
+            font-size: 11px;
+            color: #9fc1ff;
+            flex-grow: 1;
+        }
+
+        .slot .cards {
+            display: none;
+            padding: 4px;
+            min-height: 28px
+        }
+
+        .slot.has-items .cards {
+            display: block
+        }
+
+        .slot.hover {
+            background: #0e2446;
+            box-shadow: inset 0 0 0 2px #1976d2
+        }
+
+        .goal-slot {
+            background: #1c3a61;
+            border-bottom: 1px solid #3a6a9e;
+        }
+
+        .goal-slot>.head .goal-label {
+            font-weight: bold;
+            color: #ffd54f;
+            flex-grow: 1;
+        }
+
+        /* Estilo para o slot de "Horário a definir" na agenda */
+        .unscheduled-slot {
+            background: #1a2333;
+            border-bottom: 2px solid #b85d00;
+            display: none; /* Escondido por padrão */
+        }
+        
+        .unscheduled-slot.has-items {
+            display: flex !important; /* Força display flex */
+        }
+
+        .unscheduled-slot > .head .unscheduled-label {
+            font-weight: bold;
+            color: #ff9800; /* Laranja para destaque */
+            font-size: 12px;
+            flex-grow: 1;
+        }
+
+        .placeholder {
+            height: 38px;
+            border: 2px dashed #1976d2;
+            border-radius: 8px;
+            background: #0e2446;
+            margin: 4px 0
+        }
 
         .ctx {
             position: fixed;
@@ -560,9 +776,22 @@
             cursor: pointer
         }
 
-        .ctx button:hover { background: #1a2842 }
-        .ctx .shortcut { margin-left: auto; font-size: 0.8em; color: var(--muted); padding-left: 10px; }
-        .ctx .sep { height: 1px; background: #23314a; margin: 6px 0 }
+        .ctx button:hover {
+            background: #1a2842
+        }
+
+        .ctx .shortcut {
+            margin-left: auto;
+            font-size: 0.8em;
+            color: var(--muted);
+            padding-left: 10px;
+        }
+
+        .ctx .sep {
+            height: 1px;
+            background: #23314a;
+            margin: 6px 0
+        }
 
         .ctx-sub {
             position: absolute;
@@ -573,6 +802,7 @@
             border: 1px solid #24314a;
             border-radius: 8px;
             min-width: 240px;
+            /* CORREÇÃO DE MENU: Altura máxima e Scroll */
             max-height: 60vh;
             overflow-y: auto;
             overflow-x: hidden;
@@ -580,6 +810,7 @@
             display: none
         }
 
+        /* CORREÇÃO DE MENU: Vira para a esquerda se faltar espaço */
         .ctx-sub.flip-left {
             left: auto !important;
             right: 100% !important;
@@ -588,56 +819,337 @@
             margin-right: 2px;
         }
 
-        .modal-wrap { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center; z-index: 9999 }
-        .modal { background: #0b1220; color: #fff; border: 1px solid #24314a; border-radius: 12px; min-width: 280px; max-width: 94vw; padding: 14px 14px 10px; box-shadow: 0 20px 60px rgba(0, 0, 0, .5) }
-        .modal h3 { margin: 0 0 10px; font-size: 16px }
-        .modal .row { margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end }
-        .modal .row button { background: #1976d2; border: none; border-radius: 8px; color: #fff; padding: 8px 10px; cursor: pointer }
-        .modal .row button.cancel { background: #6b7a93 }
-        
-        .import-options button { margin: 5px; flex-grow: 1; }
-        .palette-editor { display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
-        .palette-editor.editing { display: flex; }
-        .palette-grid.editing { display: none; }
-        .palette-editor-row { display: flex; align-items: center; gap: 8px; }
-        .palette-editor-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #375b86; flex-shrink: 0; }
-        .palette-editor input { background: #0b2240; border: 1px solid #2a4e78; border-radius: 8px; color: #fff; padding: 6px 8px; flex: 1; }
-        .modal .row .manage-labels-btn { margin-right: auto; background: #3a3f4b; }
+        .list header .more {
+            margin-left: auto;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #9fc1ff;
+            border-radius: 6px;
+            padding: 0 6px;
+            line-height: 20px;
+            cursor: pointer
+        }
 
-        @keyframes spinner_zKoa { 100% { transform: rotate(360deg) } }
-        @keyframes spinner_YpZS { 0% { stroke-dasharray: 0 150; stroke-dashoffset: 0 } 47.5% { stroke-dasharray: 42 150; stroke-dashoffset: -16 } 95%, 100% { stroke-dasharray: 42 150; stroke-dashoffset: -59 } }
-        .spinner_V8m1 { transform-origin: center; animation: spinner_zKoa 2s linear infinite }
-        .spinner_V8m1 circle { stroke-linecap: round; animation: spinner_YpZS 1.5s ease-in-out infinite }
+        .modal-wrap {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999
+        }
+
+        .modal {
+            background: #0b1220;
+            color: #fff;
+            border: 1px solid #24314a;
+            border-radius: 12px;
+            min-width: 280px;
+            max-width: 94vw;
+            padding: 14px 14px 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        .modal h3 {
+            margin: 0 0 10px;
+            font-size: 16px
+        }
+
+        .modal .row {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end
+        }
+
+        .modal .row button {
+            background: #1976d2;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 10px;
+            cursor: pointer
+        }
+
+        .modal .row button.cancel {
+            background: #6b7a93
+        }
+
+        .import-options button {
+            margin: 5px;
+            flex-grow: 1;
+        }
+
+        .palette-editor {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .palette-editor.editing {
+            display: flex;
+        }
+
+        .palette-grid.editing {
+            display: none;
+        }
+
+        .palette-editor-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .palette-editor-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #375b86;
+            flex-shrink: 0;
+        }
+
+        .palette-editor input {
+            background: #0b2240;
+            border: 1px solid #2a4e78;
+            border-radius: 8px;
+            color: #fff;
+            padding: 6px 8px;
+            flex: 1;
+        }
+
+        .modal .row .manage-labels-btn {
+            margin-right: auto;
+            background: #3a3f4b;
+        }
+
+        @keyframes spinner_zKoa {
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes spinner_YpZS {
+            0% {
+                stroke-dasharray: 0 150;
+                stroke-dashoffset: 0
+            }
+
+            47.5% {
+                stroke-dasharray: 42 150;
+                stroke-dashoffset: -16
+            }
+
+            95%,
+            100% {
+                stroke-dasharray: 42 150;
+                stroke-dashoffset: -59
+            }
+        }
+
+        .spinner_V8m1 {
+            transform-origin: center;
+            animation: spinner_zKoa 2s linear infinite
+        }
+
+        .spinner_V8m1 circle {
+            stroke-linecap: round;
+            animation: spinner_YpZS 1.5s ease-in-out infinite
+        }
+
+        @keyframes flash {
+
+            0%,
+            100% {
+                background-color: var(--card);
+            }
+
+            50% {
+                background-color: #ffcc00;
+                color: #000;
+            }
+        }
 
         @media (max-width: 700px) {
-            .workspace { flex-direction: column; overflow-y: auto; padding: 8px; gap: 8px; }
-            #main-content { overflow: visible; height: auto; }
-            #agenda-sidebar { display: none }
-            .board { order: 1; overflow: visible; min-height: unset; }
-            .matrix { order: 2; margin-top: 16px; min-height: unset; }
-            .list { min-width: unset; width: 100%; margin-bottom: 12px; }
-            header.app { height: auto; padding-bottom: 10px; }
-            header.app h1 { margin-right: 10px; }
-            #toggleBoardBtn, #toggleMatrixBtn, #toggleAgendaBtn { display: none; }
-            .board-controls { width: 100%; margin: 10px 0; justify-content: space-between; order: 3; }
-            .board-selector { flex-grow: 1; }
+            .workspace {
+                flex-direction: column;
+                overflow-y: auto;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            #main-content {
+                overflow: visible;
+                height: auto;
+            }
+
+            #agenda-sidebar {
+                display: none
+            }
+
+            .board {
+                order: 1;
+                overflow: visible;
+                min-height: unset;
+            }
+
+            .matrix {
+                order: 2;
+                margin-top: 16px;
+                min-height: unset;
+            }
+
+            .list {
+                min-width: unset;
+                width: 100%;
+                margin-bottom: 12px;
+            }
+
+            header.app {
+                height: auto;
+                padding-bottom: 10px;
+            }
+
+            header.app h1 {
+                margin-right: 10px;
+            }
+
+            #toggleBoardBtn,
+            #toggleMatrixBtn,
+            #toggleAgendaBtn {
+                display: none;
+            }
+
+            .board-controls {
+                width: 100%;
+                margin: 10px 0;
+                justify-content: space-between;
+                order: 3;
+            }
+
+            .board-selector {
+                flex-grow: 1;
+            }
         }
 
         /* WEEKLY VIEW STYLES */
-        .weekly-container { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; min-height: 300px; transition: all .3s ease-in-out; }
-        .weekly-container.collapsed { display: none; }
-        .weekly-controls { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 5px; background: #122b4a; border-bottom: 1px solid #19375b; }
-        .weekly-controls button { background: #0e58a5; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .weekly-controls span { color: #fff; font-weight: bold; font-size: 14px; }
-        .weekly-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 10px; overflow-x: auto; height: 100%; }
-        .weekly-grid .cards { gap: 8px; }
-        .day-column { background: var(--panel); border: 1px solid #183453; border-radius: 8px; display: flex; flex-direction: column; min-width: 200px; }
-        .day-column.today { border-color: #ffd54f; background: #162a45; }
-        .day-column header { padding: 8px; background: #122b4a; border-bottom: 1px solid #19375b; text-align: center; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; }
-        .day-column header .date-label { font-size: 0.85em; color: var(--muted); display: block; margin-top: 2px; }
-        .day-column .cards { padding: 6px; flex-grow: 1; overflow-y: auto; min-height: 50px; }
-        .card.mirror-card { opacity: 0.9; cursor: grab; }
-        .card.mirror-card.is-scheduled { border: 1px dashed #4285F4; background: #0f2f45; }
+        .weekly-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+            min-height: 300px;
+            transition: all .3s ease-in-out;
+        }
+
+        .weekly-container.collapsed {
+            display: none;
+        }
+
+        /* Container de navegação da semana */
+        .weekly-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 5px;
+            background: #122b4a;
+            border-bottom: 1px solid #19375b;
+        }
+
+        .weekly-controls button {
+            background: #0e58a5;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .weekly-controls span {
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            padding: 10px;
+            overflow-x: auto;
+            height: 100%;
+        }
+
+        .weekly-grid .cards {
+            gap: 8px; /* Mais espaço entre cards */
+        }
+
+        .day-column {
+            background: var(--panel);
+            border: 1px solid #183453;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            /* Garante largura mínima legível */
+        }
+
+        .day-column.today {
+            border-color: #ffd54f;
+            background: #162a45;
+        }
+
+        .day-column header {
+            padding: 8px;
+            background: #122b4a;
+            border-bottom: 1px solid #19375b;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .day-column header .date-label {
+            font-size: 0.85em;
+            color: var(--muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .day-column .cards {
+            padding: 6px;
+            flex-grow: 1;
+            overflow-y: auto;
+            min-height: 50px;
+        }
+
+        /* Cartão Espelho (Vem da Agenda) */
+        .card.mirror-card {
+            /* border: 1px dashed #4285F4; Removendo estilo visual diferente para parecer nativo */
+            /* background: #0f2f45; */
+            opacity: 0.9;
+            /* Agora é clicável e arrastável */
+            cursor: grab;
+        }
+        
+        /* Diferenciar visualmente apenas cartões agendados */
+        .card.mirror-card.is-scheduled {
+             border: 1px dashed #4285F4;
+             background: #0f2f45;
+        }
+
+        .card.mirror-card .text::before {
+            /* content: "🕒 ";  Remove ícone automático, usar badge */
+        }
     </style>
 </head>
 
@@ -797,7 +1309,8 @@
             let isFirebaseReady = false;
             let currentUser = null;
             let isRemoteUpdate = false;
-            let currentBoardRef = null; // Referência para o quadro ativo no Firebase
+            let currentBoardRef = null; 
+            let globalAgendaRef = null; // Nova referência para agenda global
 
             // Inicializa Firebase
             try {
@@ -821,6 +1334,7 @@
                             loginBtn.textContent = 'Login Google';
                             userInfo.textContent = '';
                             if(currentBoardRef) currentBoardRef.off();
+                            if(globalAgendaRef) globalAgendaRef.off();
                         }
                     });
 
@@ -849,19 +1363,16 @@
 
             function setupFirebaseSync(user) {
                 // 1. Sincronizar METADADOS (Lista de Quadros)
-                // Isso garante que se você criar um quadro no PC, ele aparece no menu do Android
                 const metaRef = db.ref('users/' + user.uid + '/meta');
                 metaRef.on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val && Array.isArray(val)) {
-                        // Compara se mudou para não ficar recarregando UI à toa
                         if(JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                             updateBoardSelectUI();
                             
-                            // Se o quadro atual não existe mais (foi deletado em outro device), vai pro primeiro
                             if (!boardsMeta.find(b => b.id === currentBoardId)) {
                                 if(boardsMeta.length > 0) switchBoard(boardsMeta[0].id);
                                 else createNewBoard('Meu Quadro');
@@ -870,42 +1381,62 @@
                     }
                 });
 
-                // 2. Sincronizar o QUADRO ATUAL
+                // 2. Sincronizar AGENDA GLOBAL (Sempre ativa)
+                subscribeToGlobalAgenda(user.uid);
+
+                // 3. Sincronizar o QUADRO ATUAL
                 subscribeToCurrentBoard(user.uid, currentBoardId);
+            }
+
+            function subscribeToGlobalAgenda(uid) {
+                if (!isFirebaseReady || !uid) return;
+                if (globalAgendaRef) globalAgendaRef.off();
+
+                console.log("Sync: Escutando Agenda Global...");
+                globalAgendaRef = db.ref('users/' + uid + '/global/agenda');
+
+                globalAgendaRef.on('value', (snapshot) => {
+                    let val = snapshot.val();
+                    if (!val) val = []; // Agenda vazia
+
+                    const currentLocal = localStorage.getItem(LS_GLOBAL_AGENDA);
+                    const valStr = JSON.stringify(val);
+
+                    if (valStr === currentLocal) return;
+
+                    console.log("Sync: Agenda Global atualizada remotamente.");
+                    isRemoteUpdate = true;
+                    localStorage.setItem(LS_GLOBAL_AGENDA, valStr);
+                    
+                    // Recarrega a tela mesclando (Board + Agenda Nova)
+                    loadAndRenderAll(); 
+                    isRemoteUpdate = false;
+                });
             }
             
             function subscribeToCurrentBoard(uid, boardId) {
                 if (!isFirebaseReady || !uid || !boardId) return;
 
-                // Desliga listeners antigos se houver
                 if (currentBoardRef) currentBoardRef.off();
 
                 console.log(`Sync: Escutando alterações no quadro ${boardId}...`);
-                
-                // Nova estrutura: /users/{uid}/boards/{boardId}
-                // Isso evita baixar o banco inteiro toda vez
                 currentBoardRef = db.ref('users/' + uid + '/boards/' + boardId);
 
                 currentBoardRef.on('value', (snapshot) => {
                     let val = snapshot.val();
-                    // CORREÇÃO: Se val for null (banco vazio), trate como array vazio para limpar a tela
                     if (!val) val = [];
 
                     const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
                     const valStr = JSON.stringify(val);
                     
-                    // Evita loop infinito e ghost dom se o dado for idêntico
-                    if (valStr === currentLocalData) {
-                        return;
-                    }
+                    if (valStr === currentLocalData) return;
 
                     console.log("Sync: Conteúdo do quadro atualizado remotamente.");
                     isRemoteUpdate = true;
                     localStorage.setItem(LS_BOARD_PREFIX + boardId, valStr);
                     
-                    // Só renderiza se for o quadro que estamos vendo agora
                     if(currentBoardId === boardId) {
-                        renderFromData(val);
+                        loadAndRenderAll();
                     }
                     isRemoteUpdate = false;
                 });
@@ -924,14 +1455,15 @@
             }
 
             // ===== CONFIG & STATE =====
-            var LS_KEY = 'mini-trello-restore'; // Legacy key for migration
+            var LS_KEY = 'mini-trello-restore'; 
             var LS_LABELS_KEY = 'tea-planner-labels';
             var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config';
 
             // New Multi-Board Keys
-            var LS_BOARDS_META = 'tea-planner-boards-meta'; // Array of {id, name, lastModified, color}
+            var LS_BOARDS_META = 'tea-planner-boards-meta'; 
             var LS_CURRENT_BOARD = 'tea-planner-current-board-id';
-            var LS_BOARD_PREFIX = 'tea-planner-board-'; // + id
+            var LS_BOARD_PREFIX = 'tea-planner-board-'; 
+            var LS_GLOBAL_AGENDA = 'tea-planner-global-agenda'; // NOVA CHAVE PARA AGENDA UNIFICADA
 
             var currentBoardId = null;
             var boardsMeta = [];
@@ -951,27 +1483,138 @@
             var lastMouseX = 0, lastMouseY = 0;
             var agendaClipboard = [];
 
-            // EVENTO DE SINCRONIZAÇÃO ENTRE ABAS (LOCAL)
-            // Isso garante que se você abrir duas abas no mesmo PC, elas conversem instantaneamente
-            window.addEventListener('storage', function(e) {
-                // Se o conteúdo do quadro atual mudou em outra aba
-                if (e.key === LS_BOARD_PREFIX + currentBoardId) {
-                    const newData = e.newValue;
-                    if (newData) {
-                        console.log("Sync: Aba local atualizada via localStorage");
-                        const parsed = JSON.parse(newData);
-                        // Marcamos como remote update para evitar re-salvar no Firebase e causar loop
-                        isRemoteUpdate = true;
-                        renderFromData(parsed);
-                        isRemoteUpdate = false;
+            // ===== Gemini API Integration =====
+            // DEFINIDAS AQUI EM CIMA PARA EVITAR ERRO DE REFERENCE ERROR
+            function showLoader(message) {
+                var existing = document.getElementById('loader-wrap');
+                if (existing) existing.remove();
+                var wrap = el('div', 'modal-wrap');
+                wrap.id = 'loader-wrap';
+                wrap.style.display = 'flex'; wrap.style.justifyContent = 'center'; wrap.style.alignItems = 'center';
+                var box = el('div', 'modal');
+                box.style.padding = '20px'; box.style.textAlign = 'center';
+                var spinner = el('div');
+                spinner.innerHTML = `<svg width="24" height="24" viewBox="0 0 24" xmlns="http://www.w3.org/2000/svg"><g class="spinner_V8m1"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="3"></circle></g></svg>`;
+                spinner.style.marginBottom = '12px';
+                var msgEl = el('div');
+                msgEl.textContent = message || 'Processando...';
+                box.appendChild(spinner); box.appendChild(msgEl);
+                wrap.appendChild(box);
+                document.body.appendChild(wrap);
+            }
+
+            function hideLoader() {
+                var wrap = document.getElementById('loader-wrap');
+                if (wrap) wrap.remove();
+            }
+
+            async function callGemini(prompt, retries = 3, delay = 1000) {
+                const apiKey = ""; // <--- INSIRA SUA API KEY AQUI
+                if(!apiKey) {
+                    alert("API Key não configurada no código. A funcionalidade de IA não funcionará.");
+                    throw new Error("No API Key");
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const result = await response.json();
+                        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) return text;
+                        else throw new Error('Resposta da API inválida ou vazia.');
+                    } catch (error) {
+                        if (i === retries - 1) {
+                            console.error("Erro final ao chamar a API Gemini:", error);
+                            throw error;
+                        }
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
                     }
+                }
+            }
+
+            async function generateSubtasks(block) {
+                if (!block || !block.length) return;
+                showLoader('✨ Gerando subtarefas com a IA...');
+                try {
+                    for (const card of block) {
+                        const originalText = card.querySelector('.text').textContent;
+                        const prompt = `Aja como um assistente de produtividade. Quebre a seguinte tarefa em 3 a 5 subtarefas menores e acionáveis. Responda com uma lista de subtarefas, uma por linha. Não adicione nenhum outro texto, cabeçalhos, marcadores ou formatação. Tarefa: "${originalText}"`;
+                        const resultText = await callGemini(prompt);
+                        const subtasks = resultText.split('\n').map(s => s.trim()).filter(Boolean);
+                        if (subtasks.length > 0) {
+                            let lastCard = card;
+                            subtasks.forEach(taskText => {
+                                const newCard = createCard({ text: "・ " + taskText, color: card.dataset.color, due: card.dataset.due });
+                                if (!card.closest('#agenda-sidebar')) {
+                                    lastCard.parentElement.insertBefore(newCard, lastCard.nextSibling);
+                                    lastCard = newCard;
+                                }
+                            });
+                        } else { throw new Error('Nenhuma subtarefa foi gerada.'); }
+                    }
+                    updateSlotsHasItems();
+                    persist();
+                    updateTotalTimerDisplay();
+                } catch (error) {
+                    // Erro já tratado no catch do callGemini se for falta de key
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            async function organizeCardWithGemini(block) {
+                if (!block || !block.length || !matrixEl) return;
+                showLoader('✨ Analisando tarefa com IA...');
+                const quadToColor = { Q1: MATRIX_COLORS.Q1, Q2: MATRIX_COLORS.Q2, Q3: MATRIX_COLORS.Q3, Q4: MATRIX_COLORS.Q4 };
+                try {
+                    for (const card of block) {
+                        const originalText = card.querySelector('.text').textContent;
+                        const prompt = `Aja como um especialista em produtividade usando a Matriz de Eisenhower. Analise a seguinte tarefa e decida em qual quadrante ela se encaixa: Q1 (Urgente e Importante), Q2 (Não Urgente e Importante), Q3 (Urgente e Não Importante), ou Q4 (Não Urgente e Não Importante). Responda APENAS com "Q1", "Q2", "Q3", ou "Q4". Tarefa: "${originalText}"`;
+                        const resultQuad = (await callGemini(prompt)).trim().toUpperCase();
+                        if (quadToColor[resultQuad]) {
+                            const dest = matrixEl.querySelector('.list[data-quad="' + resultQuad + '"] .cards');
+                            if (dest) {
+                                const cardInCache = allCards.find(c => c === card);
+                                if (cardInCache) cardInCache.dataset.when = '';
+                                card.dataset.when = '';
+
+                                dest.appendChild(card);
+                                card.dataset.color = quadToColor[resultQuad];
+                                paintCard(card);
+                            }
+                        } else { console.warn('Resposta inesperada da IA:', resultQuad); }
+                    }
+                    updateSlotsHasItems();
+                    persist();
+                    updateTotalTimerDisplay();
+                } catch (error) {
+                    // Erro já tratado
+                } finally {
+                    hideLoader();
+                }
+            }
+
+            // EVENTO DE SINCRONIZAÇÃO ENTRE ABAS (LOCAL)
+            window.addEventListener('storage', function(e) {
+                if (e.key === LS_BOARD_PREFIX + currentBoardId || e.key === LS_GLOBAL_AGENDA) {
+                    // Se mudou o quadro atual OU a agenda global
+                    console.log("Sync: Aba local atualizada via localStorage");
+                    isRemoteUpdate = true;
+                    loadAndRenderAll();
+                    isRemoteUpdate = false;
                 } 
-                // Se a lista de quadros mudou (ex: renomeou quadro em outra aba)
                 else if (e.key === LS_BOARDS_META) {
                     loadBoardsMetadata();
                     updateBoardSelectUI();
                 }
-                // Se mudou de quadro em outra aba, podemos forçar a mudança aqui também (opcional, mas bom)
                 else if (e.key === LS_CURRENT_BOARD) {
                     const newId = e.newValue;
                     if (newId && newId !== currentBoardId) {
@@ -1025,47 +1668,70 @@
                     completed: c.dataset.completed || 'false'
                 };
             }
-            function serialize() {
-                var data = [];
+
+            // FUNÇÃO IMPORTANTE: Separa o que é do Quadro do que é da Agenda Global
+            function serializeAndSeparate() {
+                var boardData = [];
+                var agendaData = [];
+
+                // 1. Kanban Lists (Sempre do Quadro)
                 $$('.list[data-type="kanban"]', boardEl).forEach(function (l) {
                     const title = l.querySelector('.title').value;
                     const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
-                    data.push({ type: 'kanban', title: title, cards: cardsInList });
+                    boardData.push({ type: 'kanban', title: title, cards: cardsInList });
                 });
+
+                // 2. Matrix Lists (Sempre do Quadro)
                 if (matrixEl) {
                     $$('.list[data-type="quad"]', matrixEl).forEach(function (l) {
                         const quad = l.dataset.quad;
                         const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
-                        data.push({ type: 'quad', quad: quad, cards: cardsInList });
+                        boardData.push({ type: 'quad', quad: quad, cards: cardsInList });
                     });
                 }
-                const agendaGoalCards = allCards.filter(c => c.dataset.when && c.dataset.when.endsWith('TGOAL')).map(cardToData);
-                if (agendaGoalCards.length > 0) {
-                    data.push({ type: 'goal', goal: true, cards: agendaGoalCards });
-                }
-                const agendaTimeCards = {};
-                // Pega cartões com Horário
-                allCards.filter(c => c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
-                    const time = c.dataset.when.substring(11);
-                    if (!agendaTimeCards[time]) agendaTimeCards[time] = [];
-                    agendaTimeCards[time].push(cardToData(c));
-                });
-                for (const time in agendaTimeCards) {
-                    data.push({ type: 'time', time: time, cards: agendaTimeCards[time] });
-                }
+
+                // 3. Agenda & Objetivos & Unscheduled (Sempre Global)
+                // Vamos procurar em allCards tudo que tem 'when' definido
+                // Isso pega tanto o que está nos slots visuais quanto o que pode ter se perdido
+                const globalCards = allCards.filter(c => c.dataset.when && c.dataset.when.length > 0);
                 
-                // NOVO: Persistir cartões "A Definir" da agenda
-                const unscheduledCards = allCards.filter(c => c.dataset.when && c.dataset.when.endsWith('T')).map(cardToData);
-                if (unscheduledCards.length > 0) {
-                    data.push({ type: 'unscheduled', cards: unscheduledCards });
+                // Agrupar para salvar bonito, mas na real salvamos uma lista flat de "scheduled items" seria melhor.
+                // Mas para manter compatibilidade com a estrutura antiga:
+                
+                // Goal
+                const goalCards = globalCards.filter(c => c.dataset.when.endsWith('TGOAL')).map(cardToData);
+                if (goalCards.length > 0) agendaData.push({ type: 'goal', goal: true, cards: goalCards });
+
+                // Time Slots
+                const timeCardsMap = {};
+                globalCards.filter(c => /T\d{2}:\d{2}$/.test(c.dataset.when)).forEach(c => {
+                    const time = c.dataset.when.substring(11); // Pega HH:MM
+                    if (!timeCardsMap[time]) timeCardsMap[time] = [];
+                    timeCardsMap[time].push(cardToData(c));
+                });
+                for (const t in timeCardsMap) {
+                    agendaData.push({ type: 'time', time: t, cards: timeCardsMap[t] });
                 }
 
-                return data;
+                // Unscheduled (A definir)
+                const unscheduledCards = globalCards.filter(c => c.dataset.when.endsWith('T')).map(cardToData);
+                if (unscheduledCards.length > 0) {
+                    agendaData.push({ type: 'unscheduled', cards: unscheduledCards });
+                }
+
+                return { boardData, agendaData };
             }
 
             var HIST_LIMIT = 120; var hist = [], cursor = -1;
-            function pushHistory(snap) { hist = hist.slice(0, cursor + 1); hist.push(snap); if (hist.length > HIST_LIMIT) { hist.shift(); } cursor = hist.length - 1; updateUndoUi(); }
-            function capture() { if (__muteHistory > 0) return; try { pushHistory(serialize()); } catch (e) { } }
+            function pushHistory(snap) { 
+                // Snap agora é um objeto { boardData, agendaData }
+                hist = hist.slice(0, cursor + 1); hist.push(snap); 
+                if (hist.length > HIST_LIMIT) { hist.shift(); } cursor = hist.length - 1; updateUndoUi(); 
+            }
+            function capture() { 
+                if (__muteHistory > 0) return; 
+                try { pushHistory(serializeAndSeparate()); } catch (e) { } 
+            }
             function canUndo() { return cursor > 0; }
             function canRedo() { return cursor >= 0 && cursor < hist.length - 1; }
             function updateUndoUi() {
@@ -1077,8 +1743,40 @@
             function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
 
-            function renderFromData(data) {
-                if (!data) return;
+            // Função unificada para carregar tudo
+            function loadAndRenderAll() {
+                let boardData = [];
+                let agendaData = [];
+
+                try {
+                    const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
+                    if(bStr) boardData = JSON.parse(bStr);
+                } catch(e) { console.error("Erro load board", e); }
+
+                try {
+                    const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
+                    if(aStr) agendaData = JSON.parse(aStr);
+                } catch(e) { console.error("Erro load agenda", e); }
+
+                // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
+                // (Isso previne perda de dados ao atualizar o código)
+                if (agendaData.length === 0 && boardData.some(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled')) {
+                    console.log("Migrando agenda do quadro para global...");
+                    agendaData = boardData.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
+                    boardData = boardData.filter(d => d.type === 'kanban' || d.type === 'quad');
+                    // Salva a migração
+                    localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
+                    localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
+                }
+
+                renderFromData(boardData, agendaData);
+            }
+
+            function renderFromData(boardData, agendaData) {
+                // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
+                // Na verdade, a função original renderFromData aceitava um array único.
+                // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
+                const allData = (boardData || []).concat(agendaData || []);
 
                 // === PRESERVAR SCROLL ===
                 const scrollMap = new Map();
@@ -1114,7 +1812,7 @@
                     container.appendChild(fragment);
                 }
 
-                data.forEach(function (entry) {
+                allData.forEach(function (entry) {
                     if (entry.type === 'kanban') {
                         var l = createList(entry.title || 'Lista');
                         appendCardsToDOM(l.querySelector('.cards'), entry.cards);
@@ -1154,8 +1852,15 @@
                 });
             }
 
-            function restore(data) {
-                renderFromData(data);
+            function restore(histObj) {
+                // histObj tem { boardData, agendaData }
+                if(histObj && histObj.boardData) {
+                    renderFromData(histObj.boardData, histObj.agendaData);
+                    persist(); // Salva o estado restaurado
+                } else {
+                    // Fallback para formato antigo de historico se existir
+                    renderFromData(histObj, []); 
+                }
             }
 
             // ===== BOARD MANAGEMENT CORE =====
@@ -1182,7 +1887,6 @@
             }
 
             function migrateToMultiBoard() {
-                // If we have legacy data but no boards metadata, migrate.
                 const legacyData = localStorage.getItem(LS_KEY);
                 const hasMetadata = localStorage.getItem(LS_BOARDS_META);
 
@@ -1192,21 +1896,18 @@
                     const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                     boardsMeta = [mainBoard];
 
-                    // Save legacy data to new key
+                    // Tenta separar o que é agenda do que é quadro na migração inicial
+                    // (Simplificado: joga tudo no quadro primeiro, o loadAndRenderAll separa depois)
                     localStorage.setItem(LS_BOARD_PREFIX + newId, legacyData);
 
-                    // Set current board
                     currentBoardId = newId;
                     localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
-
                     saveBoardsMetadata();
                 } else if (!hasMetadata) {
-                    // Clean slate
                     createNewBoard('Meu Quadro');
                 } else {
                     loadBoardsMetadata();
                     currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
-                    // Validate current ID
                     if (!boardsMeta.find(b => b.id === currentBoardId)) {
                         if (boardsMeta.length > 0) currentBoardId = boardsMeta[0].id;
                         else createNewBoard('Meu Quadro');
@@ -1219,18 +1920,13 @@
                 const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                 boardsMeta.push(newBoard);
                 saveBoardsMetadata();
-
-                // Initialize empty board state
-                const emptyState = []; // Empty array for new board
-                localStorage.setItem(LS_BOARD_PREFIX + id, JSON.stringify(emptyState));
-
+                localStorage.setItem(LS_BOARD_PREFIX + id, JSON.stringify([]));
                 switchBoard(id);
             }
 
             function renameBoard() {
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
-
                 const newName = prompt("Novo nome para o quadro:", board.name);
                 if (newName && newName.trim()) {
                     board.name = newName.trim();
@@ -1243,23 +1939,15 @@
                     alert("Você não pode excluir o único quadro existente.");
                     return;
                 }
-
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
 
                 if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
-                    // Remove local data
                     localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
-                    
-                    // Remove Firebase data
                     if(isFirebaseReady && auth && auth.currentUser) {
                          db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
                     }
-
-                    // Remove from meta
                     boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
-
-                    // Switch to first available
                     currentBoardId = boardsMeta[0].id;
                     saveBoardsMetadata();
                     localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
@@ -1270,54 +1958,47 @@
             function cloneBoard() {
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
-
                 const newName = prompt("Nome para a cópia:", board.name + " (Cópia)");
                 if (!newName) return;
 
-                const currentData = serialize(); // Get current in-memory state
+                // Na cópia, pegamos APENAS os dados do quadro, não a agenda (que é global)
+                const { boardData } = serializeAndSeparate();
                 const newId = generateId();
 
                 const newBoard = { id: newId, name: newName, lastModified: Date.now(), color: board.color || DEFAULT_THEME_COLOR };
                 boardsMeta.push(newBoard);
                 saveBoardsMetadata();
 
-                // Save copied data
-                localStorage.setItem(LS_BOARD_PREFIX + newId, JSON.stringify(currentData));
-
+                localStorage.setItem(LS_BOARD_PREFIX + newId, JSON.stringify(boardData));
                 switchBoard(newId);
             }
 
             function switchBoard(id) {
-                if (id === currentBoardId && boardEl.children.length > 0) return; // Already there
+                if (id === currentBoardId && boardEl.children.length > 0) return; 
 
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
                 localStorage.setItem(LS_CURRENT_BOARD, id);
 
-                // Apply theme
                 const board = boardsMeta.find(b => b.id === id);
                 if (board) setBoardTheme(board.color);
 
-                // Load data
-                const dataStr = localStorage.getItem(LS_BOARD_PREFIX + id);
-                let data = [];
-                try {
-                    data = dataStr ? JSON.parse(dataStr) : [];
-                } catch (e) { console.error("Error loading board data", e); }
-
-                // Restore
-                restore(data);
-                hist = []; cursor = -1; pushHistory(data); // Reset undo history for new board
+                loadAndRenderAll();
+                
+                // Reinicia historico de undo
+                hist = []; cursor = -1; 
+                const { boardData, agendaData } = serializeAndSeparate();
+                pushHistory({ boardData, agendaData }); 
 
                 updateBoardSelectUI();
                 
-                // Atualiza Listener do Firebase
                 if(isFirebaseReady && auth && auth.currentUser) {
                     subscribeToCurrentBoard(auth.currentUser.uid, id);
                 }
             }
 
             // ===== THEMES & CROSS-BOARD =====
+            // ... (THEMES code remains same) ...
             const THEMES = {
                 '#1976d2': { name: 'Azul (Padrão)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
                 '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
@@ -1389,7 +2070,9 @@
                 }, function () { });
             }
 
+            // (getBoardData removido pois não é mais usado da mesma forma, substituido por loadAndRenderAll)
             function getBoardData(boardId) {
+                // Mantido para suporte legacy se precisar
                 try {
                     const str = localStorage.getItem(LS_BOARD_PREFIX + boardId);
                     return str ? JSON.parse(str) : [];
@@ -1399,7 +2082,9 @@
             function moveCardToBoard(cardElement, targetBoardId, targetListTitle) {
                 if (!cardElement) return;
                 const cardData = cardToData(cardElement);
-                cardData.when = '';
+                // IMPORTANTE: Ao mover para outro quadro, remove a data (sai da agenda global)
+                // A menos que a gente quisesse manter, mas conceitualmente se vai pro kanban de lá, vira backlog.
+                cardData.when = ''; 
 
                 const targetData = getBoardData(targetBoardId);
                 let moved = false;
@@ -1424,17 +2109,16 @@
                 if (moved) {
                     localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
                     
-                    // Atualiza timestamp do quadro destino
                     const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
                     if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
                     
-                    // Salva quadro destino na nuvem também se possível
                     if(isFirebaseReady && auth && auth.currentUser) {
                          db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
                     }
 
                     removeCard(cardElement);
-                    persist();
+                    // Persist cuida de salvar a remoção no quadro atual E atualizar a agenda global se necessario
+                    persist(); 
 
                     const btn = document.createElement('div');
                     btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
@@ -1465,32 +2149,39 @@
                 clearTimeout(__persistTick);
                 __persistTick = setTimeout(function () {
                     try {
-                        const data = serialize();
-                        const jsonStr = JSON.stringify(data);
+                        // 1. Separa os dados
+                        const { boardData, agendaData } = serializeAndSeparate();
+                        const boardJson = JSON.stringify(boardData);
+                        const agendaJson = JSON.stringify(agendaData);
 
-                        // 1. Save Locally
+                        // 2. Salva Localmente
                         if (currentBoardId) {
-                            localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, jsonStr);
+                            localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, boardJson);
+                            // Atualiza metadata
                             const board = boardsMeta.find(b => b.id === currentBoardId);
                             if (board) {
                                 board.lastModified = Date.now();
-                                saveBoardsMetadata(); // Also syncs meta to cloud
+                                saveBoardsMetadata(); 
                             }
                         }
+                        // Salva Agenda Global Local
+                        localStorage.setItem(LS_GLOBAL_AGENDA, agendaJson);
 
-                        // 2. Save to Firebase (Specific Board)
+                        // 3. Salva no Firebase
                         if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
-                            // IMPORTANTE: Salva no caminho específico do quadro, não mais no root /data
-                            db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).set(data)
-                                .catch(e => console.error("Firebase save error:", e));
+                            // Salva Quadro
+                            db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).set(boardData)
+                                .catch(e => console.error("Firebase board save error:", e));
+                            
+                            // Salva Agenda Global
+                            db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
+                                .catch(e => console.error("Firebase agenda save error:", e));
                         }
                     } catch (e) { }
                     capture();
                 }, 250);
             }
 
-            // ... RESTO DAS FUNCOES UI (duplicateCards, updateTimerDisplay, createCard, etc) MANTIDAS IGUAIS ...
-            
             function duplicateCards(cards) {
                 if (!cards || !cards.length) return;
                 let newCards = [];
@@ -1545,6 +2236,7 @@
                 }
             }
 
+            // --- REINSERIDO CÓDIGO FALTANTE DA FUNÇÃO TOGGLE ---
             function toggleCardCompletion(e) {
                 e.stopPropagation();
                 const card = e.target.closest('.card');
@@ -1757,8 +2449,7 @@
                 persist();
             }
 
-            // ... DND LOGIC, FILTERS, LISTS, MATRIX, AGENDA (MANTIDOS E ENCURTADOS PARA CABER) ...
-            
+            // ===== DnD =====
             var dragState = null; var draggingList = null; var lastAnchor = null;
             function clearSelection() { selected.forEach(function (c) { c.classList.remove('selected'); }); selected.clear(); updateTotalTimerDisplay(); }
             function addSelection(c) { if (!selected.has(c)) { selected.add(c); c.classList.add('selected'); lastAnchor = c; } updateTotalTimerDisplay(); }
@@ -2274,6 +2965,8 @@
                 else if (action === 'color') { openColorDialog(block); }
                 else if (action === 'date') { openDateDialog(block); }
                 else if (action === 'timer') { openTimerDialog(block); }
+                else if (action === 'gemini-subtasks') { generateSubtasks(block); }
+                else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
                 else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
             });
 
@@ -2299,7 +2992,7 @@
             }
             listCtx.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; var action = b.dataset.action; if (action === 'list-move-all') { listMoveSub.style.display = (listMoveSub.style.display === 'block' ? 'none' : 'block'); return; } if (action === 'list-del' && listCtxTarget) { showConfirm('Excluir a lista inteira?', function () { listCtxTarget.remove(); persist(); }); } listCtx.style.display = 'none'; });
 
-            // ... PALETTE & MODALS ...
+            // ===== Modal helpers + Paleta =====
             var MATRIX_COLORS = { Q1: '#104239', Q2: '#0e3155', Q3: '#5a4014', Q4: '#5a1419' };
             var customColorLabels = JSON.parse(localStorage.getItem(LS_LABELS_KEY)) || {
                 '#5dade2': 'Azul claro (Krav Maga)', '#f9e79f': 'Amarelo claro (GDF)', '#f5b041': 'Laranja (Pessoal)',
