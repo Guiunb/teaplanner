@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
+    <!-- CORREÇÃO DE ERROS DO CONSOLE: Permite conexões com Google/Firebase e execução de scripts -->
     <meta http-equiv="Content-Security-Policy"
         content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
 
-    <title>TEA PLANNER (Sync Multi-Board Fix)</title>
+    <title>TEA PLANNER (Sync V2)</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
 
@@ -887,25 +887,27 @@
                 currentBoardRef = db.ref('users/' + uid + '/boards/' + boardId);
 
                 currentBoardRef.on('value', (snapshot) => {
-                    const val = snapshot.val();
-                    if (val) {
-                        const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
-                        
-                        // Evita loop infinito e ghost dom se o dado for idêntico
-                        if (JSON.stringify(val) === currentLocalData) {
-                            return;
-                        }
+                    let val = snapshot.val();
+                    // CORREÇÃO: Se val for null (banco vazio), trate como array vazio para limpar a tela
+                    if (!val) val = [];
 
-                        console.log("Sync: Conteúdo do quadro atualizado remotamente.");
-                        isRemoteUpdate = true;
-                        localStorage.setItem(LS_BOARD_PREFIX + boardId, JSON.stringify(val));
-                        
-                        // Só renderiza se for o quadro que estamos vendo agora
-                        if(currentBoardId === boardId) {
-                            renderFromData(val);
-                        }
-                        isRemoteUpdate = false;
+                    const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
+                    const valStr = JSON.stringify(val);
+                    
+                    // Evita loop infinito e ghost dom se o dado for idêntico
+                    if (valStr === currentLocalData) {
+                        return;
                     }
+
+                    console.log("Sync: Conteúdo do quadro atualizado remotamente.");
+                    isRemoteUpdate = true;
+                    localStorage.setItem(LS_BOARD_PREFIX + boardId, valStr);
+                    
+                    // Só renderiza se for o quadro que estamos vendo agora
+                    if(currentBoardId === boardId) {
+                        renderFromData(val);
+                    }
+                    isRemoteUpdate = false;
                 });
             }
 
@@ -948,6 +950,35 @@
             var selected = new Set();
             var lastMouseX = 0, lastMouseY = 0;
             var agendaClipboard = [];
+
+            // EVENTO DE SINCRONIZAÇÃO ENTRE ABAS (LOCAL)
+            // Isso garante que se você abrir duas abas no mesmo PC, elas conversem instantaneamente
+            window.addEventListener('storage', function(e) {
+                // Se o conteúdo do quadro atual mudou em outra aba
+                if (e.key === LS_BOARD_PREFIX + currentBoardId) {
+                    const newData = e.newValue;
+                    if (newData) {
+                        console.log("Sync: Aba local atualizada via localStorage");
+                        const parsed = JSON.parse(newData);
+                        // Marcamos como remote update para evitar re-salvar no Firebase e causar loop
+                        isRemoteUpdate = true;
+                        renderFromData(parsed);
+                        isRemoteUpdate = false;
+                    }
+                } 
+                // Se a lista de quadros mudou (ex: renomeou quadro em outra aba)
+                else if (e.key === LS_BOARDS_META) {
+                    loadBoardsMetadata();
+                    updateBoardSelectUI();
+                }
+                // Se mudou de quadro em outra aba, podemos forçar a mudança aqui também (opcional, mas bom)
+                else if (e.key === LS_CURRENT_BOARD) {
+                    const newId = e.newValue;
+                    if (newId && newId !== currentBoardId) {
+                        switchBoard(newId);
+                    }
+                }
+            });
 
             document.addEventListener('mousemove', (e) => {
                 lastMouseX = e.clientX;
@@ -2652,6 +2683,68 @@
                 }
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateCards(currentSelection); return; }
                 if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartão(s)?', function () { currentSelection.forEach(function (n) { removeCard(n); }); clearSelection(); }); return; }
+                if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey)) {
+                    let moved = false;
+                    let targetCard = currentSelection[0];
+                    let parentCards = targetCard.parentElement;
+                    let parentList = targetCard.closest('.list');
+                    if (!parentCards || !parentList) return;
+
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        let previousCard = targetCard.previousElementSibling;
+                        while (previousCard && previousCard.style.display === 'none') {
+                            previousCard = previousCard.previousElementSibling;
+                        }
+                        if (previousCard) {
+                            currentSelection.forEach(card => parentCards.insertBefore(card, previousCard));
+                            moved = true;
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        let lastCardInSelection = currentSelection[currentSelection.length - 1];
+                        let nextCard = lastCardInSelection.nextElementSibling;
+                        while (nextCard && nextCard.style.display === 'none') {
+                            nextCard = nextCard.nextElementSibling;
+                        }
+                        if (nextCard) {
+                            currentSelection.forEach(card => parentCards.insertBefore(card, nextCard));
+                            moved = true;
+                        } else {
+                            currentSelection.forEach(card => parentCards.appendChild(card));
+                            moved = true;
+                        }
+                    } else if (e.key === 'ArrowLeft' && parentList.dataset.type === 'kanban') {
+                        e.preventDefault();
+                        let prevList = parentList.previousElementSibling;
+                        while (prevList && !prevList.matches('.list[data-type="kanban"]')) {
+                            prevList = prevList.previousElementSibling;
+                        }
+                        if (prevList) {
+                            let destCards = prevList.querySelector('.cards');
+                            applyWhen(prevList, currentSelection);
+                            currentSelection.forEach(card => destCards.appendChild(card));
+                            moved = true;
+                        }
+                    } else if (e.key === 'ArrowRight' && parentList.dataset.type === 'kanban') {
+                        e.preventDefault();
+                        let nextList = parentList.nextElementSibling;
+                        while (nextList && !nextList.matches('.list[data-type="kanban"]')) {
+                            nextList = nextList.nextElementSibling;
+                        }
+                        if (nextList) {
+                            let destCards = nextList.querySelector('.cards');
+                            applyWhen(nextList, currentSelection);
+                            currentSelection.forEach(card => destCards.appendChild(card));
+                            moved = true;
+                        }
+                    }
+
+                    if (moved) {
+                        persist();
+                        applyFilters();
+                    }
+                }
             });
 
             document.addEventListener('dragover', (e) => {
