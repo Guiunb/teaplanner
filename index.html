@@ -351,15 +351,16 @@
             font-weight: bold;
             font-size: 16px;
         }
-        
+
         .list header .add-btn-minimal:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
         }
 
         /* Ajuste para ter dois botões à direita */
         .list header .more {
-            margin-left: 4px; /* Pequeno espaço entre + e ... */
+            margin-left: 4px;
+            /* Pequeno espaço entre + e ... */
             background: transparent;
             border: 1px solid transparent;
             color: #9fc1ff;
@@ -393,15 +394,39 @@
 
         /* ANIMAÇÕES DE TIMER */
         @keyframes pulse-orange {
-            0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4); border-color: #ffa726; }
-            50% { box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.2); border-color: #ffb74d; background-color: #1a140a; }
-            100% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0); border-color: #ffa726; }
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4);
+                border-color: #ffa726;
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.2);
+                border-color: #ffb74d;
+                background-color: #1a140a;
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 167, 38, 0);
+                border-color: #ffa726;
+            }
         }
 
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.4); border-color: #ef5350; }
-            50% { box-shadow: 0 0 0 6px rgba(239, 83, 80, 0.2); border-color: #ff867c; background-color: #2a0f0f; }
-            100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); border-color: #ef5350; }
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.4);
+                border-color: #ef5350;
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(239, 83, 80, 0.2);
+                border-color: #ff867c;
+                background-color: #2a0f0f;
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 83, 80, 0);
+                border-color: #ef5350;
+            }
         }
 
         .card.timer-running {
@@ -485,6 +510,34 @@
             background: rgba(0, 0, 0, .2);
         }
 
+        /* BARRA DE PROGRESSO DO TIMER */
+        .timer-progress-container {
+            height: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+            display: none;
+            /* Escondido quando não há timer */
+            width: 100%;
+        }
+
+        .timer-progress-bar {
+            height: 100%;
+            background: #66bb6a;
+            width: 0%;
+            transition: width 1s linear, background-color 0.3s;
+        }
+
+        .card.timer-running .timer-progress-container {
+            display: block;
+        }
+
+        .card.timer-finished .timer-progress-bar {
+            background: #ef5350;
+            width: 100% !important;
+        }
+
         .due-date {
             font-size: 11px;
             background: rgba(0, 0, 0, .2);
@@ -509,7 +562,8 @@
             padding: 8px;
             border-top: 1px solid #19375b;
             flex-shrink: 0;
-            display: none; /* ESCONDIDO POR PADRÃO - MINIMALISTA */
+            display: none;
+            /* ESCONDIDO POR PADRÃO - MINIMALISTA */
         }
 
         .add .row {
@@ -558,7 +612,8 @@
         .quad-label {
             font-weight: 700;
             color: #cfe0ff;
-            flex-grow: 1; /* Ocupa espaço para empurrar botões */
+            flex-grow: 1;
+            /* Ocupa espaço para empurrar botões */
         }
 
         .list[data-type="quad"] {
@@ -728,16 +783,19 @@
         .unscheduled-slot {
             background: #1a2333;
             border-bottom: 2px solid #b85d00;
-            display: none; /* Escondido por padrão */
-        }
-        
-        .unscheduled-slot.has-items {
-            display: flex !important; /* Força display flex */
+            display: none;
+            /* Escondido por padrão */
         }
 
-        .unscheduled-slot > .head .unscheduled-label {
+        .unscheduled-slot.has-items {
+            display: flex !important;
+            /* Força display flex */
+        }
+
+        .unscheduled-slot>.head .unscheduled-label {
             font-weight: bold;
-            color: #ff9800; /* Laranja para destaque */
+            color: #ff9800;
+            /* Laranja para destaque */
             font-size: 12px;
             flex-grow: 1;
         }
@@ -1090,7 +1148,8 @@
         }
 
         .weekly-grid .cards {
-            gap: 8px; /* Mais espaço entre cards */
+            gap: 8px;
+            /* Mais espaço entre cards */
         }
 
         .day-column {
@@ -1140,11 +1199,11 @@
             /* Agora é clicável e arrastável */
             cursor: grab;
         }
-        
+
         /* Diferenciar visualmente apenas cartões agendados */
         .card.mirror-card.is-scheduled {
-             border: 1px dashed #4285F4;
-             background: #0f2f45;
+            border: 1px dashed #4285F4;
+            background: #0f2f45;
         }
 
         .card.mirror-card .text::before {
@@ -1309,7 +1368,7 @@
             let isFirebaseReady = false;
             let currentUser = null;
             let isRemoteUpdate = false;
-            let currentBoardRef = null; 
+            let currentBoardRef = null;
             let globalAgendaRef = null; // Nova referência para agenda global
 
             // Inicializa Firebase
@@ -1333,8 +1392,8 @@
                         } else {
                             loginBtn.textContent = 'Login Google';
                             userInfo.textContent = '';
-                            if(currentBoardRef) currentBoardRef.off();
-                            if(globalAgendaRef) globalAgendaRef.off();
+                            if (currentBoardRef) currentBoardRef.off();
+                            if (globalAgendaRef) globalAgendaRef.off();
                         }
                     });
 
@@ -1367,14 +1426,14 @@
                 metaRef.on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val && Array.isArray(val)) {
-                        if(JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
+                        if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                             updateBoardSelectUI();
-                            
+
                             if (!boardsMeta.find(b => b.id === currentBoardId)) {
-                                if(boardsMeta.length > 0) switchBoard(boardsMeta[0].id);
+                                if (boardsMeta.length > 0) switchBoard(boardsMeta[0].id);
                                 else createNewBoard('Meu Quadro');
                             }
                         }
@@ -1407,13 +1466,13 @@
                     console.log("Sync: Agenda Global atualizada remotamente.");
                     isRemoteUpdate = true;
                     localStorage.setItem(LS_GLOBAL_AGENDA, valStr);
-                    
+
                     // Recarrega a tela mesclando (Board + Agenda Nova)
-                    loadAndRenderAll(); 
+                    loadAndRenderAll();
                     isRemoteUpdate = false;
                 });
             }
-            
+
             function subscribeToCurrentBoard(uid, boardId) {
                 if (!isFirebaseReady || !uid || !boardId) return;
 
@@ -1428,14 +1487,14 @@
 
                     const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
                     const valStr = JSON.stringify(val);
-                    
+
                     if (valStr === currentLocalData) return;
 
                     console.log("Sync: Conteúdo do quadro atualizado remotamente.");
                     isRemoteUpdate = true;
                     localStorage.setItem(LS_BOARD_PREFIX + boardId, valStr);
-                    
-                    if(currentBoardId === boardId) {
+
+                    if (currentBoardId === boardId) {
                         loadAndRenderAll();
                     }
                     isRemoteUpdate = false;
@@ -1455,14 +1514,14 @@
             }
 
             // ===== CONFIG & STATE =====
-            var LS_KEY = 'mini-trello-restore'; 
+            var LS_KEY = 'mini-trello-restore';
             var LS_LABELS_KEY = 'tea-planner-labels';
             var LS_QUICK_CONFIG_KEY = 'tea-planner-quick-config';
 
             // New Multi-Board Keys
-            var LS_BOARDS_META = 'tea-planner-boards-meta'; 
+            var LS_BOARDS_META = 'tea-planner-boards-meta';
             var LS_CURRENT_BOARD = 'tea-planner-current-board-id';
-            var LS_BOARD_PREFIX = 'tea-planner-board-'; 
+            var LS_BOARD_PREFIX = 'tea-planner-board-';
             var LS_GLOBAL_AGENDA = 'tea-planner-global-agenda'; // NOVA CHAVE PARA AGENDA UNIFICADA
 
             var currentBoardId = null;
@@ -1471,6 +1530,24 @@
 
             var __persistTick = null, __muteHistory = 0;
             function withMute(fn) { __muteHistory++; try { return fn(); } finally { __muteHistory--; } }
+
+            // FUNÇÃO DE ÁUDIO (Beep) para o Timer
+            function playBeep() {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.05);
+                    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.5);
+                } catch (e) { console.warn("Áudio bloqueado", e); }
+            }
 
             var boardEl = document.getElementById('board');
             var schedule = document.getElementById('schedule');
@@ -1510,7 +1587,7 @@
 
             async function callGemini(prompt, retries = 3, delay = 1000) {
                 const apiKey = ""; // <--- INSIRA SUA API KEY AQUI
-                if(!apiKey) {
+                if (!apiKey) {
                     alert("API Key não configurada no código. A funcionalidade de IA não funcionará.");
                     throw new Error("No API Key");
                 }
@@ -1603,14 +1680,14 @@
             }
 
             // EVENTO DE SINCRONIZAÇÃO ENTRE ABAS (LOCAL)
-            window.addEventListener('storage', function(e) {
+            window.addEventListener('storage', function (e) {
                 if (e.key === LS_BOARD_PREFIX + currentBoardId || e.key === LS_GLOBAL_AGENDA) {
                     // Se mudou o quadro atual OU a agenda global
                     console.log("Sync: Aba local atualizada via localStorage");
                     isRemoteUpdate = true;
                     loadAndRenderAll();
                     isRemoteUpdate = false;
-                } 
+                }
                 else if (e.key === LS_BOARDS_META) {
                     loadBoardsMetadata();
                     updateBoardSelectUI();
@@ -1694,10 +1771,10 @@
                 // Vamos procurar em allCards tudo que tem 'when' definido
                 // Isso pega tanto o que está nos slots visuais quanto o que pode ter se perdido
                 const globalCards = allCards.filter(c => c.dataset.when && c.dataset.when.length > 0);
-                
+
                 // Agrupar para salvar bonito, mas na real salvamos uma lista flat de "scheduled items" seria melhor.
                 // Mas para manter compatibilidade com a estrutura antiga:
-                
+
                 // Goal
                 const goalCards = globalCards.filter(c => c.dataset.when.endsWith('TGOAL')).map(cardToData);
                 if (goalCards.length > 0) agendaData.push({ type: 'goal', goal: true, cards: goalCards });
@@ -1723,14 +1800,14 @@
             }
 
             var HIST_LIMIT = 120; var hist = [], cursor = -1;
-            function pushHistory(snap) { 
+            function pushHistory(snap) {
                 // Snap agora é um objeto { boardData, agendaData }
-                hist = hist.slice(0, cursor + 1); hist.push(snap); 
-                if (hist.length > HIST_LIMIT) { hist.shift(); } cursor = hist.length - 1; updateUndoUi(); 
+                hist = hist.slice(0, cursor + 1); hist.push(snap);
+                if (hist.length > HIST_LIMIT) { hist.shift(); } cursor = hist.length - 1; updateUndoUi();
             }
-            function capture() { 
-                if (__muteHistory > 0) return; 
-                try { pushHistory(serializeAndSeparate()); } catch (e) { } 
+            function capture() {
+                if (__muteHistory > 0) return;
+                try { pushHistory(serializeAndSeparate()); } catch (e) { }
             }
             function canUndo() { return cursor > 0; }
             function canRedo() { return cursor >= 0 && cursor < hist.length - 1; }
@@ -1750,13 +1827,13 @@
 
                 try {
                     const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
-                    if(bStr) boardData = JSON.parse(bStr);
-                } catch(e) { console.error("Erro load board", e); }
+                    if (bStr) boardData = JSON.parse(bStr);
+                } catch (e) { console.error("Erro load board", e); }
 
                 try {
                     const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
-                    if(aStr) agendaData = JSON.parse(aStr);
-                } catch(e) { console.error("Erro load agenda", e); }
+                    if (aStr) agendaData = JSON.parse(aStr);
+                } catch (e) { console.error("Erro load agenda", e); }
 
                 // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
                 // (Isso previne perda de dados ao atualizar o código)
@@ -1854,12 +1931,12 @@
 
             function restore(histObj) {
                 // histObj tem { boardData, agendaData }
-                if(histObj && histObj.boardData) {
+                if (histObj && histObj.boardData) {
                     renderFromData(histObj.boardData, histObj.agendaData);
                     persist(); // Salva o estado restaurado
                 } else {
                     // Fallback para formato antigo de historico se existir
-                    renderFromData(histObj, []); 
+                    renderFromData(histObj, []);
                 }
             }
 
@@ -1878,11 +1955,11 @@
             function saveBoardsMetadata(syncToCloud = true) {
                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                 updateBoardSelectUI();
-                
+
                 // Sync metadata to Firebase
                 if (syncToCloud && isFirebaseReady && auth && auth.currentUser) {
-                     db.ref('users/' + auth.currentUser.uid + '/meta').set(boardsMeta)
-                     .catch(e => console.error("Erro ao salvar metadata na nuvem", e));
+                    db.ref('users/' + auth.currentUser.uid + '/meta').set(boardsMeta)
+                        .catch(e => console.error("Erro ao salvar metadata na nuvem", e));
                 }
             }
 
@@ -1944,14 +2021,14 @@
 
                 if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
                     localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
-                    if(isFirebaseReady && auth && auth.currentUser) {
-                         db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
+                    if (isFirebaseReady && auth && auth.currentUser) {
+                        db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
                     }
                     boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
                     currentBoardId = boardsMeta[0].id;
                     saveBoardsMetadata();
                     localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
-                    window.location.reload(); 
+                    window.location.reload();
                 }
             }
 
@@ -1974,7 +2051,7 @@
             }
 
             function switchBoard(id) {
-                if (id === currentBoardId && boardEl.children.length > 0) return; 
+                if (id === currentBoardId && boardEl.children.length > 0) return;
 
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
@@ -1984,15 +2061,15 @@
                 if (board) setBoardTheme(board.color);
 
                 loadAndRenderAll();
-                
+
                 // Reinicia historico de undo
-                hist = []; cursor = -1; 
+                hist = []; cursor = -1;
                 const { boardData, agendaData } = serializeAndSeparate();
-                pushHistory({ boardData, agendaData }); 
+                pushHistory({ boardData, agendaData });
 
                 updateBoardSelectUI();
-                
-                if(isFirebaseReady && auth && auth.currentUser) {
+
+                if (isFirebaseReady && auth && auth.currentUser) {
                     subscribeToCurrentBoard(auth.currentUser.uid, id);
                 }
             }
@@ -2084,7 +2161,7 @@
                 const cardData = cardToData(cardElement);
                 // IMPORTANTE: Ao mover para outro quadro, remove a data (sai da agenda global)
                 // A menos que a gente quisesse manter, mas conceitualmente se vai pro kanban de lá, vira backlog.
-                cardData.when = ''; 
+                cardData.when = '';
 
                 const targetData = getBoardData(targetBoardId);
                 let moved = false;
@@ -2108,17 +2185,17 @@
 
                 if (moved) {
                     localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
-                    
+
                     const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
                     if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
-                    
-                    if(isFirebaseReady && auth && auth.currentUser) {
-                         db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
+
+                    if (isFirebaseReady && auth && auth.currentUser) {
+                        db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
                     }
 
                     removeCard(cardElement);
                     // Persist cuida de salvar a remoção no quadro atual E atualizar a agenda global se necessario
-                    persist(); 
+                    persist();
 
                     const btn = document.createElement('div');
                     btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
@@ -2161,7 +2238,7 @@
                             const board = boardsMeta.find(b => b.id === currentBoardId);
                             if (board) {
                                 board.lastModified = Date.now();
-                                saveBoardsMetadata(); 
+                                saveBoardsMetadata();
                             }
                         }
                         // Salva Agenda Global Local
@@ -2172,7 +2249,7 @@
                             // Salva Quadro
                             db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).set(boardData)
                                 .catch(e => console.error("Firebase board save error:", e));
-                            
+
                             // Salva Agenda Global
                             db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
                                 .catch(e => console.error("Firebase agenda save error:", e));
@@ -2202,6 +2279,7 @@
             function updateTimerDisplay(card) {
                 var disp = card.querySelector('.timer-display');
                 if (!disp) return;
+                var progressBar = card.querySelector('.timer-progress-bar');
                 var totalSeconds = parseInt(card.dataset.timerTotal || '0', 10);
 
                 card.classList.remove('timer-running', 'timer-finished');
@@ -2215,21 +2293,29 @@
                     var secs = seconds % 60;
                     disp.textContent = `⏱️ ${to2(mins)}:${to2(secs)}`;
 
-                    if (state === 'running') { 
-                        disp.style.color = '#66bb6a'; 
-                        disp.style.background = 'rgba(102, 187, 106, 0.2)'; 
+                    // Atualiza Barra de Progresso
+                    if (progressBar) {
+                        var perc = (seconds / totalSeconds) * 100;
+                        progressBar.style.width = perc + '%';
+                    }
+
+                    if (state === 'running') {
+                        disp.style.color = '#66bb6a';
+                        disp.style.background = 'rgba(102, 187, 106, 0.2)';
                         card.classList.add('timer-running');
                     }
                     else if (state === 'paused') { disp.style.color = '#ffa726'; disp.style.background = 'rgba(255, 167, 38, 0.2)'; }
-                    else if (state === 'finished') { 
-                        disp.style.color = '#ef5350'; 
+                    else if (state === 'finished') {
+                        disp.style.color = '#ef5350';
                         disp.style.background = 'rgba(239, 83, 80, 0.2)';
                         card.classList.add('timer-finished');
+                        if (progressBar) progressBar.style.width = '100%';
                     }
                     else {
                         var totalMins = Math.round(totalSeconds / 60);
                         disp.textContent = `⏳ ${totalMins} min`;
                         disp.style.color = ''; disp.style.background = 'rgba(0,0,0,.2)';
+                        if (progressBar) progressBar.style.width = '0%';
                     }
                 } else {
                     disp.textContent = '';
@@ -2243,14 +2329,14 @@
                 if (!card) return;
                 const isCompleted = card.dataset.completed === 'true';
                 card.dataset.completed = isCompleted ? 'false' : 'true';
-                
+
                 if (card.dataset.completed === 'true') {
                     card.classList.remove('timer-finished');
                     if (card.dataset.timerState === 'finished') {
                         card.dataset.timerState = 'stopped';
                     }
                 }
-                
+
                 persist();
                 updateTimerDisplay(card);
             }
@@ -2297,9 +2383,15 @@
                 meta.appendChild(dot);
                 meta.appendChild(timerDisp);
                 meta.appendChild(dateDisp);
+
+                // Container da barra de progresso
+                var progCont = el('div', 'timer-progress-container');
+                var progBar = el('div', 'timer-progress-bar');
+                progCont.appendChild(progBar);
+
                 var kb = el('button', 'kebab'); kb.type = 'button'; kb.textContent = '⋮';
                 kb.addEventListener('click', function (ev) { ev.stopPropagation(); clearSelection(); addSelection(c); var r = kb.getBoundingClientRect(); showCtx(r.right, r.bottom, c); });
-                c.appendChild(t); c.appendChild(meta); c.appendChild(kb); paintCard(c);
+                c.appendChild(t); c.appendChild(meta); c.appendChild(progCont); c.appendChild(kb); paintCard(c);
 
                 dot.addEventListener('click', toggleCardCompletion);
                 dot.addEventListener('dblclick', (e) => e.stopPropagation());
@@ -2410,7 +2502,8 @@
                             if (left <= 0) {
                                 c.dataset.timerState = 'finished';
                                 c.dataset.timerLeft = 0;
-                                c.style.animation = ''; 
+                                c.style.animation = '';
+                                playBeep(); // <--- ALERTA SONORO
                             } else {
                                 c.dataset.timerLeft = left;
                             }
@@ -2510,7 +2603,7 @@
                 let targetWhen = '';
 
                 if (listElement && listElement.dataset.date) {
-                    targetWhen = listElement.dataset.date + 'T'; 
+                    targetWhen = listElement.dataset.date + 'T';
                 } else if (listElement && listElement.dataset.type === 'time') {
                     targetWhen = day + 'T' + listElement.dataset.time;
                 } else if (listElement && listElement.dataset.type === 'goal') {
@@ -2550,7 +2643,7 @@
                 var addBtn = el('button', 'add-btn-minimal');
                 addBtn.textContent = '+';
                 addBtn.title = 'Novo Cartão';
-                addBtn.onclick = function(e) {
+                addBtn.onclick = function (e) {
                     e.stopPropagation();
                     var card = createCard({ text: '' });
                     var cardsContainer = list.querySelector('.cards');
@@ -2596,13 +2689,13 @@
                     var addBtn = el('button', 'add-btn-minimal');
                     addBtn.textContent = '+';
                     addBtn.title = 'Novo Cartão';
-                    addBtn.onclick = function(e) {
+                    addBtn.onclick = function (e) {
                         e.stopPropagation();
                         var card = createCard({ text: '' });
-                        if(sp.quad === 'Q1') card.dataset.color = MATRIX_COLORS.Q1;
-                        if(sp.quad === 'Q2') card.dataset.color = MATRIX_COLORS.Q2;
-                        if(sp.quad === 'Q3') card.dataset.color = MATRIX_COLORS.Q3;
-                        if(sp.quad === 'Q4') card.dataset.color = MATRIX_COLORS.Q4;
+                        if (sp.quad === 'Q1') card.dataset.color = MATRIX_COLORS.Q1;
+                        if (sp.quad === 'Q2') card.dataset.color = MATRIX_COLORS.Q2;
+                        if (sp.quad === 'Q3') card.dataset.color = MATRIX_COLORS.Q3;
+                        if (sp.quad === 'Q4') card.dataset.color = MATRIX_COLORS.Q4;
                         paintCard(card);
                         var cardsContainer = l.querySelector('.cards');
                         cardsContainer.prepend(card);
@@ -2624,7 +2717,7 @@
                 var goalLabel = el('span', 'goal-label'); goalLabel.textContent = '🎯 OBJETIVO DO DIA';
                 var goalAdd = el('button', 'add-btn-minimal');
                 goalAdd.textContent = '+';
-                goalAdd.onclick = function(e) {
+                goalAdd.onclick = function (e) {
                     e.stopPropagation();
                     var card = createCard({ text: '', when: getActiveDay() + 'TGOAL' });
                     goalSlot.querySelector('.cards').prepend(card);
@@ -2644,7 +2737,7 @@
                 var uLabel = el('span', 'unscheduled-label'); uLabel.textContent = '⚠️ HORÁRIO A DEFINIR';
                 var uAdd = el('button', 'add-btn-minimal');
                 uAdd.textContent = '+';
-                uAdd.onclick = function(e) {
+                uAdd.onclick = function (e) {
                     e.stopPropagation();
                     var card = createCard({ text: '', when: getActiveDay() + 'T' });
                     unscheduledSlot.querySelector('.cards').prepend(card);
@@ -2680,7 +2773,7 @@
 
             const addUnscheduledBtn = document.getElementById('addUnscheduledBtn');
             if (addUnscheduledBtn) {
-                addUnscheduledBtn.onclick = function() {
+                addUnscheduledBtn.onclick = function () {
                     const unscheduledSlot = document.getElementById('unscheduled-bucket');
                     if (unscheduledSlot) {
                         var card = createCard({ text: '', when: getActiveDay() + 'T' });
@@ -3019,7 +3112,7 @@
                 ].concat(EXTRA_COLORS);
             }
             function routeByColor(card, hex) { if (!hex || !matrixEl) return; var map = {}; map[MATRIX_COLORS.Q1] = 'Q1'; map[MATRIX_COLORS.Q2] = 'Q2'; map[MATRIX_COLORS.Q3] = 'Q3'; map[MATRIX_COLORS.Q4] = 'Q4'; var quad = map[(hex || '').toLowerCase()]; if (!quad) return; var dest = matrixEl.querySelector('.list[data-quad="' + quad + '"] .cards'); if (dest) { dest.appendChild(card); card.dataset.when = ''; updateSlotsHasItems(); } }
-            
+
             function showModal(title, builder, onOk) {
                 var wrap = el('div', 'modal-wrap'); var box = el('div', 'modal');
                 var h = el('h3'); h.textContent = title; box.appendChild(h);
@@ -3155,8 +3248,8 @@
                     header.innerHTML = `${daysOfWeek[index]} <span class="date-label">${date.split('-').reverse().slice(0, 2).join('/')}</span>`;
                     col.appendChild(header);
                     const cardsContainer = el('div', 'cards');
-                    cardsContainer.dataset.date = date; 
-                    wireDropZone(cardsContainer); 
+                    cardsContainer.dataset.date = date;
+                    wireDropZone(cardsContainer);
 
                     const dayPrefix = date + 'T';
                     const floatingCards = allCards.filter(c => { const w = c.dataset.when || ''; return w === dayPrefix || w === dayPrefix + 'GOAL'; });
@@ -3167,14 +3260,14 @@
                         const clone = originalCard.cloneNode(true);
                         clone.classList.add('mirror-card');
                         if (isScheduled) clone.classList.add('is-scheduled');
-                        clone.classList.remove('selected', 'dragging', 'timer-running', 'timer-finished'); 
-                        clone.style.animation = ''; 
+                        clone.classList.remove('selected', 'dragging', 'timer-running', 'timer-finished');
+                        clone.style.animation = '';
                         clone._originalReference = originalCard;
-                        clone.addEventListener('dragstart', function(e) {
-                            e.stopPropagation(); dragState = { leader: originalCard, block: [originalCard] }; 
-                            clone.classList.add('dragging'); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+                        clone.addEventListener('dragstart', function (e) {
+                            e.stopPropagation(); dragState = { leader: originalCard, block: [originalCard] };
+                            clone.classList.add('dragging'); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { }
                         });
-                        clone.addEventListener('dragend', function() { clone.classList.remove('dragging'); cleanupPH(); dragState = null; persist(); updateSlotsHasItems(); });
+                        clone.addEventListener('dragend', function () { clone.classList.remove('dragging'); cleanupPH(); dragState = null; persist(); updateSlotsHasItems(); });
                         return clone;
                     }
 
@@ -3205,7 +3298,7 @@
                 const currentDate = new Date(agendaDateInput.value + 'T12:00:00');
                 currentDate.setDate(currentDate.getDate() + (offset * 7));
                 agendaDateInput.value = currentDate.toISOString().slice(0, 10);
-                applyFilters(); 
+                applyFilters();
             }
             document.getElementById('prevWeekBtn').addEventListener('click', () => changeWeek(-1));
             document.getElementById('nextWeekBtn').addEventListener('click', () => changeWeek(1));
@@ -3269,9 +3362,9 @@
             document.getElementById('filterColorsBtn').addEventListener('click', openColorFilters);
             document.getElementById('undo').onclick = doUndo; document.getElementById('redo').onclick = doRedo;
             document.getElementById('clearFilters').onclick = function () { selectedColors.clear(); document.getElementById('fFrom').value = ''; document.getElementById('fTo').value = ''; document.getElementById('fTime').value = ''; applyFilters(); };
-            
+
             // CORREÇÃO: Conectando os botões de quadro que não funcionavam
-            document.getElementById('newBoardBtn').onclick = () => { const name = prompt('Nome do novo quadro:'); if(name) createNewBoard(name); };
+            document.getElementById('newBoardBtn').onclick = () => { const name = prompt('Nome do novo quadro:'); if (name) createNewBoard(name); };
             document.getElementById('editBoardBtn').onclick = renameBoard;
             document.getElementById('cloneBoardBtn').onclick = cloneBoard;
             document.getElementById('deleteBoardBtn').onclick = deleteBoard;
@@ -3286,7 +3379,7 @@
             agendaDateInput.addEventListener('change', applyFilters);
 
             boardEl.addEventListener('wheel', (e) => { if (e.altKey) { e.preventDefault(); boardEl.scrollLeft += e.deltaY; } });
-            
+
             // Scroll Drag logic
             const mainScrollContainer = document.getElementById('main-content');
             let scrollSpeed = { x: 0, y: 0 };
@@ -3451,7 +3544,7 @@
 
             function stopScrollParams() { scrollSpeed = { x: 0, y: 0 }; if (scrollFrame) { cancelAnimationFrame(scrollFrame); scrollFrame = null; } }
             document.addEventListener('dragend', stopScrollParams); document.addEventListener('drop', stopScrollParams); document.addEventListener('mouseleave', stopScrollParams);
-            
+
             function initDemo() {
                 withMute(function () {
                     var toDo = createList('Para Fazer');
@@ -3469,9 +3562,10 @@
                 migrateToMultiBoard();
                 if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
             }
-            
+
             initApp();
         });
     </script>
 </body>
+
 </html>
