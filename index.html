@@ -3027,6 +3027,24 @@
                 ctx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px';
             }
 
+            // Fechar menus ao clicar fora ou desistir
+            document.addEventListener('mousedown', function (e) {
+                // Se clicar fora do menu de contexto do cartão e não for no botão de acionamento (kebab)
+                if (ctx && ctx.style.display === 'block') {
+                    if (!ctx.contains(e.target) && !e.target.closest('.kebab')) {
+                        hideCtx();
+                    }
+                }
+                // Se clicar fora do menu de contexto da lista e não for no botão de acionamento (more)
+                if (listCtx && listCtx.style.display === 'block') {
+                    if (!listCtx.contains(e.target) && !e.target.closest('.more')) {
+                        listCtx.style.display = 'none';
+                        listCtxTarget = null;
+                    }
+                }
+            });
+
+
             function updateFiltersUi(totalCards, hiddenCardsCount) {
                 var badge = document.getElementById('filtersOn');
                 var header = document.getElementById('appHeader');
