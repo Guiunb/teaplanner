@@ -1209,6 +1209,55 @@
         .card.mirror-card .text::before {
             /* content: "🕒 ";  Remove ícone automático, usar badge */
         }
+
+        /* ===== MODO FOCO (NOTINHA) ===== */
+        body.focus-mode header.app,
+        body.focus-mode .workspace {
+            display: none !important;
+        }
+
+        #focus-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 26, 42, 0.95);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body.focus-mode #focus-overlay {
+            display: flex;
+        }
+
+        #focus-overlay .focus-card-clone {
+            background: var(--card);
+            border: 2px solid #ffa726;
+            border-radius: 12px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px rgba(255, 167, 38, 0.2);
+            color: var(--ink);
+            font-size: 20px;
+            text-align: center;
+            word-break: break-word;
+            animation: pulse-orange-focus 2s infinite;
+        }
+
+        @keyframes pulse-orange-focus {
+            0% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(255, 167, 38, 0.4); }
+            50% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 8px rgba(255, 167, 38, 0.2); }
+            100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(255, 167, 38, 0); }
+        }
+
+        #focus-overlay .focus-time {
+            font-size: 48px;
+            font-weight: bold;
+            color: #66bb6a;
+            margin-top: 20px;
+        }
     </style>
 </head>
 
@@ -1323,6 +1372,12 @@
         <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
         <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
         <div class="sep"></div>
+        <div id="ctx-move-board" style="position:relative">
+            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
+            <div class="ctx-sub" id="ctx-move-board-sub"></div>
+        </div>
+        <div class="sep"></div>
+        <button data-action="prop">ℹ️ Propriedades do Cartão</button>
         <button data-action="gemini-subtasks">✨ Gerar subtarefas</button>
         <button data-action="gemini-organize">✨ Organizar na Matriz</button>
         <div class="sep"></div>
@@ -1331,10 +1386,6 @@
         <div id="ctx-move" style="position:relative">
             <button data-action="move">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
-        </div>
-        <div id="ctx-move-board" style="position:relative">
-            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
-            <div class="ctx-sub" id="ctx-move-board-sub"></div>
         </div>
         <div id="ctx-move-all" style="position:relative">
             <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
@@ -1347,6 +1398,14 @@
         <button data-action="list-del">🗑️ Excluir lista</button>
         <button data-action="list-move-all">➡️ Mover todos para ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
+    </div>
+
+    <!-- Container do Modo Foco -->
+    <div id="focus-overlay">
+        <div class="focus-card-clone">
+            <div id="focusTargetText">Carregando tarefa...</div>
+            <div class="focus-time" id="focusTargetTime">00:00</div>
+        </div>
     </div>
 
     <script>
@@ -1742,8 +1801,16 @@
                     timerLeft: c.dataset.timerLeft || '',
                     timerState: c.dataset.timerState || '',
                     timerEnd: c.dataset.timerEnd || '',
-                    completed: c.dataset.completed || 'false'
+                    completed: c.dataset.completed || 'false',
+                    history: c.dataset.history || '[]'
                 };
+            }
+
+            function addCardHistory(card, actionText) {
+                let hist = [];
+                try { hist = JSON.parse(card.dataset.history || '[]'); } catch(e) {}
+                hist.push({ action: actionText, time: Date.now() });
+                card.dataset.history = JSON.stringify(hist);
             }
 
             // FUNÇÃO IMPORTANTE: Separa o que é do Quadro do que é da Agenda Global
@@ -1963,6 +2030,14 @@
                 }
             }
 
+            function ensureTrashBoard() {
+                if (!boardsMeta.find(b => b.id === 'board-trash')) {
+                    boardsMeta.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
+                    localStorage.setItem(LS_BOARD_PREFIX + 'board-trash', JSON.stringify([{ type: 'kanban', title: 'Apagados', cards: [] }]));
+                    saveBoardsMetadata(true);
+                }
+            }
+
             function migrateToMultiBoard() {
                 const legacyData = localStorage.getItem(LS_KEY);
                 const hasMetadata = localStorage.getItem(LS_BOARDS_META);
@@ -1972,6 +2047,7 @@
                     const newId = generateId();
                     const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                     boardsMeta = [mainBoard];
+                    ensureTrashBoard();
 
                     // Tenta separar o que é agenda do que é quadro na migração inicial
                     // (Simplificado: joga tudo no quadro primeiro, o loadAndRenderAll separa depois)
@@ -1982,8 +2058,10 @@
                     saveBoardsMetadata();
                 } else if (!hasMetadata) {
                     createNewBoard('Meu Quadro');
+                    ensureTrashBoard();
                 } else {
                     loadBoardsMetadata();
+                    ensureTrashBoard();
                     currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
                     if (!boardsMeta.find(b => b.id === currentBoardId)) {
                         if (boardsMeta.length > 0) currentBoardId = boardsMeta[0].id;
@@ -2158,6 +2236,11 @@
 
             function moveCardToBoard(cardElement, targetBoardId, targetListTitle) {
                 if (!cardElement) return;
+
+                const targetBoardMeta = boardsMeta.find(b => b.id === targetBoardId);
+                const boardName = targetBoardMeta ? targetBoardMeta.name : 'Outro Quadro';
+                addCardHistory(cardElement, 'Movido para o quadro "' + boardName + '"');
+
                 const cardData = cardToData(cardElement);
                 // IMPORTANTE: Ao mover para outro quadro, remove a data (sai da agenda global)
                 // A menos que a gente quisesse manter, mas conceitualmente se vai pro kanban de lá, vira backlog.
@@ -2168,6 +2251,11 @@
 
                 let targetList = targetData.find(l => l.type === 'kanban' && l.title === targetListTitle);
 
+                if (!targetList && targetBoardId === 'board-trash') {
+                    targetList = { type: 'kanban', title: 'Apagados', cards: [] };
+                    targetData.push(targetList);
+                }
+
                 if (targetList) {
                     if (!targetList.cards) targetList.cards = [];
                     targetList.cards.push(cardData);
@@ -2176,7 +2264,9 @@
                     if (targetData.length > 0 && targetData[0].type === 'kanban') {
                         targetData[0].cards.push(cardData);
                         moved = true;
-                        alert(`Lista "${targetListTitle}" não encontrada. Movido para "${targetData[0].title}".`);
+                        if (targetBoardId !== 'board-trash') {
+                            alert(`Lista "${targetListTitle}" não encontrada. Movido para "${targetData[0].title}".`);
+                        }
                     } else {
                         targetData.unshift({ type: 'kanban', title: 'Inbox', cards: [cardData] });
                         moved = true;
@@ -2193,7 +2283,7 @@
                         db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
                     }
 
-                    removeCard(cardElement);
+                    removeCard(cardElement, true);
                     // Persist cuida de salvar a remoção no quadro atual E atualizar a agenda global se necessario
                     persist();
 
@@ -2367,11 +2457,15 @@
 
             function createCard(data) {
                 var _d = (typeof data === 'string') ? { text: data } : (data || { text: '' });
+                if (!_d.history) {
+                    _d.history = JSON.stringify([{ action: 'Criado', time: Date.now() }]);
+                }
                 var c = el('div', 'card'); c.draggable = true;
                 c.dataset.color = _d.color || ''; c.dataset.due = _d.due || ''; c.dataset.when = _d.when || '';
                 c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerLeft || ''; c.dataset.timerState = _d.timerState || 'stopped';
                 c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
+                c.dataset.history = _d.history || '[]';
 
                 var t = el('span', 'text'); t.textContent = _d.text || '';
                 var meta = el('div', 'meta');
@@ -2415,7 +2509,12 @@
                 return c;
             }
 
-            function removeCard(c) {
+            function removeCard(c, bypassTrash = false) {
+                if (currentBoardId !== 'board-trash' && !bypassTrash) {
+                    addCardHistory(c, 'Enviado para a lixeira');
+                    moveCardToBoard(c, 'board-trash', 'Apagados');
+                    return;
+                }
                 var index = allCards.indexOf(c);
                 if (index > -1) allCards.splice(index, 1);
                 c.remove();
@@ -2448,15 +2547,15 @@
                     if (!save) {
                         tEl.textContent = original;
                         if (textWasEmpty && textIsNowEmpty) {
-                            removeCard(card);
+                            removeCard(card, true);
                         }
                     } else if (textIsNowEmpty) {
                         if (!textWasEmpty) {
                             showConfirm('Excluir cartão vazio?', function () {
-                                removeCard(card);
+                                removeCard(card, true);
                             });
                         } else {
-                            removeCard(card);
+                            removeCard(card, true);
                         }
                     } else {
                         persist();
@@ -2508,6 +2607,7 @@
                                 c.dataset.timerLeft = left;
                             }
                             updateTimerDisplay(c);
+                            updateFocusMode();
                         }
                     });
                     if (!activeTimers) {
@@ -2566,6 +2666,14 @@
                     var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
 
                     applyWhen(container, block);
+                    
+                    let targetListTitle = 'Agenda/Outro';
+                    const listEl = container.closest('.list');
+                    if (listEl) {
+                        const titleInp = listEl.querySelector('.title');
+                        targetListTitle = titleInp ? titleInp.value : (listEl.dataset.quad || listEl.id || listEl.dataset.time || 'Agenda');
+                    }
+                    block.forEach(function (n) { addCardHistory(n, 'Movido para a lista "' + targetListTitle + '"'); });
 
                     if (!isSlot) {
                         block.forEach(function (n) { parent.insertBefore(n, ref); });
@@ -2982,6 +3090,15 @@
                     var destContainer = targetListElement.querySelector('.cards') || targetListElement;
                     var isAgendaDrop = targetListElement.closest('#agenda-sidebar');
                     applyWhen(targetListElement, block);
+                    
+                    let targetListTitle = 'Agenda/Outro';
+                    const listEl = targetListElement.closest('.list');
+                    if (listEl) {
+                        const titleInp = listEl.querySelector('.title');
+                        targetListTitle = titleInp ? titleInp.value : (listEl.dataset.quad || listEl.id || listEl.dataset.time || 'Agenda');
+                    }
+                    block.forEach(function (n) { addCardHistory(n, 'Movido para a lista "' + targetListTitle + '" via Menu'); });
+
                     if (!isAgendaDrop) { block.forEach(function (cardElement) { destContainer.appendChild(cardElement); }); }
                     updateSlotsHasItems(); persist(); applyFilters(); hideCtx();
                 });
@@ -3009,6 +3126,15 @@
                     var destContainer = targetListElement.querySelector('.cards') || targetListElement;
                     var isAgendaDrop = targetListElement.closest('#agenda-sidebar');
                     applyWhen(targetListElement, cardsToMove);
+                    
+                    let targetListTitle = 'Agenda/Outro';
+                    const listEl = targetListElement.closest('.list');
+                    if (listEl) {
+                        const titleInp = listEl.querySelector('.title');
+                        targetListTitle = titleInp ? titleInp.value : (listEl.dataset.quad || listEl.id || listEl.dataset.time || 'Agenda');
+                    }
+                    cardsToMove.forEach(function (n) { addCardHistory(n, 'Movido para a lista "' + targetListTitle + '" via Menu'); });
+
                     if (!isAgendaDrop) { cardsToMove.forEach(function (cardElement) { destContainer.appendChild(cardElement); }); }
                     else { cardsToMove.forEach(c => c.remove()); }
                     updateSlotsHasItems(); persist(); applyFilters(); hideCtx();
@@ -3053,6 +3179,7 @@
                 }
                 hideCtx();
                 if (action === 'edit') { if (block.length) startInlineEdit(block[0]); }
+                else if (action === 'prop') { showPropertiesDialog(block[0]); }
                 else if (action === 'dup') { duplicateCards(block); }
                 else if (action === 'del') { block.forEach(function (n) { removeCard(n); }); }
                 else if (action === 'color') { openColorDialog(block); }
@@ -3062,6 +3189,42 @@
                 else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
                 else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
             });
+
+            function showPropertiesDialog(card) {
+                if (!card) return;
+                showModal('Propriedades do Cartão', function() {
+                    const wrap = el('div');
+                    wrap.style.textAlign = 'left';
+                    wrap.style.fontSize = '14px';
+                    wrap.style.lineHeight = '1.5';
+                    
+                    let hist = [];
+                    try { hist = JSON.parse(card.dataset.history || '[]'); } catch(e) {}
+                    
+                    if (hist.length === 0) {
+                        const fallBackStr = el('div');
+                        fallBackStr.style.color = '#ccc';
+                        fallBackStr.textContent = 'Sem registros de histórico. (Cartão legado)';
+                        wrap.appendChild(fallBackStr);
+                    } else {
+                        const ul = el('ul');
+                        ul.style.paddingLeft = '20px';
+                        ul.style.color = '#cfe0ff';
+                        ul.style.margin = '0';
+                        
+                        hist.forEach(h => {
+                            const li = el('li');
+                            const dateStr = new Date(h.time).toLocaleString();
+                            li.innerHTML = `<strong>${h.action}</strong> <br><span style="font-size:12px;color:#9fb3d2">📅 ${dateStr}</span>`;
+                            li.style.marginBottom = '8px';
+                            ul.appendChild(li);
+                        });
+                        wrap.appendChild(ul);
+                    }
+                    
+                    return wrap;
+                }, function() {});
+            }
 
             function showListCtx(x, y, list) { listCtxTarget = list; buildListMoveSub(); listMoveSub.style.display = 'none'; listCtx.style.display = 'block'; var r = listCtx.getBoundingClientRect(); listCtx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px'; listCtx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px'; }
             function buildListMoveSub() {
@@ -3555,6 +3718,22 @@
                 });
                 applyFilters(); updateSlotsHasItems(); updateTotalTimerDisplay();
             }
+
+            function updateFocusMode() {
+                if (window.innerWidth < 700) {
+                    const runningCard = document.querySelector('.card.timer-running, .card.timer-finished');
+                    if (runningCard) {
+                        document.body.classList.add('focus-mode');
+                        const text = runningCard.querySelector('.text').textContent;
+                        const disp = runningCard.querySelector('.timer-display');
+                        document.getElementById('focusTargetText').textContent = text;
+                        document.getElementById('focusTargetTime').textContent = disp ? disp.textContent.replace('⏱️ ', '').replace(' min', '') : '...';
+                        return;
+                    }
+                }
+                document.body.classList.remove('focus-mode');
+            }
+            window.addEventListener('resize', updateFocusMode);
 
             function initApp() {
                 applyDragScroll();
