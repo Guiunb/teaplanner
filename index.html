@@ -3444,6 +3444,47 @@
                         clone.classList.remove('selected', 'dragging', 'timer-running', 'timer-finished');
                         clone.style.animation = '';
                         clone._originalReference = originalCard;
+
+                        const kb = clone.querySelector('.kebab');
+                        if (kb) {
+                            kb.addEventListener('click', function(ev) {
+                                ev.stopPropagation();
+                                clearSelection();
+                                addSelection(originalCard);
+                                var r = kb.getBoundingClientRect();
+                                showCtx(r.right, r.bottom, originalCard);
+                            });
+                        }
+
+                        const dot = clone.querySelector('.dot');
+                        if (dot) {
+                            dot.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const ev = new PointerEvent('click', { bubbles: true, cancelable: true, view: window });
+                                originalCard.querySelector('.dot').dispatchEvent(ev); 
+                            });
+                            dot.addEventListener('dblclick', (e) => e.stopPropagation());
+                        }
+
+                        clone.addEventListener('mousedown', function (e) {
+                            if (e.button !== 0) return;
+                            const ev = new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window, button: 0, shiftKey: e.shiftKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey });
+                            originalCard.dispatchEvent(ev);
+                        });
+
+                        clone.addEventListener('contextmenu', function (e) {
+                            e.preventDefault(); 
+                            if (!selected.has(originalCard)) { clearSelection(); addSelection(originalCard); } 
+                            showCtx(e.clientX, e.clientY, originalCard); 
+                        });
+
+                        clone.addEventListener('dblclick', function (e) {
+                            if (e.target.closest('.dot')) {
+                                e.stopPropagation(); return;
+                            }
+                            handleCardDblClick(originalCard);
+                        });
+
                         clone.addEventListener('dragstart', function (e) {
                             e.stopPropagation(); dragState = { leader: originalCard, block: [originalCard] };
                             clone.classList.add('dragging'); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { }
@@ -3646,6 +3687,15 @@
                     if (e.key.toLowerCase() === 't') { e.preventDefault(); openTimerDialog(currentSelection); }
                     else if (e.key.toLowerCase() === 'c') { e.preventDefault(); openColorDialog(currentSelection); }
                     else if (e.key.toLowerCase() === 'd') { e.preventDefault(); openDateDialog(currentSelection); }
+                    else if (e.key.toLowerCase() === 'p') { 
+                        e.preventDefault();
+                        const activeProps = document.querySelector('.modal-wrap');
+                        if (activeProps && activeProps.querySelector('h3') && activeProps.querySelector('h3').textContent === 'Propriedades do Cartão') {
+                            activeProps.remove();
+                        } else {
+                            showPropertiesDialog(currentSelection[0]);
+                        }
+                    }
                     return;
                 }
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateCards(currentSelection); return; }
