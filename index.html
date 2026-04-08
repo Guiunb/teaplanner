@@ -1258,6 +1258,53 @@
             color: #66bb6a;
             margin-top: 20px;
         }
+
+        .focus-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .focus-controls button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .focus-controls button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .focus-controls button:active {
+            transform: scale(0.95);
+        }
+
+        #focusCloseBtn {
+            font-size: 18px;
+            margin-left: 10px;
+            background: rgba(239, 83, 80, 0.2);
+            border-color: rgba(239, 83, 80, 0.4);
+        }
+
+        /* SELECTION MARQUEE */
+        #marquee {
+            position: fixed;
+            border: 1px dashed #2a71ff;
+            background: rgba(42, 113, 255, 0.15);
+            pointer-events: none;
+            display: none;
+            z-index: 10000;
+        }
     </style>
 </head>
 
@@ -1309,6 +1356,7 @@
         <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
         <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
         <button id="toggleWeeklyBtn" title="Visão Semanal">📅 Semana</button>
+        <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button>
         <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
@@ -1405,8 +1453,17 @@
         <div class="focus-card-clone">
             <div id="focusTargetText">Carregando tarefa...</div>
             <div class="focus-time" id="focusTargetTime">00:00</div>
+            <div class="focus-controls">
+                <button id="focusMinusBtn" title="-1 minuto">➖</button>
+                <button id="focusToggleBtn" title="Pausar/Retomar">⏸️</button>
+                <button id="focusPlusBtn" title="+1 minuto">➕</button>
+                <button id="focusCloseBtn" title="Sair do Modo Foco">✖</button>
+            </div>
         </div>
     </div>
+
+    <!-- Marquee Selection Box -->
+    <div id="marquee"></div>
 
     <script>
         // Aguarda a janela carregar completamente antes de rodar o script
@@ -1618,6 +1675,7 @@
             var selected = new Set();
             var lastMouseX = 0, lastMouseY = 0;
             var agendaClipboard = [];
+            var appClipboard = []; // Para Copiar/Colar cartões
 
             // ===== Gemini API Integration =====
             // DEFINIDAS AQUI EM CIMA PARA EVITAR ERRO DE REFERENCE ERROR
@@ -1762,7 +1820,70 @@
             document.addEventListener('mousemove', (e) => {
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
+                updateMarquee(e);
             });
+
+            // ===== MARQUEE SELECTION LOGIC =====
+            let marqueeStart = null;
+            const marqueeEl = document.getElementById('marquee');
+
+            document.addEventListener('mousedown', (e) => {
+                // Só inicia marquee se clicar no fundo (não em botões, inputs ou cards)
+                if (e.target.closest('.card') || e.target.closest('button') || e.target.closest('input') || e.target.closest('.ctx') || e.target.closest('.modal')) return;
+                if (e.button !== 0) return; // Só botão esquerdo
+
+                // Se não segurar Ctrl/Shift, limpa seleção anterior
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                    clearSelection();
+                }
+
+                marqueeStart = { x: e.clientX, y: e.clientY };
+            });
+
+            function updateMarquee(e) {
+                if (!marqueeStart) return;
+
+                const x1 = marqueeStart.x;
+                const y1 = marqueeStart.y;
+                const x2 = e.clientX;
+                const y2 = e.clientY;
+
+                const left = Math.min(x1, x2);
+                const top = Math.min(y1, y2);
+                const width = Math.abs(x1 - x2);
+                const height = Math.abs(y1 - y2);
+
+                if (width > 5 || height > 5) { // Evita micro-movimentos
+                    marqueeEl.style.display = 'block';
+                    marqueeEl.style.left = left + 'px';
+                    marqueeEl.style.top = top + 'px';
+                    marqueeEl.style.width = width + 'px';
+                    marqueeEl.style.height = height + 'px';
+
+                    selectCardsInBox(left, top, width, height);
+                }
+            }
+
+            document.addEventListener('mouseup', () => {
+                marqueeStart = null;
+                marqueeEl.style.display = 'none';
+            });
+
+            function selectCardsInBox(l, t, w, h) {
+                allCards.forEach(card => {
+                    const r = card.getBoundingClientRect();
+                    // Verifica intersecção
+                    const inBox = !(r.left > l + w || r.right < l || r.top > t + h || r.bottom < t);
+                    
+                    if (inBox) {
+                        if (!selected.has(card)) addSelection(card);
+                    } else if (!window._tempSelection?.has(card)) {
+                        // Se não estava selecionado antes do início do marquee, remove
+                        // Mas aqui simplificamos: o marquee ADICIONA à seleção se segurar Ctrl, 
+                        // ou redefine se não segurar.
+                    }
+                });
+            }
 
             function updateTotalTimerDisplay() {
                 let selectedSeconds = 0;
@@ -3650,6 +3771,45 @@
 
             document.addEventListener('keydown', function (e) {
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? doRedo() : doUndo(); return; }
+                
+                // AJUSTE: Copiar / Colar / Recortar
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+                    if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
+                    e.preventDefault();
+                    appClipboard = Array.from(selected).map(cardToData);
+                    return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+                    if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
+                    e.preventDefault();
+                    appClipboard = Array.from(selected).map(cardToData);
+                    selected.forEach(card => removeCard(card));
+                    clearSelection();
+                    return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+                    if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
+                    if (appClipboard.length === 0) return;
+                    e.preventDefault();
+
+                    // Tenta achar lista sob o mouse
+                    const hoveredList = $$('.list').find(l => {
+                        const r = l.getBoundingClientRect();
+                        return lastMouseX >= r.left && lastMouseX <= r.right && lastMouseY >= r.top && lastMouseY <= r.bottom;
+                    });
+                    
+                    const targetContainer = hoveredList ? (hoveredList.querySelector('.cards') || hoveredList) : boardEl.querySelector('.list .cards');
+                    if (targetContainer) {
+                        appClipboard.forEach(data => {
+                            const newCard = createCard(data);
+                            targetContainer.appendChild(newCard);
+                            if (hoveredList) applyWhen(hoveredList, [newCard]);
+                        });
+                        persist(); updateSlotsHasItems();
+                    }
+                    return;
+                }
+
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     if (document.activeElement.tagName === 'INPUT' && document.activeElement.closest('.add')) return;
                     e.preventDefault();
@@ -3678,7 +3838,7 @@
                     if (isEditingCard) activeEl.blur(); else if (currentSelection.length > 0) startInlineEdit(currentSelection[0]);
                     return;
                 }
-                if ((activeEl.tagName === 'INPUT' && !activeEl.closest('.modal')) || (isEditingCard)) {
+                if ((activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.closest('.modal')) || (isEditingCard)) {
                     if (isEditingCard && (e.key === 'Delete' || e.key === 'Backspace') && activeEl.textContent.trim() === '') { e.preventDefault(); const cardToDelete = [activeEl.closest('.card')]; showConfirm('Excluir cartão vazio?', function () { cardToDelete.forEach(n => removeCard(n)); clearSelection(); }); }
                     return;
                 }
@@ -3788,19 +3948,78 @@
             }
 
             function updateFocusMode() {
-                if (window.innerWidth < 700) {
-                    const runningCard = document.querySelector('.card.timer-running, .card.timer-finished');
+                // Se estiver no modo manual ou tela pequena
+                const isManual = document.body.classList.contains('manual-focus-mode');
+                if (window.innerWidth < 700 || isManual) {
+                    const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
                     if (runningCard) {
                         document.body.classList.add('focus-mode');
                         const text = runningCard.querySelector('.text').textContent;
+                        const state = runningCard.dataset.timerState;
                         const disp = runningCard.querySelector('.timer-display');
+                        
                         document.getElementById('focusTargetText').textContent = text;
-                        document.getElementById('focusTargetTime').textContent = disp ? disp.textContent.replace('⏱️ ', '').replace(' min', '') : '...';
+                        document.getElementById('focusTargetTime').textContent = disp ? disp.textContent.replace('⏱️ ', '').replace(' min', '').replace('⏳ ', '') : '...';
+                        
+                        const toggleBtn = document.getElementById('focusToggleBtn');
+                        toggleBtn.textContent = state === 'running' ? '⏸️' : '▶️';
                         return;
                     }
                 }
                 document.body.classList.remove('focus-mode');
             }
+
+            // Lógica dos botões do foco
+            document.getElementById('focusToggleBtn').onclick = () => {
+                const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
+                if (runningCard) handleCardDblClick(runningCard);
+            };
+
+            document.getElementById('focusPlusBtn').onclick = () => {
+                const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
+                if (runningCard) {
+                    let left = parseInt(runningCard.dataset.timerLeft, 10) || 0;
+                    let total = parseInt(runningCard.dataset.timerTotal, 10) || 0;
+                    runningCard.dataset.timerLeft = left + 60;
+                    runningCard.dataset.timerTotal = total + 60;
+                    if (runningCard.dataset.timerState === 'running') {
+                        runningCard.dataset.timerEnd = parseInt(runningCard.dataset.timerEnd, 10) + 60000;
+                    }
+                    updateTimerDisplay(runningCard);
+                    persist();
+                }
+            };
+
+            document.getElementById('focusMinusBtn').onclick = () => {
+                const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
+                if (runningCard) {
+                    let left = parseInt(runningCard.dataset.timerLeft, 10) || 0;
+                    let total = parseInt(runningCard.dataset.timerTotal, 10) || 0;
+                    if (left > 60) {
+                        runningCard.dataset.timerLeft = left - 60;
+                        runningCard.dataset.timerTotal = Math.max(0, total - 60);
+                        if (runningCard.dataset.timerState === 'running') {
+                            runningCard.dataset.timerEnd = parseInt(runningCard.dataset.timerEnd, 10) - 60000;
+                        }
+                        updateTimerDisplay(runningCard);
+                        persist();
+                    }
+                }
+            };
+
+            document.getElementById('focusCloseBtn').onclick = () => {
+                document.body.classList.remove('manual-focus-mode', 'focus-mode');
+            };
+
+            document.getElementById('manualFocusBtn').onclick = () => {
+                const isRunning = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
+                if (!isRunning) {
+                    alert("Inicie um timer primeiro para entrar no modo foco!");
+                    return;
+                }
+                document.body.classList.toggle('manual-focus-mode');
+                updateFocusMode();
+            };
             window.addEventListener('resize', updateFocusMode);
 
             function initApp() {
