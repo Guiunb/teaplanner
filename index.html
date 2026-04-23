@@ -1343,6 +1343,7 @@
 
         <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
         <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
+        <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
@@ -1415,6 +1416,7 @@
 
     <div id="ctx" class="ctx">
         <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+        <button data-action="select-mode">🖱️ Selecionar Cartão</button>
         <div class="sep"></div>
         <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
         <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
@@ -1673,6 +1675,7 @@
             var allCards = [];
             var globalTimerInterval = null;
             var selected = new Set();
+            var isSelectionMode = false;
             var lastMouseX = 0, lastMouseY = 0;
             var agendaClipboard = [];
             var appClipboard = []; // Para Copiar/Colar cartões
@@ -2493,7 +2496,7 @@
                 var progressBar = card.querySelector('.timer-progress-bar');
                 var totalSeconds = parseInt(card.dataset.timerTotal || '0', 10);
 
-                card.classList.remove('timer-running', 'timer-finished');
+                card.classList.remove('timer-running', 'timer-finished', 'timer-paused');
 
                 if (totalSeconds > 0) {
                     var state = card.dataset.timerState || 'stopped';
@@ -2515,7 +2518,11 @@
                         disp.style.background = 'rgba(102, 187, 106, 0.2)';
                         card.classList.add('timer-running');
                     }
-                    else if (state === 'paused') { disp.style.color = '#ffa726'; disp.style.background = 'rgba(255, 167, 38, 0.2)'; }
+                    else if (state === 'paused') { 
+                        disp.style.color = '#ffa726'; 
+                        disp.style.background = 'rgba(255, 167, 38, 0.2)'; 
+                        card.classList.add('timer-paused');
+                    }
                     else if (state === 'finished') {
                         disp.style.color = '#ef5350';
                         disp.style.background = 'rgba(239, 83, 80, 0.2)';
@@ -2611,10 +2618,19 @@
                 dot.addEventListener('click', toggleCardCompletion);
                 dot.addEventListener('dblclick', (e) => e.stopPropagation());
 
-                c.addEventListener('mousedown', function (e) { if (e.button !== 0) return; if (e.shiftKey) { rangeSelect(c); } else if (e.ctrlKey || e.metaKey) { toggleSelection(c); } else if (!selected.has(c)) { clearSelection(); addSelection(c); } updateTotalTimerDisplay(); });
+                c.addEventListener('mousedown', function (e) { 
+                    if (e.button !== 0) return; 
+                    if (isSelectionMode) {
+                        e.preventDefault();
+                        toggleSelection(c);
+                        return;
+                    }
+                    if (e.shiftKey) { rangeSelect(c); } else if (e.ctrlKey || e.metaKey) { toggleSelection(c); } else if (!selected.has(c)) { clearSelection(); addSelection(c); } 
+                    updateTotalTimerDisplay(); 
+                });
                 c.addEventListener('dragstart', function (e) { e.stopPropagation(); var block = selected.has(c) ? Array.from(selected) : [c]; dragState = { leader: c, block: block }; block.forEach(function (n) { n.classList.add('dragging'); }); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { } });
                 c.addEventListener('dragend', function () { if (dragState && dragState.block) { dragState.block.forEach(function (n) { n.classList.remove('dragging'); }); } cleanupPH(); dragState = null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); });
-                c.addEventListener('contextmenu', function (e) { e.preventDefault(); if (!selected.has(c)) { clearSelection(); addSelection(c); } showCtx(e.clientX, e.clientY, c); });
+                // Context menu removed from card body - now only on kebab button.
                 c.addEventListener('dblclick', function (e) {
                     if (e.target.classList.contains('dot') || e.target.classList.contains('dot-check')) {
                         e.stopPropagation();
@@ -2765,10 +2781,46 @@
 
             // ===== DnD =====
             var dragState = null; var draggingList = null; var lastAnchor = null;
-            function clearSelection() { selected.forEach(function (c) { c.classList.remove('selected'); }); selected.clear(); updateTotalTimerDisplay(); }
-            function addSelection(c) { if (!selected.has(c)) { selected.add(c); c.classList.add('selected'); lastAnchor = c; } updateTotalTimerDisplay(); }
-            function toggleSelection(c) { if (selected.has(c)) { selected.delete(c); c.classList.remove('selected'); } else { addSelection(c); } updateTotalTimerDisplay(); }
-            function rangeSelect(to) { if (!lastAnchor) { addSelection(to); return; } var parent = lastAnchor.parentElement; if (to.parentElement !== parent) { addSelection(to); return; } var cards = [].slice.call(parent.querySelectorAll('.card')); var a = cards.indexOf(lastAnchor); var b = cards.indexOf(to); var i = a < b ? a : b; var j = a < b ? b : a; clearSelection(); for (var k = i; k <= j; k++) { if (cards[k].style.display !== 'none') addSelection(cards[k]); } updateTotalTimerDisplay(); }
+            function syncMirrors() {
+                $$('.mirror-card').forEach(m => {
+                    if (m._originalReference) {
+                        m.classList.toggle('selected', selected.has(m._originalReference));
+                    }
+                });
+            }
+            function clearSelection() { 
+                selected.forEach(function (c) { c.classList.remove('selected'); }); 
+                selected.clear(); 
+                syncMirrors();
+                updateTotalTimerDisplay(); 
+            }
+            function addSelection(c) { 
+                if (!selected.has(c)) { 
+                    selected.add(c); 
+                    c.classList.add('selected'); 
+                    lastAnchor = c; 
+                    syncMirrors();
+                } 
+                updateTotalTimerDisplay(); 
+            }
+            function toggleSelection(c) { 
+                if (selected.has(c)) { 
+                    selected.delete(c); 
+                    c.classList.remove('selected'); 
+                } else { 
+                    addSelection(c); 
+                } 
+                syncMirrors();
+                updateTotalTimerDisplay(); 
+            }
+            function rangeSelect(to) { if (!lastAnchor) { addSelection(to); return; } var parent = lastAnchor.parentElement; if (to.parentElement !== parent) { addSelection(to); return; } var cards = [].slice.call(parent.querySelectorAll('.card')); var a = cards.indexOf(lastAnchor); var b = cards.indexOf(to); var i = a < b ? a : b; var j = a < b ? b : a; clearSelection(); for (var k = i; k <= j; k++) { if (cards[k].style.display !== 'none') addSelection(cards[k]); } syncMirrors(); updateTotalTimerDisplay(); }
+
+            function toggleSelectionMode() {
+                isSelectionMode = !isSelectionMode;
+                const btn = document.getElementById('toggleSelectionModeBtn');
+                if (btn) btn.classList.toggle('active', isSelectionMode);
+                if (!isSelectionMode) clearSelection();
+            }
             function getSelectionOr(target) { return selected.size ? Array.from(selected) : (target ? [target] : []); }
             function pushPH() { if (!dragState) dragState = {}; var ph = el('div', 'placeholder'); dragState.placeholder = ph; return ph; }
             function cleanupPH() { if (dragState && dragState.placeholder) dragState.placeholder.remove(); }
@@ -3326,6 +3378,7 @@
                 else if (action === 'timer') { openTimerDialog(block); }
                 else if (action === 'gemini-subtasks') { generateSubtasks(block); }
                 else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
+                else if (action === 'select-mode') { if (!isSelectionMode) toggleSelectionMode(); addSelection(ctxTarget); }
                 else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
             });
 
@@ -3635,6 +3688,7 @@
                     col.appendChild(cardsContainer);
                     weeklyGrid.appendChild(col);
                 });
+                syncMirrors();
             }
 
             function changeWeek(offset) {
@@ -3699,6 +3753,7 @@
             toggleMatrixBtn.addEventListener('click', () => { matrixContainer.classList.toggle('collapsed'); mainContent.classList.toggle('matrix-collapsed'); toggleMatrixBtn.classList.toggle('active'); saveState(); });
             toggleAgendaBtn.addEventListener('click', () => { agendaSidebar.classList.toggle('collapsed'); workspaceEl.classList.toggle('agenda-collapsed'); toggleAgendaBtn.classList.toggle('active'); saveState(); });
             toggleWeeklyBtn.addEventListener('click', () => { weeklyContainer.classList.toggle('collapsed'); toggleWeeklyBtn.classList.toggle('active'); if (!weeklyContainer.classList.contains('collapsed')) { renderWeeklyView(); } saveState(); });
+            document.getElementById('toggleSelectionModeBtn').onclick = toggleSelectionMode;
             quickConfigToggle.addEventListener('change', () => { const isChecked = quickConfigToggle.checked; quickConfigToggleBtn.textContent = isChecked ? 'ON' : 'OFF'; localStorage.setItem(LS_QUICK_CONFIG_KEY, isChecked); });
 
             document.getElementById('addList').onclick = function () { createList('Nova lista'); persist(); };
@@ -3972,7 +4027,10 @@
             // Lógica dos botões do foco
             document.getElementById('focusToggleBtn').onclick = () => {
                 const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
-                if (runningCard) handleCardDblClick(runningCard);
+                if (runningCard) {
+                    handleCardDblClick(runningCard);
+                    updateFocusMode();
+                }
             };
 
             document.getElementById('focusPlusBtn').onclick = () => {
@@ -3983,9 +4041,12 @@
                     runningCard.dataset.timerLeft = left + 60;
                     runningCard.dataset.timerTotal = total + 60;
                     if (runningCard.dataset.timerState === 'running') {
-                        runningCard.dataset.timerEnd = parseInt(runningCard.dataset.timerEnd, 10) + 60000;
+                        let end = parseInt(runningCard.dataset.timerEnd, 10);
+                        if (!isNaN(end)) runningCard.dataset.timerEnd = end + 60000;
+                        else runningCard.dataset.timerEnd = Date.now() + (left + 60) * 1000;
                     }
                     updateTimerDisplay(runningCard);
+                    updateFocusMode();
                     persist();
                 }
             };
@@ -3999,9 +4060,11 @@
                         runningCard.dataset.timerLeft = left - 60;
                         runningCard.dataset.timerTotal = Math.max(0, total - 60);
                         if (runningCard.dataset.timerState === 'running') {
-                            runningCard.dataset.timerEnd = parseInt(runningCard.dataset.timerEnd, 10) - 60000;
+                            let end = parseInt(runningCard.dataset.timerEnd, 10);
+                            if (!isNaN(end)) runningCard.dataset.timerEnd = end - 60000;
                         }
                         updateTimerDisplay(runningCard);
+                        updateFocusMode();
                         persist();
                     }
                 }
