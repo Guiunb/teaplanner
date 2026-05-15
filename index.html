@@ -667,6 +667,13 @@
             overflow: hidden;
         }
 
+        /* Garante que as listas (slots) na agenda ocupem toda a largura e não fiquem presas em 5cm */
+        .schedule .list {
+            width: auto !important;
+            max-width: none !important;
+            min-width: unset !important;
+        }
+
         .schedule header {
             position: sticky;
             top: 0;
@@ -1305,6 +1312,40 @@
             display: none;
             z-index: 10000;
         }
+
+        /* RESIZERS */
+        .resizer {
+            background-color: #19375b;
+            position: relative;
+            z-index: 10;
+            transition: background-color 0.2s;
+        }
+        
+        .resizer:hover, .resizer.resizing {
+            background-color: #2a71ff;
+        }
+
+        .resizer-v {
+            width: 8px;
+            cursor: col-resize;
+            margin: 0 -4px;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .resizer-h {
+            height: 8px;
+            cursor: row-resize;
+            margin: -4px 0;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        /* Esconder resizer quando os paineis estão colapsados */
+        .workspace.agenda-collapsed .resizer-v { display: none; }
+        .board-container.collapsed + .resizer-h { display: none; }
+        .matrix-container.collapsed ~ .resizer-h { display: none; }
+        .weekly-container.collapsed + .resizer-h { display: none; }
     </style>
 </head>
 
@@ -1373,7 +1414,7 @@
     </header>
     <section class="workspace">
         <div id="main-content">
-            <div class="weekly-container collapsed">
+            <div class="weekly-container collapsed" id="weekly-container">
                 <div class="weekly-controls">
                     <button id="prevWeekBtn" title="Semana Anterior">❮</button>
                     <span id="weekRangeDisplay">Semana Atual</span>
@@ -1383,13 +1424,16 @@
                     <!-- Colunas geradas via JS -->
                 </div>
             </div>
-            <div class="board-container">
+            <div class="resizer resizer-h" id="resizer-weekly"></div>
+            <div class="board-container" id="board-container">
                 <main class="board" id="board"></main>
             </div>
-            <div class="matrix-container">
+            <div class="resizer resizer-h" id="resizer-matrix"></div>
+            <div class="matrix-container" id="matrix-container">
                 <section class="matrix" id="matrix"></section>
             </div>
         </div>
+        <div class="resizer resizer-v" id="resizer-sidebar"></div>
         <aside id="agenda-sidebar">
             <div class="schedule" id="schedule">
                 <header>
@@ -2475,16 +2519,33 @@
 
             function duplicateCards(cards) {
                 if (!cards || !cards.length) return;
-                let newCards = [];
-                cards.forEach(function (c) {
-                    var newData = cardToData(c);
-                    if (!c.closest('#agenda-sidebar')) {
-                        newData.when = '';
-                    }
-                    var newCard = createCard(newData);
-                    newCards.push(newCard);
-                    c.parentElement.insertBefore(newCard, c.nextSibling);
+                
+                // Group selected cards by their parent list (.cards container)
+                const groupedByParent = new Map();
+                cards.forEach(c => {
+                    const parent = c.parentElement;
+                    if (!groupedByParent.has(parent)) groupedByParent.set(parent, []);
+                    groupedByParent.get(parent).push(c);
                 });
+
+                groupedByParent.forEach((cardList, parent) => {
+                    // Find the last selected card in this parent to insert after
+                    const lastOriginalCard = cardList[cardList.length - 1];
+                    let insertReference = lastOriginalCard.nextSibling;
+
+                    cardList.forEach(c => {
+                        var newData = cardToData(c);
+                        if (!c.closest('#agenda-sidebar')) {
+                            newData.when = '';
+                        }
+                        var newCard = createCard(newData);
+                        // Insert after the current reference, then update reference to the newly inserted card
+                        // so they are grouped together.
+                        parent.insertBefore(newCard, insertReference);
+                        insertReference = newCard.nextSibling;
+                    });
+                });
+
                 persist();
                 updateSlotsHasItems();
                 updateTotalTimerDisplay();
@@ -3646,12 +3707,6 @@
                             originalCard.dispatchEvent(ev);
                         });
 
-                        clone.addEventListener('contextmenu', function (e) {
-                            e.preventDefault(); 
-                            if (!selected.has(originalCard)) { clearSelection(); addSelection(originalCard); } 
-                            showCtx(e.clientX, e.clientY, originalCard); 
-                        });
-
                         clone.addEventListener('dblclick', function (e) {
                             if (e.target.closest('.dot')) {
                                 e.stopPropagation(); return;
@@ -4083,9 +4138,132 @@
                 document.body.classList.toggle('manual-focus-mode');
                 updateFocusMode();
             };
-            window.addEventListener('resize', updateFocusMode);
+            // ===== RESIZERS LOGIC =====
+            function initResizers() {
+                const resizerSidebar = document.getElementById('resizer-sidebar');
+                const sidebar = document.getElementById('agenda-sidebar');
+                const resizerMatrix = document.getElementById('resizer-matrix');
+                const matrixContainer = document.getElementById('matrix-container');
+                const boardContainer = document.getElementById('board-container');
+                const resizerWeekly = document.getElementById('resizer-weekly');
+                const weeklyContainer = document.getElementById('weekly-container');
+
+                // Load saved sizes
+                try {
+                    const saved = JSON.parse(localStorage.getItem('TEA_RESIZERS') || '{}');
+                    if (saved.sidebarWidth && window.innerWidth > 700) sidebar.style.flexBasis = saved.sidebarWidth + 'px';
+                    if (saved.boardHeight) boardContainer.style.height = saved.boardHeight + 'px';
+                    if (saved.weeklyHeight) weeklyContainer.style.height = saved.weeklyHeight + 'px';
+                } catch(e) {}
+
+                function saveResizerState() {
+                    const state = {
+                        sidebarWidth: sidebar.getBoundingClientRect().width,
+                        boardHeight: boardContainer.getBoundingClientRect().height,
+                        weeklyHeight: weeklyContainer.getBoundingClientRect().height
+                    };
+                    localStorage.setItem('TEA_RESIZERS', JSON.stringify(state));
+                }
+
+                function setupResizer(resizer, type) {
+                    if (!resizer) return;
+                    let isResizing = false;
+                    let startX, startY, startWidth, startHeight;
+
+                    function onStart(e) {
+                        isResizing = true;
+                        resizer.classList.add('resizing');
+                        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                        startX = clientX;
+                        startY = clientY;
+                        
+                        if (type === 'sidebar') {
+                            startWidth = sidebar.getBoundingClientRect().width;
+                        } else if (type === 'matrix') {
+                            startHeight = boardContainer.getBoundingClientRect().height;
+                        } else if (type === 'weekly') {
+                            startHeight = weeklyContainer.getBoundingClientRect().height;
+                        }
+                        
+                        // Disable transitions during resize for smooth dragging
+                        if (type === 'sidebar') sidebar.style.transition = 'none';
+                        if (type === 'matrix') {
+                            boardContainer.style.transition = 'none';
+                            matrixContainer.style.transition = 'none';
+                        }
+                        if (type === 'weekly') {
+                            weeklyContainer.style.transition = 'none';
+                            boardContainer.style.transition = 'none';
+                        }
+                    }
+
+                    function onMove(e) {
+                        if (!isResizing) return;
+                        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+                        if (type === 'sidebar') {
+                            // Calcula a nova largura (sidebar está na direita, então mouse pra esquerda = aumenta width)
+                            let newWidth = startWidth - (clientX - startX);
+                            // Limites de tamanho
+                            if (newWidth < 200) newWidth = 200;
+                            
+                            // Limita o crescimento para manter a proporção dos cartões
+                            let maxWidth = Math.min(400, window.innerWidth * 0.8);
+                            if (newWidth > maxWidth) newWidth = maxWidth;
+                            
+                            sidebar.style.flexBasis = newWidth + 'px';
+                        } else if (type === 'matrix') {
+                            // Calcula a nova altura para o board (resizer entre board e matrix)
+                            let newHeight = startHeight + (clientY - startY);
+                            if (newHeight < 100) newHeight = 100; // Altura mínima do board
+                            if (newHeight > window.innerHeight * 0.7) newHeight = window.innerHeight * 0.7; // Altura máxima
+                            boardContainer.style.height = newHeight + 'px';
+                            boardContainer.style.flex = 'none'; // Ensure flex-grow doesn't override height
+                        } else if (type === 'weekly') {
+                            let newHeight = startHeight + (clientY - startY);
+                            if (newHeight < 150) newHeight = 150; // Altura mínima do weekly view
+                            if (newHeight > window.innerHeight * 0.8) newHeight = window.innerHeight * 0.8;
+                            weeklyContainer.style.height = newHeight + 'px';
+                            weeklyContainer.style.flex = 'none';
+                        }
+                    }
+
+                    function onEnd(e) {
+                        if (!isResizing) return;
+                        isResizing = false;
+                        resizer.classList.remove('resizing');
+                        
+                        // Restore transitions
+                        if (type === 'sidebar') sidebar.style.transition = '';
+                        if (type === 'matrix') {
+                            boardContainer.style.transition = '';
+                            matrixContainer.style.transition = '';
+                        }
+                        if (type === 'weekly') {
+                            weeklyContainer.style.transition = '';
+                            boardContainer.style.transition = '';
+                        }
+                        
+                        saveResizerState();
+                    }
+
+                    resizer.addEventListener('mousedown', onStart);
+                    resizer.addEventListener('touchstart', onStart, { passive: true });
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('touchmove', onMove, { passive: true });
+                    document.addEventListener('mouseup', onEnd);
+                    document.addEventListener('touchend', onEnd);
+                }
+
+                setupResizer(resizerSidebar, 'sidebar');
+                setupResizer(resizerMatrix, 'matrix');
+                setupResizer(resizerWeekly, 'weekly');
+            }
 
             function initApp() {
+                initResizers();
                 applyDragScroll();
                 loadState();
                 migrateToMultiBoard();
