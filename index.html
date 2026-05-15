@@ -295,10 +295,14 @@
         }
 
         .workspace.agenda-collapsed #agenda-sidebar {
-            flex-basis: 0;
-            min-width: 0;
-            opacity: 0;
-            padding: 0;
+            flex-basis: 0 !important;
+            min-width: 0 !important;
+            opacity: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+            width: 0 !important;
+            overflow: hidden !important;
         }
 
         .toggle-tab {
@@ -1111,7 +1115,7 @@
         }
 
         .weekly-container.collapsed {
-            display: none;
+            display: none !important;
         }
 
         /* Container de navegação da semana */
