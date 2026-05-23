@@ -1350,6 +1350,176 @@
         .board-container.collapsed + .resizer-h { display: none; }
         .matrix-container.collapsed ~ .resizer-h { display: none; }
         .weekly-container.collapsed + .resizer-h { display: none; }
+
+        /* AI ASSISTANT STYLES */
+        .ai-assistant-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            max-width: 90%;
+            z-index: 995;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .ai-response-bubble {
+            background: rgba(11, 18, 32, 0.95);
+            border: 1px solid rgba(25, 118, 210, 0.4);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #e9f1ff;
+            font-size: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+            animation: fadeInAI 0.2s ease-out;
+        }
+
+        .ai-response-bubble.active {
+            display: block;
+        }
+
+        .ai-response-bubble .ai-explanation {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #64b5f6;
+        }
+
+        .ai-response-bubble .ai-question {
+            font-weight: 600;
+            color: #ffd54f;
+            margin-top: 4px;
+        }
+
+        .ai-response-bubble .ai-error {
+            color: #ff8a80;
+            font-weight: 500;
+        }
+
+        .ai-prompt-bar {
+            background: rgba(15, 34, 61, 0.85);
+            border: 1px solid rgba(25, 118, 210, 0.3);
+            border-radius: 999px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px rgba(25, 118, 210, 0.1);
+            backdrop-filter: blur(8px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .ai-prompt-bar:focus-within {
+            border-color: rgba(25, 118, 210, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(25, 118, 210, 0.3);
+        }
+
+        .ai-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 8px 4px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(159, 179, 210, 0.6);
+        }
+
+        .ai-btn {
+            background: transparent;
+            border: none;
+            color: #9fb3d2;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            outline: none;
+            width: 36px;
+            height: 36px;
+        }
+
+        .ai-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .ai-btn.active {
+            color: #ffd54f;
+        }
+
+        .ai-mic-btn.recording {
+            background: rgba(239, 83, 80, 0.25);
+            color: #ef5350;
+            animation: pulseMic 1.5s infinite;
+        }
+
+        .ai-mic-btn.recording:hover {
+            background: rgba(239, 83, 80, 0.35);
+            color: #ff867c;
+        }
+
+        .ai-send-btn {
+            background: #1976d2;
+            color: #fff;
+        }
+
+        .ai-send-btn:hover {
+            background: #2196f3;
+        }
+
+        @keyframes fadeInAI {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseMic {
+            0% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 83, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); }
+        }
+
+        /* Soundwave animation for mic recording */
+        .ai-soundwave {
+            display: none;
+            align-items: center;
+            gap: 3px;
+            height: 20px;
+            padding: 0 8px;
+        }
+
+        .ai-soundwave.active {
+            display: flex;
+        }
+
+        .ai-soundwave span {
+            display: block;
+            width: 3px;
+            height: 10px;
+            background: #ef5350;
+            border-radius: 3px;
+            animation: waveBounce 1.2s infinite ease-in-out;
+        }
+
+        .ai-soundwave span:nth-child(2) { animation-delay: 0.2s; height: 16px; }
+        .ai-soundwave span:nth-child(3) { animation-delay: 0.4s; height: 12px; }
+        .ai-soundwave span:nth-child(4) { animation-delay: 0.6s; height: 8px; }
+
+        @keyframes waveBounce {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(2); }
+        }
     </style>
 </head>
 
@@ -1514,6 +1684,20 @@
 
     <!-- Marquee Selection Box -->
     <div id="marquee"></div>
+
+    <!-- AI Assistant Floating Bar -->
+    <div class="ai-assistant-container" id="aiAssistantContainer">
+        <div class="ai-response-bubble" id="aiResponseBubble"></div>
+        <div class="ai-prompt-bar">
+            <button class="ai-btn" id="aiConfigBtn" title="Configurar Chave API do Gemini">🔑</button>
+            <div class="ai-soundwave" id="aiSoundwave">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <input type="text" class="ai-input" id="aiInput" placeholder="Fale ou digite um comando para a IA..." autocomplete="off">
+            <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">🎙️</button>
+            <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">⚡</button>
+        </div>
+    </div>
 
     <script>
         // Aguarda a janela carregar completamente antes de rodar o script
@@ -1753,14 +1937,22 @@
                 if (wrap) wrap.remove();
             }
 
-            async function callGemini(prompt, retries = 3, delay = 1000) {
-                const apiKey = ""; // <--- INSIRA SUA API KEY AQUI
+            async function callGemini(contentsOrPrompt, retries = 3, delay = 1000) {
+                const hardcodedKey = ""; // <--- INSIRA SUA API KEY AQUI
+                const apiKey = localStorage.getItem('gemini-api-key') || hardcodedKey;
                 if (!apiKey) {
-                    alert("API Key não configurada no código. A funcionalidade de IA não funcionará.");
+                    alert("Chave API do Gemini não configurada. Por favor, clique na chave 🔑 na barra inferior do Assistente de IA para configurá-la.");
                     throw new Error("No API Key");
                 }
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                
+                let contents;
+                if (typeof contentsOrPrompt === 'string') {
+                    contents = [{ parts: [{ text: contentsOrPrompt }] }];
+                } else {
+                    contents = contentsOrPrompt;
+                }
+                const payload = { contents };
 
                 for (let i = 0; i < retries; i++) {
                     try {
@@ -4266,11 +4458,470 @@
                 setupResizer(resizerWeekly, 'weekly');
             }
 
+            // ===== AI ASSISTANT MOTOR / CONTROLLER =====
+            let aiConversationHistory = [];
+            let recognition = null;
+            let isRecording = false;
+
+            function configureApiKeyDialog() {
+                showModal('Configurar Chave API do Gemini', function() {
+                    const div = el('div');
+                    div.style.padding = '8px 0';
+                    div.innerHTML = `
+                        <p style="margin-bottom:12px; font-size:14px; color:#9fb3d2; line-height:1.4;">Para utilizar a inteligência artificial (digitar/falar comandos), insira sua chave da API do Gemini abaixo:</p>
+                        <input type="password" id="dialogApiKeyInput" value="${localStorage.getItem('gemini-api-key') || ''}" placeholder="Cole sua API Key aqui (ex: AIzaSy...)" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box;">
+                        <p style="margin-top:12px; font-size:12px; color:#ffa726; line-height:1.4;">⚠️ Sua chave fica salva com total segurança <strong>apenas localmente</strong> no seu navegador (localStorage).</p>
+                    `;
+                    return div;
+                }, function(body) {
+                    const val = body.querySelector('#dialogApiKeyInput').value.trim();
+                    if (val) {
+                        localStorage.setItem('gemini-api-key', val);
+                        alert("Chave API do Gemini configurada com sucesso!");
+                    } else {
+                        localStorage.removeItem('gemini-api-key');
+                        alert("Chave removida de localStorage.");
+                    }
+                });
+            }
+
+            function initSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    console.log("Speech recognition not supported in this browser.");
+                    const micBtn = document.getElementById('aiMicBtn');
+                    if (micBtn) micBtn.style.display = 'none';
+                    return;
+                }
+
+                recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = function() {
+                    isRecording = true;
+                    const micBtn = document.getElementById('aiMicBtn');
+                    if (micBtn) {
+                        micBtn.classList.add('recording');
+                        micBtn.textContent = '🛑';
+                    }
+                    const sw = document.getElementById('aiSoundwave');
+                    if (sw) sw.classList.add('active');
+                    showAiResponseBubble("Ouvindo... Fale agora.", false, false);
+                };
+
+                recognition.onend = function() {
+                    isRecording = false;
+                    const micBtn = document.getElementById('aiMicBtn');
+                    if (micBtn) {
+                        micBtn.classList.remove('recording');
+                        micBtn.textContent = '🎙️';
+                    }
+                    const sw = document.getElementById('aiSoundwave');
+                    if (sw) sw.classList.remove('active');
+                };
+
+                recognition.onerror = function(event) {
+                    console.error("Speech recognition error", event.error);
+                    showAiResponseBubble("Erro na gravação de voz: " + event.error, false, true);
+                };
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    const inputEl = document.getElementById('aiInput');
+                    if (inputEl) {
+                        inputEl.value = transcript;
+                        submitAiCommand();
+                    }
+                };
+            }
+
+            function toggleVoiceRecord() {
+                if (!recognition) {
+                    alert("O reconhecimento de voz não é suportado pelo seu navegador.");
+                    return;
+                }
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            }
+
+            function showAiResponseBubble(message, isQuestion = false, isError = false) {
+                const bubble = document.getElementById('aiResponseBubble');
+                if (!bubble) return;
+                
+                bubble.innerHTML = '';
+                if (isError) {
+                    const errDiv = el('div', 'ai-error');
+                    errDiv.textContent = message;
+                    bubble.appendChild(errDiv);
+                } else if (isQuestion) {
+                    const qDiv = el('div', 'ai-question');
+                    qDiv.textContent = message;
+                    bubble.appendChild(qDiv);
+                } else {
+                    const expDiv = el('div', 'ai-explanation');
+                    expDiv.textContent = message;
+                    bubble.appendChild(expDiv);
+                }
+                
+                bubble.classList.add('active');
+                
+                if (!isQuestion && !isError && message !== 'Processando...') {
+                    setTimeout(() => {
+                        if (bubble.textContent === message) {
+                            bubble.classList.remove('active');
+                        }
+                    }, 8000);
+                }
+            }
+
+            async function submitAiCommand() {
+                const inputEl = document.getElementById('aiInput');
+                if (!inputEl) return;
+                const text = inputEl.value.trim();
+                if (!text) return;
+
+                inputEl.value = '';
+                showAiResponseBubble('Processando...', false, false);
+
+                aiConversationHistory.push({ role: 'user', parts: [{ text: text }] });
+
+                const activeBoardMeta = boardsMeta.find(b => b.id === currentBoardId);
+                const activeBoardName = activeBoardMeta ? activeBoardMeta.name : 'Principal';
+                const existingBoards = boardsMeta.map(b => b.name);
+                const activeBoardLists = $$('.list[data-type="kanban"]', boardEl).map(l => l.querySelector('.title').value);
+
+                const sysPrompt = `Você é a inteligência artificial de controle do TEA Planner, um aplicativo de produtividade que mistura Kanban, Matriz de Eisenhower (Q1, Q2, Q3, Q4) e Agenda com compromissos diários.
+
+Seu objetivo é analisar o comando em linguagem natural do usuário (em português) e retornar um JSON contendo uma lista de ações estruturadas para o aplicativo executar.
+
+A data de hoje no sistema é: ${getActiveDay()}.
+O quadro ativo atualmente é: "${activeBoardName}".
+Os quadros existentes no sistema são: ${JSON.stringify(existingBoards)}.
+As listas no quadro ativo atualmente são: ${JSON.stringify(activeBoardLists)}.
+
+Você deve analisar o comando e responder estritamente com um JSON no seguinte formato, sem formatação markdown (como blocos de código \`\`\`json), sem textos adicionais antes ou depois.
+
+Formato de Resposta Esperado:
+{
+  "explanation": "Uma frase amigável explicando o que você entendeu e vai fazer.",
+  "question": "Se o comando for ambíguo ou necessitar de esclarecimento (por exemplo, criar uma lista mas existem múltiplos quadros e o usuário não especificou qual, ou criar uma lista de compras mas não disse o nome da lista), faça a pergunta aqui. Se 'question' estiver preenchido, o array 'actions' DEVE estar vazio.",
+  "actions": [
+    // Array de ações a serem executadas em ordem. Pode ser vazio.
+    {
+      "type": "SWITCH_BOARD",
+      "boardName": "Nome exato do quadro para o qual mudar"
+    },
+    {
+      "type": "CREATE_LIST",
+      "boardName": "Nome do quadro", // Opcional (assume o atual se omitido)
+      "listTitle": "Nome da Lista"
+    },
+    {
+      "type": "CREATE_CARDS",
+      "boardName": "Nome do quadro", // Opcional (assume o atual se omitido)
+      "listTitle": "Nome da Lista",  // Opcional se for para Matriz ou Agenda
+      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (só preencha se for para a Matriz de Eisenhower)
+      "time": "HH:MM", // Opcional (só preencha se for para a Agenda, ex: "10:00")
+      "goal": true | false, // Opcional (se for o Objetivo do Dia na agenda)
+      "cards": [
+        {
+          "text": "Texto do cartão",
+          "color": "#hex_opcional",
+          "due": "YYYY-MM-DD" // Opcional (prazo final, formato YYYY-MM-DD)
+        }
+      ]
+    },
+    {
+      "type": "COMPLETE_CARDS",
+      "timeRange": "morning" | "afternoon" | "evening" | "night" | "all", // Opcional (para completar compromissos do período da manhã/tarde/noite/tudo)
+      "time": "HH:MM", // Opcional (completar compromisso de um horário específico)
+      "listTitle": "Nome da Lista", // Opcional (completar todos os cartões desta lista no kanban)
+      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (completar todos os cartões deste quadrante)
+      "all": true | false // Opcional
+    },
+    {
+      "type": "COPY_PASTE_AGENDA",
+      "fromDay": "YYYY-MM-DD",
+      "toDay": "YYYY-MM-DD"
+    }
+  ]
+}
+
+Regras Importantes:
+1. Sempre responda em formato JSON válido e parseável pelo JSON.parse(). Não retorne explicações fora do JSON.
+2. Identifique datas relativas baseadas no dia de hoje: "hoje" é ${getActiveDay()}, "amanhã" é o dia seguinte, "ontem" é o dia anterior, etc.
+3. Se o usuário quiser criar cartões na agenda, use "time" ou "goal". Exemplo: "Consulta médica 10h" -> type: CREATE_CARDS com time: "10:00".
+4. Se o usuário quiser criar uma lista e cartões (ex: "lista de feira com batata e brocolis"), e houver múltiplos quadros no sistema, mas ele não disser em qual quadro: pergunte em qual quadro ele deseja criar preenchendo o campo "question".
+5. Se houver apenas 1 quadro cadastrado no sistema além da Lixeira, crie a lista diretamente nele sem perguntar.
+6. Se o usuário disser para copiar a agenda de ontem para hoje, retorne uma ação do tipo COPY_PASTE_AGENDA com fromDay = ontem e toDay = hoje.
+7. Se o usuário disser "marcar como feito as atividades da manhã", retorne complete_cards com timeRange = "morning". A manhã corresponde a qualquer horário de 06:00 a 11:30.
+8. Mantenha os nomes de quadros e listas consistentes com os já existentes, se houver similaridade semântica (ex: "pessoal" e "Pessoal").
+`;
+
+                const contents = [
+                    { role: 'user', parts: [{ text: sysPrompt + "\n\nAgora processe o seguinte diálogo com o usuário:\n" }] }
+                ];
+                
+                aiConversationHistory.forEach(turn => {
+                    contents.push(turn);
+                });
+
+                try {
+                    const responseText = await callGemini(contents);
+                    
+                    let responseJson;
+                    try {
+                        let cleanedText = responseText.trim();
+                        if (cleanedText.startsWith('```')) {
+                            cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
+                        }
+                        responseJson = JSON.parse(cleanedText);
+                    } catch (parseErr) {
+                        console.error("Gemini did not return valid JSON. Raw response: ", responseText);
+                        showAiResponseBubble("Desculpe, não consegui entender o comando estruturado. Por favor tente reescrever.", false, true);
+                        aiConversationHistory.pop();
+                        return;
+                    }
+
+                    aiConversationHistory.push({ role: 'model', parts: [{ text: JSON.stringify(responseJson) }] });
+
+                    if (responseJson.question) {
+                        showAiResponseBubble(responseJson.question, true, false);
+                    } else {
+                        if (responseJson.actions && responseJson.actions.length > 0) {
+                            executeAiActions(responseJson.actions);
+                        }
+                        showAiResponseBubble(responseJson.explanation || 'Comando executado com sucesso!', false, false);
+                        aiConversationHistory = [];
+                    }
+                } catch (apiErr) {
+                    console.error("Gemini API call failed: ", apiErr);
+                    showAiResponseBubble("Ocorreu um erro ao conectar com o assistente de IA. Verifique sua chave API e conexão de internet.", false, true);
+                    aiConversationHistory.pop();
+                }
+            }
+
+            function executeAiActions(actions) {
+                actions.forEach(action => {
+                    try {
+                        switch (action.type) {
+                            case 'SWITCH_BOARD':
+                                if (action.boardName) {
+                                    const board = boardsMeta.find(b => b.name.toLowerCase().trim() === action.boardName.toLowerCase().trim());
+                                    if (board) {
+                                        switchBoard(board.id);
+                                    }
+                                }
+                                break;
+
+                            case 'CREATE_LIST':
+                                {
+                                    let boardId = currentBoardId;
+                                    if (action.boardName) {
+                                        const board = boardsMeta.find(b => b.name.toLowerCase().trim() === action.boardName.toLowerCase().trim());
+                                        if (board) {
+                                            boardId = board.id;
+                                            if (boardId !== currentBoardId) {
+                                                switchBoard(boardId);
+                                            }
+                                        }
+                                    }
+                                    let listEl = $$('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value.toLowerCase().trim() === action.listTitle.toLowerCase().trim());
+                                    if (!listEl) {
+                                        createList(action.listTitle);
+                                        persist();
+                                    }
+                                }
+                                break;
+
+                            case 'CREATE_CARDS':
+                                {
+                                    let boardId = currentBoardId;
+                                    if (action.boardName) {
+                                        const board = boardsMeta.find(b => b.name.toLowerCase().trim() === action.boardName.toLowerCase().trim());
+                                        if (board) {
+                                            boardId = board.id;
+                                            if (boardId !== currentBoardId) {
+                                                switchBoard(boardId);
+                                            }
+                                        }
+                                    }
+
+                                    let container = null;
+                                    let whenVal = "";
+
+                                    if (action.time) {
+                                        whenVal = getActiveDay() + 'T' + action.time;
+                                        const slot = slotsRoot.querySelector(`.list.slot[data-time="${action.time}"]`);
+                                        if (slot) container = slot.querySelector('.cards');
+                                    } else if (action.goal) {
+                                        whenVal = getActiveDay() + 'TGOAL';
+                                        const goalSlot = slotsRoot.querySelector('.list.goal-slot');
+                                        if (goalSlot) container = goalSlot.querySelector('.cards');
+                                    } else if (action.quadrant) {
+                                        const quadList = matrixEl.querySelector(`.list[data-quad="${action.quadrant}"]`);
+                                        if (quadList) container = quadList.querySelector('.cards');
+                                    } else {
+                                        let listTitle = action.listTitle || "Para Fazer";
+                                        let listEl = $$('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value.toLowerCase().trim() === listTitle.toLowerCase().trim());
+                                        if (!listEl) {
+                                            listEl = createList(listTitle);
+                                        }
+                                        container = listEl.querySelector('.cards');
+                                    }
+
+                                    if (container && action.cards) {
+                                        action.cards.forEach(cData => {
+                                            const cardData = {
+                                                text: cData.text,
+                                                color: cData.color || (action.quadrant ? MATRIX_COLORS[action.quadrant] : ""),
+                                                due: cData.due || "",
+                                                when: whenVal,
+                                                timerTotal: cData.timerTotal ? String(cData.timerTotal) : ""
+                                            };
+                                            const newCard = createCard(cardData);
+                                            container.appendChild(newCard);
+                                        });
+                                        persist();
+                                        updateSlotsHasItems();
+                                        updateTotalTimerDisplay();
+                                    }
+                                }
+                                break;
+
+                            case 'COMPLETE_CARDS':
+                                {
+                                    let targetCards = [];
+                                    if (action.timeRange) {
+                                        allCards.forEach(c => {
+                                            if (c.dataset.when && /T\d{2}:\d{2}$/.test(c.dataset.when)) {
+                                                const timeStr = c.dataset.when.split('T')[1];
+                                                const hour = parseInt(timeStr.split(':')[0], 10);
+                                                let match = false;
+                                                if (action.timeRange === 'morning' && hour >= 6 && hour < 12) match = true;
+                                                else if (action.timeRange === 'afternoon' && hour >= 12 && hour < 18) match = true;
+                                                else if ((action.timeRange === 'evening' || action.timeRange === 'night') && hour >= 18 && hour <= 23) match = true;
+                                                else if (action.timeRange === 'all') match = true;
+
+                                                if (match && c.dataset.completed !== 'true') {
+                                                    targetCards.push(c);
+                                                }
+                                            }
+                                        });
+                                    } else if (action.time) {
+                                        const whenVal = getActiveDay() + 'T' + action.time;
+                                        allCards.forEach(c => {
+                                            if (c.dataset.when === whenVal && c.dataset.completed !== 'true') {
+                                                targetCards.push(c);
+                                            }
+                                        });
+                                    } else if (action.quadrant) {
+                                        const quadList = matrixEl.querySelector(`.list[data-quad="${action.quadrant}"]`);
+                                        if (quadList) {
+                                            $$( '.card', quadList).forEach(c => {
+                                                const cardInCache = allCards.find(cacheCard => cacheCard === c);
+                                                if (cardInCache && cardInCache.dataset.completed !== 'true') {
+                                                    targetCards.push(cardInCache);
+                                                }
+                                            });
+                                        }
+                                    } else if (action.listTitle) {
+                                        const listEl = $$('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value.toLowerCase().trim() === action.listTitle.toLowerCase().trim());
+                                        if (listEl) {
+                                            $$( '.card', listEl).forEach(c => {
+                                                const cardInCache = allCards.find(cacheCard => cacheCard === c);
+                                                if (cardInCache && cardInCache.dataset.completed !== 'true') {
+                                                    targetCards.push(cardInCache);
+                                                }
+                                            });
+                                        }
+                                    } else if (action.all) {
+                                        allCards.forEach(c => {
+                                            if (c.dataset.completed !== 'true') {
+                                                targetCards.push(c);
+                                            }
+                                        });
+                                    }
+
+                                    if (targetCards.length > 0) {
+                                        targetCards.forEach(card => {
+                                            card.dataset.completed = 'true';
+                                            card.classList.remove('timer-finished');
+                                            if (card.dataset.timerState === 'finished') {
+                                                card.dataset.timerState = 'stopped';
+                                            }
+                                            updateTimerDisplay(card);
+                                        });
+                                        persist();
+                                        updateSlotsHasItems();
+                                    }
+                                }
+                                break;
+
+                            case 'COPY_PASTE_AGENDA':
+                                if (action.fromDay && action.toDay) {
+                                    copyAgendaFromTo(action.fromDay, action.toDay);
+                                }
+                                break;
+                        }
+                    } catch (err) {
+                        console.error("Erro executando ação da IA:", action, err);
+                    }
+                });
+            }
+
+            function copyAgendaFromTo(fromDay, toDay) {
+                if (fromDay === toDay) return;
+                const cardsToCopy = allCards.filter(c => (c.dataset.when || '').startsWith(fromDay + 'T')).map(c => ({
+                    ...cardToData(c),
+                    timeOrGoal: (c.dataset.when || '').substring(11)
+                }));
+                cardsToCopy.forEach(cardData => {
+                    const newData = { ...cardData };
+                    newData.when = toDay + 'T' + newData.timeOrGoal;
+                    const existsInCache = allCards.some(c => c.dataset.when === newData.when && c.querySelector('.text').textContent.trim() === newData.text.trim());
+                    if (!existsInCache) {
+                        createCard(newData);
+                    }
+                });
+                updateSlotsHasItems();
+                persist();
+            }
+
+            function initAiControls() {
+                const sendBtn = document.getElementById('aiSendBtn');
+                if (sendBtn) sendBtn.addEventListener('click', submitAiCommand);
+                
+                const inputEl = document.getElementById('aiInput');
+                if (inputEl) {
+                    inputEl.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            submitAiCommand();
+                        }
+                    });
+                }
+                
+                const configBtn = document.getElementById('aiConfigBtn');
+                if (configBtn) configBtn.addEventListener('click', configureApiKeyDialog);
+                
+                const micBtn = document.getElementById('aiMicBtn');
+                if (micBtn) micBtn.addEventListener('click', toggleVoiceRecord);
+
+                initSpeechRecognition();
+            }
+
             function initApp() {
                 initResizers();
                 applyDragScroll();
                 loadState();
                 migrateToMultiBoard();
+                initAiControls();
                 if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
             }
 
