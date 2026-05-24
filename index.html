@@ -1351,33 +1351,109 @@
         .matrix-container.collapsed ~ .resizer-h { display: none; }
         .weekly-container.collapsed + .resizer-h { display: none; }
 
-        /* AI ASSISTANT STYLES */
+        /* AI ASSISTANT IN HEADER */
         .ai-assistant-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 600px;
-            max-width: 90%;
+            position: relative;
             z-index: 995;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-grow: 1;
+            min-width: 280px;
+            max-width: 450px;
+            margin: 2px 0;
+        }
+
+        .ai-prompt-bar {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(25, 118, 210, 0.3);
+            border-radius: 20px;
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 34px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .ai-prompt-bar:focus-within {
+            border-color: rgba(25, 118, 210, 0.8);
+            box-shadow: 0 0 10px rgba(25, 118, 210, 0.25);
+        }
+
+        .ai-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 4px 0;
+            font-size: 14px;
+            outline: none;
+            min-width: 0;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .ai-btn {
+            background: transparent;
+            border: none;
+            color: #9fb3d2;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+            outline: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-size: 13px;
+        }
+
+        .ai-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .ai-btn.active {
+            color: #ffd54f;
+        }
+
+        .ai-mic-btn.recording {
+            background: rgba(239, 83, 80, 0.3);
+            color: #ef5350;
+            animation: pulseMic 1.5s infinite;
+        }
+
+        .ai-send-btn {
+            background: #0e58a5;
+            color: #fff;
+        }
+
+        .ai-send-btn:hover {
+            background: #1976d2;
         }
 
         .ai-response-bubble {
-            background: rgba(11, 18, 32, 0.95);
-            border: 1px solid rgba(25, 118, 210, 0.4);
-            border-radius: 12px;
-            padding: 10px 14px;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 6px;
+            background: #0b1220;
+            border: 1px solid #24314a;
+            border-radius: 8px;
+            padding: 10px 12px;
             color: #e9f1ff;
-            font-size: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
             display: none;
             max-height: 200px;
             overflow-y: auto;
+            z-index: 1001;
             animation: fadeInAI 0.2s ease-out;
         }
 
@@ -1387,8 +1463,8 @@
 
         .ai-response-bubble .ai-explanation {
             font-weight: 500;
-            margin-bottom: 4px;
             color: #64b5f6;
+            margin-bottom: 4px;
         }
 
         .ai-response-bubble .ai-question {
@@ -1402,82 +1478,31 @@
             font-weight: 500;
         }
 
-        .ai-prompt-bar {
-            background: rgba(15, 34, 61, 0.85);
-            border: 1px solid rgba(25, 118, 210, 0.3);
-            border-radius: 999px;
-            padding: 6px 12px;
-            display: flex;
+        /* Soundwave animation for mic recording */
+        .ai-soundwave {
+            display: none;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px rgba(25, 118, 210, 0.1);
-            backdrop-filter: blur(8px);
-            transition: border-color 0.3s, box-shadow 0.3s;
+            gap: 2px;
+            height: 14px;
+            padding: 0 4px;
         }
 
-        .ai-prompt-bar:focus-within {
-            border-color: rgba(25, 118, 210, 0.8);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(25, 118, 210, 0.3);
-        }
-
-        .ai-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            padding: 8px 4px;
-            font-size: 15px;
-            outline: none;
-        }
-
-        .ai-input::placeholder {
-            color: rgba(159, 179, 210, 0.6);
-        }
-
-        .ai-btn {
-            background: transparent;
-            border: none;
-            color: #9fb3d2;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
+        .ai-soundwave.active {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s;
-            outline: none;
-            width: 36px;
-            height: 36px;
         }
 
-        .ai-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
+        .ai-soundwave span {
+            display: block;
+            width: 2px;
+            height: 6px;
+            background: #ef5350;
+            border-radius: 2px;
+            animation: waveBounce 1.2s infinite ease-in-out;
         }
 
-        .ai-btn.active {
-            color: #ffd54f;
-        }
-
-        .ai-mic-btn.recording {
-            background: rgba(239, 83, 80, 0.25);
-            color: #ef5350;
-            animation: pulseMic 1.5s infinite;
-        }
-
-        .ai-mic-btn.recording:hover {
-            background: rgba(239, 83, 80, 0.35);
-            color: #ff867c;
-        }
-
-        .ai-send-btn {
-            background: #1976d2;
-            color: #fff;
-        }
-
-        .ai-send-btn:hover {
-            background: #2196f3;
-        }
+        .ai-soundwave span:nth-child(2) { animation-delay: 0.2s; height: 10px; }
+        .ai-soundwave span:nth-child(3) { animation-delay: 0.4s; height: 8px; }
+        .ai-soundwave span:nth-child(4) { animation-delay: 0.6s; height: 4px; }
 
         @keyframes fadeInAI {
             from { opacity: 0; transform: translateY(5px); }
@@ -1489,32 +1514,6 @@
             70% { box-shadow: 0 0 0 10px rgba(239, 83, 80, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 83, 80, 0); }
         }
-
-        /* Soundwave animation for mic recording */
-        .ai-soundwave {
-            display: none;
-            align-items: center;
-            gap: 3px;
-            height: 20px;
-            padding: 0 8px;
-        }
-
-        .ai-soundwave.active {
-            display: flex;
-        }
-
-        .ai-soundwave span {
-            display: block;
-            width: 3px;
-            height: 10px;
-            background: #ef5350;
-            border-radius: 3px;
-            animation: waveBounce 1.2s infinite ease-in-out;
-        }
-
-        .ai-soundwave span:nth-child(2) { animation-delay: 0.2s; height: 16px; }
-        .ai-soundwave span:nth-child(3) { animation-delay: 0.4s; height: 12px; }
-        .ai-soundwave span:nth-child(4) { animation-delay: 0.6s; height: 8px; }
 
         @keyframes waveBounce {
             0%, 100% { transform: scaleY(1); }
@@ -1581,6 +1580,19 @@
             <span class="toggle-switch-button">OFF</span>
         </label>
         <button id="addList">+ Lista</button>
+        <!-- AI Assistant Header Bar -->
+        <div class="ai-assistant-container" id="aiAssistantContainer">
+            <div class="ai-prompt-bar">
+                <button class="ai-btn" id="aiConfigBtn" title="Configurar Chave API do Gemini">🔑</button>
+                <div class="ai-soundwave" id="aiSoundwave">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <input type="text" class="ai-input" id="aiInput" placeholder="Fale ou digite um comando..." autocomplete="off">
+                <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">🎙️</button>
+                <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">⚡</button>
+            </div>
+            <div class="ai-response-bubble" id="aiResponseBubble"></div>
+        </div>
         <button id="exportJson" title="Baixar backup JSON">Exportar JSON</button>
         <button id="importJsonBtn" title="Restaurar de JSON">Importar JSON</button>
         <input id="importFile" type="file" style="display:none" />
@@ -1685,19 +1697,7 @@
     <!-- Marquee Selection Box -->
     <div id="marquee"></div>
 
-    <!-- AI Assistant Floating Bar -->
-    <div class="ai-assistant-container" id="aiAssistantContainer">
-        <div class="ai-response-bubble" id="aiResponseBubble"></div>
-        <div class="ai-prompt-bar">
-            <button class="ai-btn" id="aiConfigBtn" title="Configurar Chave API do Gemini">🔑</button>
-            <div class="ai-soundwave" id="aiSoundwave">
-                <span></span><span></span><span></span><span></span>
-            </div>
-            <input type="text" class="ai-input" id="aiInput" placeholder="Fale ou digite um comando para a IA..." autocomplete="off">
-            <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">🎙️</button>
-            <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">⚡</button>
-        </div>
-    </div>
+
 
     <script>
         // Aguarda a janela carregar completamente antes de rodar o script
@@ -1977,7 +1977,16 @@
                                 break;
                             }
 
-                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                            if (!response.ok) {
+                                let errorMsg = `HTTP error! status: ${response.status}`;
+                                try {
+                                    const errJson = await response.json();
+                                    if (errJson.error && errJson.error.message) {
+                                        errorMsg = errJson.error.message;
+                                    }
+                                } catch (_) {}
+                                throw new Error(errorMsg);
+                            }
                             const result = await response.json();
                             const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                             if (text) return text;
@@ -4728,7 +4737,8 @@ Regras Importantes:
                     }
                 } catch (apiErr) {
                     console.error("Gemini API call failed: ", apiErr);
-                    showAiResponseBubble("Ocorreu um erro ao conectar com o assistente de IA. Verifique sua chave API e conexão de internet.", false, true);
+                    const errorMsg = apiErr.message || "Erro desconhecido. Verifique sua chave API e conexão.";
+                    showAiResponseBubble(`Erro da API: ${errorMsg}`, false, true);
                     aiConversationHistory.pop();
                 }
             }
