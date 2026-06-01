@@ -1179,13 +1179,15 @@
         }
 
         .day-column header {
-            padding: 8px;
+            padding: 8px 12px;
             background: #122b4a;
             border-bottom: 1px solid #19375b;
-            text-align: center;
             font-weight: bold;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .day-column header .date-label {
@@ -1519,6 +1521,92 @@
             0%, 100% { transform: scaleY(1); }
             50% { transform: scaleY(2); }
         }
+
+        /* Styling for Header Dropdowns */
+        .header-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .header-dropdown-btn {
+            background: #0e58a5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: background-color 0.2s;
+            height: 28px;
+            line-height: 1;
+        }
+
+        .header-dropdown-btn:hover {
+            background: #0c4d91;
+        }
+
+        .header-dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #0b1220;
+            min-width: 180px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #24314a;
+            margin-top: 5px;
+        }
+
+        .header-dropdown-content button {
+            color: #fff;
+            padding: 10px 14px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            font-size: 13px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .header-dropdown-content button:hover {
+            background-color: #1a2538;
+        }
+
+        .header-dropdown.active .header-dropdown-content {
+            display: block;
+        }
+
+        .weekly-add-btn {
+            background: transparent;
+            border: none;
+            color: var(--brand);
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 6px;
+            border-radius: 4px;
+            line-height: 1;
+            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .weekly-add-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -1547,12 +1635,32 @@
                 style="background:#0f223d; color:white; border:1px solid #1f4068; padding: 4px 8px; border-radius:4px; max-width: 200px; cursor: pointer;">
                 <!-- Options populated by JS -->
             </select>
-            <button id="newBoardBtn" title="Novo Quadro" style="padding:4px 8px;">➕</button>
-            <button id="editBoardBtn" title="Renomear Quadro" style="padding:4px 8px;">✏️</button>
-            <button id="cloneBoardBtn" title="Salvar Como..." style="padding:4px 8px;">📋</button>
-            <button id="boardThemeBtn" title="Cor do Quadro" style="padding:4px 8px;">🎨</button>
-            <button id="deleteBoardBtn" title="Excluir Quadro" style="padding:4px 8px; color:#ff6b6b;">🗑️</button>
-            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+            
+            <div class="header-dropdown" id="boardDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Quadros ▾</button>
+                <div class="header-dropdown-content">
+                    <button type="button" id="menuNewBoard">Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">Cor do Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">Excluir Quadro</button>
+                </div>
+            </div>
+            
+            <div class="header-dropdown" id="dataDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Dados ▾</button>
+                <div class="header-dropdown-content">
+                    <button type="button" id="menuExportJson">Salvar Json</button>
+                    <button type="button" id="menuImportJson">Importar Json</button>
+                </div>
+            </div>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
+            <!-- Ocultos para manter compatibilidade de IDs legados -->
+            <button id="newBoardBtn" style="display:none"></button>
+            <button id="editBoardBtn" style="display:none"></button>
+            <button id="cloneBoardBtn" style="display:none"></button>
+            <button id="boardThemeBtn" style="display:none"></button>
+            <button id="deleteBoardBtn" style="display:none"></button>
         </div>
 
         <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
@@ -1561,7 +1669,7 @@
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
-            title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m ou 1h 30m">
+            title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
         <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
         <label>De <input id="fFrom" type="date"></label>
         <label>Até <input id="fTo" type="date"></label>
@@ -1573,7 +1681,7 @@
         <button id="toggleWeeklyBtn" title="Visão Semanal">📅 Semana</button>
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
-        <button id="quickSaveBtn" title="Salvar Backup Rápido">💾</button>
+        <button id="quickSaveBtn" style="display:none"></button>
         <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
             <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
             <span class="toggle-switch-label">⚙️</span>
@@ -1593,10 +1701,11 @@
             </div>
             <div class="ai-response-bubble" id="aiResponseBubble"></div>
         </div>
-        <button id="exportJson" title="Baixar backup JSON">Exportar JSON</button>
-        <button id="importJsonBtn" title="Restaurar de JSON">Importar JSON</button>
+        <!-- Ocultos para manter compatibilidade de IDs legados -->
+        <button id="exportJson" style="display:none"></button>
+        <button id="importJsonBtn" style="display:none"></button>
         <input id="importFile" type="file" style="display:none" />
-        <button id="reset">Resetar</button>
+        <button id="reset" style="display:none"></button>
     </header>
     <section class="workspace">
         <div id="main-content">
@@ -2432,6 +2541,76 @@
                 return { boardData, agendaData };
             }
 
+            function exportBackup() {
+                const backupData = {
+                    version: '2.0',
+                    boardsMeta: boardsMeta,
+                    globalAgenda: JSON.parse(localStorage.getItem(LS_GLOBAL_AGENDA) || '[]'),
+                    boards: {}
+                };
+                boardsMeta.forEach(b => {
+                    backupData.boards[b.id] = JSON.parse(localStorage.getItem(LS_BOARD_PREFIX + b.id) || '[]');
+                });
+                
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `tea-planner-backup-${timestamp}.json`;
+                const a = document.createElement('a');
+                a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                a.download = filename;
+                a.click();
+            }
+
+            function importBackup(file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (data.version === '2.0' && data.boardsMeta && data.boards) {
+                            showConfirm('Isso substituirá todos os seus quadros e agenda atuais. Deseja continuar?', function() {
+                                localStorage.setItem(LS_BOARDS_META, JSON.stringify(data.boardsMeta));
+                                localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(data.globalAgenda || []));
+                                Object.keys(data.boards).forEach(boardId => {
+                                    localStorage.setItem(LS_BOARD_PREFIX + boardId, JSON.stringify(data.boards[boardId]));
+                                });
+                                
+                                let newCurrentId = localStorage.getItem(LS_CURRENT_BOARD);
+                                if (!data.boardsMeta.find(b => b.id === newCurrentId)) {
+                                    if (data.boardsMeta.length > 0) newCurrentId = data.boardsMeta[0].id;
+                                }
+                                localStorage.setItem(LS_CURRENT_BOARD, newCurrentId);
+                                
+                                alert('Backup restaurado com sucesso!');
+                                window.location.reload();
+                            });
+                        } else {
+                            showConfirm('Detectado formato de backup de quadro único. Deseja mesclar com o quadro ativo?', function() {
+                                const dataToRestore = Array.isArray(data.data) ? data.data : data;
+                                if (!Array.isArray(dataToRestore)) {
+                                    throw new Error("Formato inválido.");
+                                }
+                                
+                                const boardData = dataToRestore.filter(d => d.type === 'kanban' || d.type === 'quad');
+                                const agendaData = dataToRestore.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
+                                
+                                localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
+                                if (agendaData.length > 0) {
+                                    const currentAgenda = JSON.parse(localStorage.getItem(LS_GLOBAL_AGENDA) || '[]');
+                                    const mergedAgenda = currentAgenda.concat(agendaData);
+                                    localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(mergedAgenda));
+                                }
+                                
+                                alert('Quadro importado com sucesso!');
+                                window.location.reload();
+                            });
+                        }
+                    } catch (err) {
+                        alert('Erro ao importar backup: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
             var HIST_LIMIT = 120; var hist = [], cursor = -1;
             function pushHistory(snap) {
                 // Snap agora é um objeto { boardData, agendaData }
@@ -2728,7 +2907,23 @@
                 '#c62828': { name: 'Vermelho Tijolo', brand: '#c62828', bg: '#140505', panel: '#2a0a0a', card: '#380d0d', text: '#ffebee' },
                 '#37474f': { name: 'Cinza Escuro', brand: '#37474f', bg: '#101416', panel: '#1c2327', card: '#263238', text: '#eceff1' },
                 '#00838f': { name: 'Ciano', brand: '#00838f', bg: '#001416', panel: '#00262b', card: '#003339', text: '#e0f7fa' },
-                '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' }
+                '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' },
+                '#00796b': { name: 'Verde Água', brand: '#00796b', bg: '#001210', panel: '#00211f', card: '#002e2b', text: '#e0f2f1' },
+                '#8d6e63': { name: 'Marrom Slate', brand: '#8d6e63', bg: '#18110f', panel: '#281e1b', card: '#352924', text: '#efebe9' },
+                '#3f51b5': { name: 'Índigo', brand: '#3f51b5', bg: '#0a0b16', panel: '#13152c', card: '#1c1f40', text: '#e8eaf6' },
+                '#ffb300': { name: 'Amarelo Âmbar', brand: '#ffb300', bg: '#1c1400', panel: '#332500', card: '#463300', text: '#fff8e1' },
+                '#827717': { name: 'Verde Limão', brand: '#827717', bg: '#121200', panel: '#222204', card: '#313107', text: '#f9fbe7' },
+                '#d81b60': { name: 'Rosa Magenta', brand: '#d81b60', bg: '#1a000a', panel: '#320015', card: '#44001d', text: '#fce4ec' },
+                '#673ab7': { name: 'Roxo Lavanda', brand: '#673ab7', bg: '#0e0618', panel: '#1d0e32', card: '#281446', text: '#ede7f6' },
+                '#00c853': { name: 'Esmeralda', brand: '#00c853', bg: '#001a0a', panel: '#003314', card: '#00481c', text: '#e8f5e9' },
+                '#ff007f': { name: 'Cyberpunk Neon', brand: '#ff007f', bg: '#0a000d', panel: '#1b0022', card: '#270031', text: '#ffe5f2' },
+                '#00e676': { name: 'Menta Neon', brand: '#00e676', bg: '#001209', panel: '#002412', card: '#00361b', text: '#e8fdf5' },
+                '#00b0ff': { name: 'Oceano Profundo', brand: '#00b0ff', bg: '#000a12', panel: '#001524', card: '#00223b', text: '#e0f7ff' },
+                '#ec407a': { name: 'Rose Gold', brand: '#ec407a', bg: '#1a0a0f', panel: '#2e141c', card: '#3f1b26', text: '#fce4ec' },
+                '#f43f5e': { name: 'Pôr do Sol Violeta', brand: '#f43f5e', bg: '#18040d', panel: '#2d0a1b', card: '#3e0f26', text: '#ffeef2' },
+                '#607d8b': { name: 'Grafite', brand: '#607d8b', bg: '#111618', panel: '#1e262a', card: '#2a353c', text: '#eceff1' },
+                '#ff8f00': { name: 'Âmbar Dourado', brand: '#ff8f00', bg: '#1a0e00', panel: '#301a00', card: '#442400', text: '#fff8e1' },
+                '#880e4f': { name: 'Ameixa Escura', brand: '#880e4f', bg: '#12020a', panel: '#240414', card: '#33061d', text: '#fce4ec' }
             };
 
             function setBoardTheme(color) {
@@ -2758,7 +2953,7 @@
                 showModal('Cor do Quadro', function () {
                     const grid = el('div');
                     grid.style.display = 'grid';
-                    grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
                     grid.style.gap = '10px';
 
                     Object.values(THEMES).forEach(theme => {
@@ -3119,7 +3314,6 @@
                 updateTotalTimerDisplay();
             }
 
-
             function startInlineEdit(card, isNewCard = false) {
                 var tEl = card.querySelector('.text'); if (!tEl) return; if (card.classList.contains('editing')) return;
                 card.classList.add('editing'); var original = tEl.textContent; tEl.setAttribute('contenteditable', 'true'); tEl.focus();
@@ -3140,27 +3334,39 @@
                     const textWasEmpty = original.trim() === '';
                     const textIsNowEmpty = tEl.textContent.trim() === '';
 
+                    const targetCard = card._originalReference || card;
+
                     if (!save) {
                         tEl.textContent = original;
                         if (textWasEmpty && textIsNowEmpty) {
-                            removeCard(card, true);
+                            removeCard(targetCard, true);
+                            if (card._originalReference) renderWeeklyView();
                         }
                     } else if (textIsNowEmpty) {
                         if (!textWasEmpty) {
                             showConfirm('Excluir cartão vazio?', function () {
-                                removeCard(card, true);
+                                removeCard(targetCard, true);
+                                if (card._originalReference) renderWeeklyView();
                             });
                         } else {
-                            removeCard(card, true);
+                            removeCard(targetCard, true);
+                            if (card._originalReference) renderWeeklyView();
                         }
                     } else {
+                        if (card._originalReference) {
+                            const origText = card._originalReference.querySelector('.text');
+                            if (origText) origText.textContent = tEl.textContent;
+                        }
                         persist();
                         if (isNewCard && quickConfigToggle && quickConfigToggle.checked) {
-                            openTimerDialog([card], function () {
+                            openTimerDialog([targetCard], function () {
                                 setTimeout(function () {
-                                    openColorDialog([card]);
+                                    openColorDialog([targetCard]);
+                                    if (card._originalReference) renderWeeklyView();
                                 }, 1);
                             });
+                        } else {
+                            if (card._originalReference) renderWeeklyView();
                         }
                     }
                 }
@@ -3708,7 +3914,6 @@
                         const wasVisible = nestedSub.style.display === 'block';
                         Array.from(ctxMoveBoardSub.querySelectorAll('.ctx-sub')).forEach(d => d.style.display = 'none');
                         if (!wasVisible) {
-                            nestedSub.style.display = 'block';
                             if (nestedSub.children.length === 0) {
                                 const bData = getBoardData(b.id);
                                 const kanbanLists = bData.filter(d => d.type === 'kanban');
@@ -3722,6 +3927,7 @@
                                     });
                                 }
                             }
+                            smartPositionSubmenu(btn, nestedSub);
                         }
                     };
                     ctxMoveBoardSub.appendChild(btn);
@@ -4059,7 +4265,27 @@
                     const col = el('div', 'day-column');
                     if (date === currentDay) col.classList.add('today');
                     const header = el('header');
-                    header.innerHTML = `${daysOfWeek[index]} <span class="date-label">${date.split('-').reverse().slice(0, 2).join('/')}</span>`;
+                    
+                    const textWrap = el('div');
+                    textWrap.style.textAlign = 'left';
+                    textWrap.innerHTML = `${daysOfWeek[index]} <span class="date-label">${date.split('-').reverse().slice(0, 2).join('/')}</span>`;
+                    header.appendChild(textWrap);
+                    
+                    const addBtn = el('button', 'weekly-add-btn');
+                    addBtn.type = 'button';
+                    addBtn.title = 'Adicionar cartão';
+                    addBtn.textContent = '+';
+                    addBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const newCard = createCard({ text: '', when: date + 'T' });
+                        renderWeeklyView();
+                        const clone = Array.from(weeklyGrid.querySelectorAll('.mirror-card')).find(c => c._originalReference === newCard);
+                        if (clone) {
+                            startInlineEdit(clone, true);
+                        }
+                    });
+                    header.appendChild(addBtn);
+                    
                     col.appendChild(header);
                     const cardsContainer = el('div', 'cards');
                     cardsContainer.dataset.date = date;
@@ -4113,10 +4339,25 @@
                         });
 
                         clone.addEventListener('dragstart', function (e) {
-                            e.stopPropagation(); dragState = { leader: originalCard, block: [originalCard] };
-                            clone.classList.add('dragging'); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { }
+                            e.stopPropagation();
+                            const block = selected.has(originalCard) ? Array.from(selected) : [originalCard];
+                            dragState = { leader: originalCard, block: block };
+                            block.forEach(n => n.classList.add('dragging'));
+                            clone.classList.add('dragging');
+                            pushPH();
+                            try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { }
                         });
-                        clone.addEventListener('dragend', function () { clone.classList.remove('dragging'); cleanupPH(); dragState = null; persist(); updateSlotsHasItems(); });
+                        clone.addEventListener('dragend', function () {
+                            clone.classList.remove('dragging');
+                            if (dragState && dragState.block) {
+                                dragState.block.forEach(n => n.classList.remove('dragging'));
+                            }
+                            cleanupPH();
+                            dragState = null;
+                            persist();
+                            updateSlotsHasItems();
+                            updateTotalTimerDisplay();
+                        });
                         return clone;
                     }
 
@@ -4214,13 +4455,39 @@
             document.getElementById('undo').onclick = doUndo; document.getElementById('redo').onclick = doRedo;
             document.getElementById('clearFilters').onclick = function () { selectedColors.clear(); document.getElementById('fFrom').value = ''; document.getElementById('fTo').value = ''; document.getElementById('fTime').value = ''; applyFilters(); };
 
-            // CORREÇÃO: Conectando os botões de quadro que não funcionavam
-            document.getElementById('newBoardBtn').onclick = () => { const name = prompt('Nome do novo quadro:'); if (name) createNewBoard(name); };
-            document.getElementById('editBoardBtn').onclick = renameBoard;
-            document.getElementById('cloneBoardBtn').onclick = cloneBoard;
-            document.getElementById('deleteBoardBtn').onclick = deleteBoard;
-            document.getElementById('boardThemeBtn').onclick = openBoardThemePicker;
+            // Eventos dos submenus e dropdowns
+            document.getElementById('menuNewBoard').onclick = () => { const name = prompt('Nome do novo quadro:'); if (name) createNewBoard(name); };
+            document.getElementById('menuRenameBoard').onclick = renameBoard;
+            document.getElementById('menuCloneBoard').onclick = cloneBoard;
+            document.getElementById('menuDeleteBoard').onclick = deleteBoard;
+            document.getElementById('menuBoardTheme').onclick = openBoardThemePicker;
+            document.getElementById('menuExportJson').onclick = exportBackup;
+            document.getElementById('menuImportJson').onclick = () => document.getElementById('importFile').click();
+
+            document.getElementById('importFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) importBackup(file);
+                e.target.value = '';
+            });
+
             document.getElementById('boardSelect').onchange = (e) => switchBoard(e.target.value);
+
+            // Controle de Dropdowns (mobile friendly & click outside)
+            document.querySelectorAll('.header-dropdown-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const parent = this.parentElement;
+                    document.querySelectorAll('.header-dropdown').forEach(d => {
+                        if (d !== parent) d.classList.remove('active');
+                    });
+                    parent.classList.toggle('active');
+                });
+            });
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.header-dropdown').forEach(d => {
+                    d.classList.remove('active');
+                });
+            });
 
 
             const agendaDateInput = document.getElementById('agendaDate');
