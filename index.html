@@ -387,13 +387,35 @@
         .card {
             background: var(--card);
             border: 1px solid #20486f;
-            border-left: 8px solid transparent;
+            border-left: 6px solid var(--board-color, transparent);
             border-radius: 8px;
-            padding: 8px;
+            padding: 0;
             cursor: grab;
             user-select: none;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             transition: opacity .2s, transform .2s, box-shadow 0.2s;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            background: var(--label-color, rgba(0, 0, 0, 0.25));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+            gap: 6px;
+            color: #fff;
+            transition: background-color 0.3s;
+        }
+
+        .card-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         /* ANIMAÇÕES DE TIMER */
@@ -468,25 +490,27 @@
         }
 
         .meta {
-            margin-top: 6px;
-            font-size: 12px;
-            color: var(--muted);
-            display: flex;
-            gap: 8px;
+            display: none; /* Substituted by card-header */
+        }
+
+        .card-checkbox-wrapper {
+            display: inline-flex;
             align-items: center;
-            flex-wrap: wrap
+            justify-content: center;
         }
 
         .dot {
-            width: 10px;
-            height: 10px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             display: inline-flex;
-            border: 1px solid #375b86;
+            border: 1.5px solid var(--board-color, #375b86);
             position: relative;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
         }
 
         .dot-check {
@@ -494,7 +518,7 @@
             color: #fff;
             font-weight: bold;
             font-size: 10px;
-            line-height: 10px;
+            line-height: 1;
             position: absolute;
             top: 50%;
             left: 50%;
@@ -507,11 +531,13 @@
         }
 
         .timer-display {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 4px;
-            background: rgba(0, 0, 0, .2);
+            background: rgba(0, 0, 0, .25);
+            color: #cfe0ff;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* BARRA DE PROGRESSO DO TIMER */
@@ -519,7 +545,6 @@
             height: 4px;
             background: rgba(0, 0, 0, 0.2);
             border-radius: 2px;
-            margin-top: 4px;
             overflow: hidden;
             display: none;
             /* Escondido quando não há timer */
@@ -543,23 +568,35 @@
         }
 
         .due-date {
-            font-size: 11px;
-            background: rgba(0, 0, 0, .2);
-            padding: 1px 5px;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 4px;
             border-radius: 4px;
+            background: rgba(0, 0, 0, .25);
+            color: #cfe0ff;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .kebab {
-            position: absolute;
-            top: 2px;
-            right: 2px;
             background: transparent;
-            border: 1px solid transparent;
+            border: none;
             color: #9fc1ff;
-            border-radius: 6px;
-            padding: 0 6px;
-            line-height: 20px;
-            cursor: pointer
+            border-radius: 4px;
+            padding: 0 4px;
+            line-height: 1;
+            font-size: 12px;
+            height: 16px;
+            cursor: pointer;
+            margin-left: auto; /* Push it to the far right of the flex header */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .kebab:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
 
         .add {
@@ -2300,7 +2337,7 @@
                         if (subtasks.length > 0) {
                             let lastCard = card;
                             subtasks.forEach(taskText => {
-                                const newCard = createCard({ text: "・ " + taskText, color: card.dataset.color, due: card.dataset.due });
+                                const newCard = createCard({ text: "・ " + taskText, color: card.dataset.color, labelColor: card.dataset.labelColor || '', due: card.dataset.due, boardId: card.dataset.boardId });
                                 if (!card.closest('#agenda-sidebar')) {
                                     lastCard.parentElement.insertBefore(newCard, lastCard.nextSibling);
                                     lastCard = newCard;
@@ -2321,13 +2358,13 @@
             async function organizeCardWithGemini(block) {
                 if (!block || !block.length || !matrixEl) return;
                 showLoader('✨ Analisando tarefa com IA...');
-                const quadToColor = { Q1: MATRIX_COLORS.Q1, Q2: MATRIX_COLORS.Q2, Q3: MATRIX_COLORS.Q3, Q4: MATRIX_COLORS.Q4 };
+                const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
                 try {
                     for (const card of block) {
                         const originalText = card.querySelector('.text').textContent;
                         const prompt = `Aja como um especialista em produtividade usando a Matriz de Eisenhower. Analise a seguinte tarefa e decida em qual quadrante ela se encaixa: Q1 (Urgente e Importante), Q2 (Não Urgente e Importante), Q3 (Urgente e Não Importante), ou Q4 (Não Urgente e Não Importante). Responda APENAS com "Q1", "Q2", "Q3", ou "Q4". Tarefa: "${originalText}"`;
                         const resultQuad = (await callGemini(prompt)).trim().toUpperCase();
-                        if (quadToColor[resultQuad]) {
+                        if (EISENHOWER_COLORS[resultQuad]) {
                             const dest = matrixEl.querySelector('.list[data-quad="' + resultQuad + '"] .cards');
                             if (dest) {
                                 const cardInCache = allCards.find(c => c === card);
@@ -2335,7 +2372,7 @@
                                 card.dataset.when = '';
 
                                 dest.appendChild(card);
-                                card.dataset.color = quadToColor[resultQuad];
+                                card.dataset.labelColor = EISENHOWER_COLORS[resultQuad];
                                 paintCard(card);
                             }
                         } else { console.warn('Resposta inesperada da IA:', resultQuad); }
@@ -2470,6 +2507,7 @@
                 return {
                     text: (t ? t.textContent : '').trim(),
                     color: c.dataset.color || '',
+                    labelColor: c.dataset.labelColor || '',
                     due: c.dataset.due || '',
                     when: c.dataset.when || '',
                     timerTotal: c.dataset.timerTotal || '',
@@ -2477,7 +2515,8 @@
                     timerState: c.dataset.timerState || '',
                     timerEnd: c.dataset.timerEnd || '',
                     completed: c.dataset.completed || 'false',
-                    history: c.dataset.history || '[]'
+                    history: c.dataset.history || '[]',
+                    boardId: c.dataset.boardId || ''
                 };
             }
 
@@ -2497,7 +2536,7 @@
                 $$('.list[data-type="kanban"]', boardEl).forEach(function (l) {
                     const title = l.querySelector('.title').value;
                     const cardsInList = $$('.card', l).map(c => allCards.find(cacheCard => cacheCard === c)).filter(Boolean).map(cardToData);
-                    boardData.push({ type: 'kanban', title: title, cards: cardsInList });
+                    boardData.push({ type: 'kanban', title: title, cards: cardsInList, boardId: l.dataset.boardId || '' });
                 });
 
                 // 2. Matrix Lists (Sempre do Quadro)
@@ -2637,10 +2676,74 @@
                 let boardData = [];
                 let agendaData = [];
 
-                try {
-                    const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
-                    if (bStr) boardData = JSON.parse(bStr);
-                } catch (e) { console.error("Erro load board", e); }
+                if (currentBoardId === 'board-todos') {
+                    // Aggregate all boards except trash and board-todos itself
+                    let mergedKanbanLists = [];
+                    let mergedQuadLists = { Q1: [], Q2: [], Q3: [], Q4: [] };
+
+                    boardsMeta.forEach(b => {
+                        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+                        let bData = [];
+                        try {
+                            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+                            if (bStr) bData = JSON.parse(bStr);
+                        } catch (e) { console.error("Error load board", b.id, e); }
+
+                        bData.forEach(list => {
+                            if (list.type === 'kanban') {
+                                let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
+                                if (!targetList) {
+                                    targetList = { type: 'kanban', title: list.title, cards: [], boardId: b.id };
+                                    mergedKanbanLists.push(targetList);
+                                }
+                                const cardsWithBoardId = (list.cards || []).map(c => {
+                                    return { ...c, boardId: c.boardId || b.id };
+                                });
+                                targetList.cards = targetList.cards.concat(cardsWithBoardId);
+                            } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
+                                const cardsWithBoardId = (list.cards || []).map(c => {
+                                    return { ...c, boardId: c.boardId || b.id };
+                                });
+                                mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
+                            }
+                        });
+                    });
+
+                    // Add TODOS's own cards if they exist
+                    let todosOwnData = [];
+                    try {
+                        const todosOwnStr = localStorage.getItem(LS_BOARD_PREFIX + 'board-todos');
+                        if (todosOwnStr) todosOwnData = JSON.parse(todosOwnStr);
+                    } catch(e) {}
+                    todosOwnData.forEach(list => {
+                        if (list.type === 'kanban') {
+                            let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
+                            if (!targetList) {
+                                targetList = { type: 'kanban', title: list.title, cards: [], boardId: 'board-todos' };
+                                mergedKanbanLists.push(targetList);
+                            }
+                            const cardsWithBoardId = (list.cards || []).map(c => {
+                                return { ...c, boardId: c.boardId || 'board-todos' };
+                            });
+                            targetList.cards = targetList.cards.concat(cardsWithBoardId);
+                        } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
+                            const cardsWithBoardId = (list.cards || []).map(c => {
+                                return { ...c, boardId: c.boardId || 'board-todos' };
+                            });
+                            mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
+                        }
+                    });
+
+                    boardData = mergedKanbanLists;
+                    Object.keys(mergedQuadLists).forEach(q => {
+                        boardData.push({ type: 'quad', quad: q, cards: mergedQuadLists[q] });
+                    });
+                } else {
+                    try {
+                        const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
+                        if (bStr) boardData = JSON.parse(bStr);
+                    } catch (e) { console.error("Erro load board", e); }
+                }
 
                 try {
                     const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
@@ -2657,6 +2760,24 @@
                     localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
                     localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
                 }
+
+                // Sincronizar boardId nos cartões se não tiver
+                if (currentBoardId !== 'board-todos') {
+                    boardData.forEach(list => {
+                        if (list.cards) {
+                            list.cards.forEach(c => {
+                                if (!c.boardId) c.boardId = currentBoardId;
+                            });
+                        }
+                    });
+                }
+                agendaData.forEach(list => {
+                    if (list.cards) {
+                        list.cards.forEach(c => {
+                            if (!c.boardId) c.boardId = currentBoardId || 'board-todos';
+                        });
+                    }
+                });
 
                 renderFromData(boardData, agendaData);
             }
@@ -2704,6 +2825,7 @@
                 allData.forEach(function (entry) {
                     if (entry.type === 'kanban') {
                         var l = createList(entry.title || 'Lista');
+                        l.dataset.boardId = entry.boardId || currentBoardId;
                         appendCardsToDOM(l.querySelector('.cards'), entry.cards);
                     } else if (entry.type === 'quad' && quadMap[entry.quad]) {
                         appendCardsToDOM(quadMap[entry.quad], entry.cards);
@@ -2775,6 +2897,13 @@
                 }
             }
 
+            function ensureTodosBoard() {
+                if (!boardsMeta.find(b => b.id === 'board-todos')) {
+                    boardsMeta.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
+                    saveBoardsMetadata(true);
+                }
+            }
+
             function ensureTrashBoard() {
                 if (!boardsMeta.find(b => b.id === 'board-trash')) {
                     boardsMeta.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
@@ -2792,6 +2921,7 @@
                     const newId = generateId();
                     const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
                     boardsMeta = [mainBoard];
+                    ensureTodosBoard();
                     ensureTrashBoard();
 
                     // Tenta separar o que é agenda do que é quadro na migração inicial
@@ -2803,9 +2933,11 @@
                     saveBoardsMetadata();
                 } else if (!hasMetadata) {
                     createNewBoard('Meu Quadro');
+                    ensureTodosBoard();
                     ensureTrashBoard();
                 } else {
                     loadBoardsMetadata();
+                    ensureTodosBoard();
                     ensureTrashBoard();
                     currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
                     if (!boardsMeta.find(b => b.id === currentBoardId)) {
@@ -2825,6 +2957,10 @@
             }
 
             function renameBoard() {
+                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
+                    alert("Você não pode alterar ou renomear este quadro especial.");
+                    return;
+                }
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
                 const newName = prompt("Novo nome para o quadro:", board.name);
@@ -2835,8 +2971,12 @@
             }
 
             function deleteBoard() {
-                if (boardsMeta.length <= 1) {
-                    alert("Você não pode excluir o único quadro existente.");
+                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
+                    alert("Você não pode excluir este quadro especial.");
+                    return;
+                }
+                if (boardsMeta.length <= 2) { // 2 because TODOS and Lixeira are permanent
+                    alert("Você não tem outros quadros para excluir.");
                     return;
                 }
                 const board = boardsMeta.find(b => b.id === currentBoardId);
@@ -2848,7 +2988,9 @@
                         db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
                     }
                     boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
-                    currentBoardId = boardsMeta[0].id;
+                    // Switch to first non-todos board if possible
+                    const nextBoard = boardsMeta.find(b => b.id !== 'board-trash') || boardsMeta[0];
+                    currentBoardId = nextBoard.id;
                     saveBoardsMetadata();
                     localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
                     window.location.reload();
@@ -2875,6 +3017,8 @@
 
             function switchBoard(id) {
                 if (id === currentBoardId && boardEl.children.length > 0) return;
+
+                saveImmediately();
 
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
@@ -2944,6 +3088,15 @@
                     r.style.setProperty('--card', '#112b4a');
                     r.style.setProperty('--ink', '#e9f1ff');
                 }
+            }
+
+            function getBoardColor(boardId) {
+                if (boardId === 'board-todos') {
+                    const board = boardsMeta.find(b => b.id === 'board-todos');
+                    return board ? board.color : DEFAULT_THEME_COLOR;
+                }
+                const board = boardsMeta.find(b => b.id === boardId);
+                return board ? board.color : DEFAULT_THEME_COLOR;
             }
 
             function openBoardThemePicker() {
@@ -3072,42 +3225,135 @@
             }
 
 
-            function persist() {
+            function distributeAndSaveTodos(mergedBoardData, agendaData) {
+                let boardsDataMap = {};
+                boardsMeta.forEach(b => {
+                    if (b.id === 'board-trash') return;
+                    boardsDataMap[b.id] = [];
+                });
+                if (!boardsDataMap['board-todos']) {
+                    boardsDataMap['board-todos'] = [];
+                }
+
+                // First, initialize empty lists for boards associated with lists in DOM
+                mergedBoardData.forEach(list => {
+                    if (list.type === 'kanban') {
+                        const title = list.title;
+                        const associatedBoards = new Set();
+                        if (list.boardId && list.boardId !== 'board-todos') {
+                            associatedBoards.add(list.boardId);
+                        }
+                        (list.cards || []).forEach(card => {
+                            if (card.boardId && card.boardId !== 'board-trash') {
+                                associatedBoards.add(card.boardId);
+                            }
+                        });
+                        if (associatedBoards.size === 0) {
+                            associatedBoards.add('board-todos');
+                        }
+
+                        associatedBoards.forEach(bId => {
+                            if (boardsDataMap[bId]) {
+                                boardsDataMap[bId].push({ type: 'kanban', title: title, cards: [] });
+                            }
+                        });
+                    } else if (list.type === 'quad') {
+                        const quad = list.quad;
+                        Object.keys(boardsDataMap).forEach(bId => {
+                            boardsDataMap[bId].push({ type: 'quad', quad: quad, cards: [] });
+                        });
+                    }
+                });
+
+                // Then, populate the cards in the corresponding lists
+                mergedBoardData.forEach(list => {
+                    if (list.type === 'kanban') {
+                        const title = list.title;
+                        (list.cards || []).forEach(card => {
+                            const bId = card.boardId || 'board-todos';
+                            if (bId === 'board-trash') return;
+                            if (!boardsDataMap[bId]) {
+                                boardsDataMap[bId] = [];
+                            }
+                            let targetList = boardsDataMap[bId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
+                            if (!targetList) {
+                                targetList = { type: 'kanban', title: title, cards: [] };
+                                boardsDataMap[bId].push(targetList);
+                            }
+                            targetList.cards.push(card);
+                        });
+                    } else if (list.type === 'quad') {
+                        const quad = list.quad;
+                        (list.cards || []).forEach(card => {
+                            const bId = card.boardId || 'board-todos';
+                            if (bId === 'board-trash') return;
+                            if (!boardsDataMap[bId]) {
+                                boardsDataMap[bId] = [];
+                            }
+                            let targetList = boardsDataMap[bId].find(l => l.type === 'quad' && l.quad === quad);
+                            if (!targetList) {
+                                targetList = { type: 'quad', quad: quad, cards: [] };
+                                boardsDataMap[bId].push(targetList);
+                            }
+                            targetList.cards.push(card);
+                        });
+                    }
+                });
+
+                Object.keys(boardsDataMap).forEach(bId => {
+                    const boardJson = JSON.stringify(boardsDataMap[bId]);
+                    localStorage.setItem(LS_BOARD_PREFIX + bId, boardJson);
+                    if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
+                        db.ref('users/' + auth.currentUser.uid + '/boards/' + bId).set(boardsDataMap[bId])
+                            .catch(e => console.error("Firebase board save error for " + bId, e));
+                    }
+                });
+
+                const agendaJson = JSON.stringify(agendaData);
+                localStorage.setItem(LS_GLOBAL_AGENDA, agendaJson);
+                if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
+                    db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
+                        .catch(e => console.error("Firebase agenda save error:", e));
+                }
+            }
+
+            function saveImmediately() {
+                if (__persistTick) {
+                    clearTimeout(__persistTick);
+                    __persistTick = null;
+                }
                 if (__muteHistory > 0) return;
-                clearTimeout(__persistTick);
-                __persistTick = setTimeout(function () {
-                    try {
-                        // 1. Separa os dados
-                        const { boardData, agendaData } = serializeAndSeparate();
+                try {
+                    const { boardData, agendaData } = serializeAndSeparate();
+                    if (currentBoardId === 'board-todos') {
+                        distributeAndSaveTodos(boardData, agendaData);
+                    } else {
                         const boardJson = JSON.stringify(boardData);
                         const agendaJson = JSON.stringify(agendaData);
-
-                        // 2. Salva Localmente
                         if (currentBoardId) {
                             localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, boardJson);
-                            // Atualiza metadata
                             const board = boardsMeta.find(b => b.id === currentBoardId);
                             if (board) {
                                 board.lastModified = Date.now();
                                 saveBoardsMetadata();
                             }
                         }
-                        // Salva Agenda Global Local
                         localStorage.setItem(LS_GLOBAL_AGENDA, agendaJson);
-
-                        // 3. Salva no Firebase
                         if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
-                            // Salva Quadro
                             db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).set(boardData)
                                 .catch(e => console.error("Firebase board save error:", e));
-
-                            // Salva Agenda Global
                             db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
                                 .catch(e => console.error("Firebase agenda save error:", e));
                         }
-                    } catch (e) { }
-                    capture();
-                }, 250);
+                    }
+                } catch (e) { }
+                capture();
+            }
+
+            function persist() {
+                if (__muteHistory > 0) return;
+                clearTimeout(__persistTick);
+                __persistTick = setTimeout(saveImmediately, 250);
             }
 
             function duplicateCards(cards) {
@@ -3214,15 +3460,51 @@
             }
 
             function paintCard(c) {
-                var color = c.dataset.color || '';
-                if (color) { c.style.borderColor = color; c.style.borderLeftColor = color; }
-                else { c.style.borderColor = '#20486f'; c.style.borderLeftColor = 'transparent'; }
-                var dot = c.querySelector('.dot'); if (dot) dot.style.background = color || 'transparent';
+                var boardColor = getBoardColor(c.dataset.boardId) || c.dataset.color;
+                if (boardColor) {
+                    c.style.borderColor = boardColor;
+                    c.style.borderLeftColor = boardColor;
+                    c.style.setProperty('--board-color', boardColor);
+                } else {
+                    c.style.borderColor = '#20486f';
+                    c.style.borderLeftColor = 'transparent';
+                    c.style.setProperty('--board-color', '#20486f');
+                }
+
+                var labelColor = c.dataset.labelColor || '';
+                var header = c.querySelector('.card-header');
+                if (header) {
+                    if (labelColor) {
+                        header.style.backgroundColor = labelColor;
+                        header.style.setProperty('--label-color', labelColor);
+                        header.style.borderBottom = 'none';
+                    } else {
+                        header.style.backgroundColor = 'rgba(0, 0, 0, 0.25)';
+                        header.style.setProperty('--label-color', 'transparent');
+                        header.style.borderBottom = '1px solid rgba(255, 255, 255, 0.05)';
+                    }
+                }
+
+                var dot = c.querySelector('.dot');
+                if (dot) {
+                    dot.style.borderColor = boardColor || '#375b86';
+                    if (c.dataset.completed === 'true') {
+                        dot.style.background = '#66bb6a';
+                        dot.style.borderColor = '#66bb6a';
+                    } else {
+                        dot.style.background = 'rgba(0, 0, 0, 0.2)';
+                    }
+                }
+
                 var dateEl = c.querySelector('.due-date');
                 if (c.dataset.due) {
                     if (!dateEl) {
                         dateEl = el('span', 'due-date');
-                        c.querySelector('.meta').appendChild(dateEl);
+                        if (header) {
+                            header.insertBefore(dateEl, header.querySelector('.kebab'));
+                        } else {
+                            c.appendChild(dateEl);
+                        }
                     }
                     try {
                         const [y, m, d] = c.dataset.due.split('-');
@@ -3243,50 +3525,93 @@
                     _d.history = JSON.stringify([{ action: 'Criado', time: Date.now() }]);
                 }
                 var c = el('div', 'card'); c.draggable = true;
-                c.dataset.color = _d.color || ''; c.dataset.due = _d.due || ''; c.dataset.when = _d.when || '';
-                c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || _d.timerLeft || ''; c.dataset.timerState = _d.timerState || 'stopped';
+                
+                const cardBoardId = _d.boardId || currentBoardId || 'board-todos';
+                c.dataset.boardId = cardBoardId;
+                c.dataset.color = _d.color || getBoardColor(cardBoardId) || '';
+                c.dataset.labelColor = _d.labelColor || '';
+                c.dataset.due = _d.due || ''; c.dataset.when = _d.when || '';
+                c.dataset.timerTotal = _d.timerTotal || ''; c.dataset.timerLeft = _d.timerLeft || ''; c.dataset.timerState = _d.timerState || 'stopped';
                 c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
                 c.dataset.history = _d.history || '[]';
 
-                var t = el('span', 'text'); t.textContent = _d.text || '';
-                var meta = el('div', 'meta');
+                // Create Card Header
+                var header = el('div', 'card-header');
+                
+                var chkWrap = el('span', 'card-checkbox-wrapper');
                 var dot = el('span', 'dot');
                 var dotCheck = el('span', 'dot-check'); dotCheck.textContent = '✓';
                 dot.appendChild(dotCheck);
+                chkWrap.appendChild(dot);
+                
                 var timerDisp = el('span', 'timer-display');
-                var dateDisp = el('span', 'due-date');
-                meta.appendChild(dot);
-                meta.appendChild(timerDisp);
-                meta.appendChild(dateDisp);
+                
+                header.appendChild(chkWrap);
+                header.appendChild(timerDisp);
+
+                var kb = el('button', 'kebab'); kb.type = 'button'; kb.textContent = '⋮';
+                kb.addEventListener('click', function (ev) {
+                    ev.stopPropagation();
+                    clearSelection();
+                    addSelection(c);
+                    var r = kb.getBoundingClientRect();
+                    showCtx(r.right, r.bottom, c);
+                });
+                header.appendChild(kb);
+
+                // Create Card Body
+                var body = el('div', 'card-body');
+                var t = el('span', 'text'); t.textContent = _d.text || '';
+                body.appendChild(t);
 
                 // Container da barra de progresso
                 var progCont = el('div', 'timer-progress-container');
                 var progBar = el('div', 'timer-progress-bar');
                 progCont.appendChild(progBar);
 
-                var kb = el('button', 'kebab'); kb.type = 'button'; kb.textContent = '⋮';
-                kb.addEventListener('click', function (ev) { ev.stopPropagation(); clearSelection(); addSelection(c); var r = kb.getBoundingClientRect(); showCtx(r.right, r.bottom, c); });
-                c.appendChild(t); c.appendChild(meta); c.appendChild(progCont); c.appendChild(kb); paintCard(c);
+                c.appendChild(header);
+                c.appendChild(body);
+                c.appendChild(progCont);
+                
+                paintCard(c);
 
                 dot.addEventListener('click', toggleCardCompletion);
                 dot.addEventListener('dblclick', (e) => e.stopPropagation());
 
-                c.addEventListener('mousedown', function (e) { 
-                    if (e.button !== 0) return; 
+                c.addEventListener('mousedown', function (e) {
+                    if (e.button !== 0) return;
                     if (isSelectionMode) {
                         e.preventDefault();
                         toggleSelection(c);
                         return;
                     }
-                    if (e.shiftKey) { rangeSelect(c); } else if (e.ctrlKey || e.metaKey) { toggleSelection(c); } else if (!selected.has(c)) { clearSelection(); addSelection(c); } 
-                    updateTotalTimerDisplay(); 
+                    if (e.shiftKey) { rangeSelect(c); } else if (e.ctrlKey || e.metaKey) { toggleSelection(c); } else if (!selected.has(c)) { clearSelection(); addSelection(c); }
+                    updateTotalTimerDisplay();
                 });
-                c.addEventListener('dragstart', function (e) { e.stopPropagation(); var block = selected.has(c) ? Array.from(selected) : [c]; dragState = { leader: c, block: block }; block.forEach(function (n) { n.classList.add('dragging'); }); pushPH(); try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { } });
-                c.addEventListener('dragend', function () { if (dragState && dragState.block) { dragState.block.forEach(function (n) { n.classList.remove('dragging'); }); } cleanupPH(); dragState = null; persist(); updateSlotsHasItems(); updateTotalTimerDisplay(); });
-                // Context menu removed from card body - now only on kebab button.
+
+                c.addEventListener('dragstart', function (e) {
+                    e.stopPropagation();
+                    var block = selected.has(c) ? Array.from(selected) : [c];
+                    dragState = { leader: c, block: block };
+                    block.forEach(function (n) { n.classList.add('dragging'); });
+                    pushPH();
+                    try { e.dataTransfer.setData('text/plain', 'drag'); e.dataTransfer.effectAllowed = 'move'; } catch (_) { }
+                });
+
+                c.addEventListener('dragend', function () {
+                    if (dragState && dragState.block) {
+                        dragState.block.forEach(function (n) { n.classList.remove('dragging'); });
+                    }
+                    cleanupPH();
+                    dragState = null;
+                    persist();
+                    updateSlotsHasItems();
+                    updateTotalTimerDisplay();
+                });
+
                 c.addEventListener('dblclick', function (e) {
-                    if (e.target.classList.contains('dot') || e.target.classList.contains('dot-check')) {
+                    if (e.target.closest('.dot') || e.target.closest('.kebab')) {
                         e.stopPropagation();
                         return;
                     }
@@ -3478,7 +3803,25 @@
                 syncMirrors();
                 updateTotalTimerDisplay(); 
             }
-            function rangeSelect(to) { if (!lastAnchor) { addSelection(to); return; } var parent = lastAnchor.parentElement; if (to.parentElement !== parent) { addSelection(to); return; } var cards = [].slice.call(parent.querySelectorAll('.card')); var a = cards.indexOf(lastAnchor); var b = cards.indexOf(to); var i = a < b ? a : b; var j = a < b ? b : a; clearSelection(); for (var k = i; k <= j; k++) { if (cards[k].style.display !== 'none') addSelection(cards[k]); } syncMirrors(); updateTotalTimerDisplay(); }
+            function rangeSelect(to) {
+                if (!lastAnchor) { addSelection(to); return; }
+                var cards = Array.from(document.querySelectorAll('.card'));
+                var visibleCards = cards.filter(c => c.style.display !== 'none' && c.offsetHeight > 0);
+                var a = visibleCards.indexOf(lastAnchor);
+                var b = visibleCards.indexOf(to);
+                if (a === -1 || b === -1) {
+                    addSelection(to);
+                    return;
+                }
+                var start = Math.min(a, b);
+                var end = Math.max(a, b);
+                clearSelection();
+                for (var k = start; k <= end; k++) {
+                    addSelection(visibleCards[k]);
+                }
+                syncMirrors();
+                updateTotalTimerDisplay();
+            }
 
             function toggleSelectionMode() {
                 isSelectionMode = !isSelectionMode;
@@ -3548,6 +3891,16 @@
                 const day = getActiveDay();
                 let targetWhen = '';
 
+                const EISENHOWER_COLORS = {
+                    Q1: '#2e7d32', // Green (Faça)
+                    Q2: '#1976d2', // Blue (Agende)
+                    Q3: '#ffb300', // Yellow (Delegue)
+                    Q4: '#c62828'  // Red (Elimine)
+                };
+
+                let isMatrix = listElement && listElement.dataset.type === 'quad';
+                let quad = isMatrix ? listElement.dataset.quad : '';
+
                 if (listElement && listElement.dataset.date) {
                     targetWhen = listElement.dataset.date + 'T';
                 } else if (listElement && listElement.dataset.type === 'time') {
@@ -3567,12 +3920,20 @@
                     const oldBadge = n.querySelector('.info-badge');
                     if (oldBadge) oldBadge.remove();
 
+                    if (isMatrix && quad) {
+                        n.dataset.labelColor = EISENHOWER_COLORS[quad];
+                    }
+
                     const cardInCache = allCards.find(card => card === n);
                     if (cardInCache) {
                         cardInCache.dataset.when = targetWhen;
+                        if (isMatrix && quad) {
+                            cardInCache.dataset.labelColor = EISENHOWER_COLORS[quad];
+                        }
                     } else {
                         n.dataset.when = targetWhen;
                     }
+                    paintCard(n);
                 });
             }
 
@@ -3583,6 +3944,7 @@
             function createList(title) {
                 var list = el('section', 'list');
                 list.dataset.type = 'kanban';
+                list.dataset.boardId = currentBoardId;
                 var h = el('header');
                 var t = el('input', 'title');
                 t.value = title || 'Nova lista';
@@ -3638,10 +4000,8 @@
                     addBtn.onclick = function (e) {
                         e.stopPropagation();
                         var card = createCard({ text: '' });
-                        if (sp.quad === 'Q1') card.dataset.color = MATRIX_COLORS.Q1;
-                        if (sp.quad === 'Q2') card.dataset.color = MATRIX_COLORS.Q2;
-                        if (sp.quad === 'Q3') card.dataset.color = MATRIX_COLORS.Q3;
-                        if (sp.quad === 'Q4') card.dataset.color = MATRIX_COLORS.Q4;
+                        const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+                        card.dataset.labelColor = EISENHOWER_COLORS[sp.quad] || '';
                         paintCard(card);
                         var cardsContainer = l.querySelector('.cards');
                         cardsContainer.prepend(card);
@@ -3818,7 +4178,7 @@
                 var fTo = (document.getElementById('fTo').value) || '';
                 var fTime = document.getElementById('fTime').value;
                 var ok = true;
-                if (selectedColors.size > 0) { ok = ok && selectedColors.has((c.dataset.color || '').toLowerCase()); }
+                if (selectedColors.size > 0) { ok = ok && selectedColors.has((c.dataset.labelColor || '').toLowerCase()); }
                 if (fFrom) { ok = ok && (!!c.dataset.due && c.dataset.due >= fFrom); }
                 if (fTo) { ok = ok && (!!c.dataset.due && c.dataset.due <= fTo); }
                 if (fTime) {
@@ -3854,11 +4214,13 @@
             function hideCtx() {
                 ctx.style.display = 'none'; ctxTarget = null;
                 ctxMoveSub.style.display = 'none'; ctxMoveAllSub.style.display = 'none'; ctxMoveBoardSub.style.display = 'none';
+                $$('.board-nested-sub', ctx).forEach(el => el.style.display = 'none');
             }
             function showCtx(x, y, card) {
                 ctxTarget = card;
                 buildMoveSubmenu(); buildMoveBoardSubmenu();
                 ctxMoveSub.style.display = 'none'; ctxMoveAllSub.style.display = 'none'; ctxMoveBoardSub.style.display = 'none';
+                $$('.board-nested-sub', ctx).forEach(el => el.style.display = 'none');
                 ctx.style.display = 'block';
                 var r = ctx.getBoundingClientRect();
                 ctx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px';
@@ -3899,35 +4261,81 @@
 
             function buildMoveBoardSubmenu() {
                 ctxMoveBoardSub.innerHTML = '';
+                // Remove any previously appended board submenus from #ctx
+                $$('.board-nested-sub', ctx).forEach(el => el.remove());
+
                 boardsMeta.forEach(b => {
                     if (b.id === currentBoardId) return;
+                    
                     const btn = document.createElement('button');
-                    btn.textContent = b.name;
+                    btn.type = 'button';
+                    btn.style.width = '100%';
+                    btn.style.display = 'flex';
+                    btn.style.alignItems = 'center';
                     btn.style.justifyContent = 'space-between';
-                    btn.innerHTML += ' <span style="font-size:10px">▶</span>';
+                    btn.innerHTML = `${b.name} <span style="font-size:10px">▶</span>`;
+
+                    // Create the sub-submenu, but we will append it to #ctx
                     const nestedSub = document.createElement('div');
-                    nestedSub.className = 'ctx-sub';
-                    nestedSub.style.left = '100%'; nestedSub.style.top = '0'; nestedSub.style.display = 'none';
-                    btn.appendChild(nestedSub);
+                    nestedSub.className = 'ctx-sub board-nested-sub';
+                    nestedSub.style.display = 'none';
+                    ctx.appendChild(nestedSub);
+
                     btn.onclick = function (e) {
                         e.stopPropagation();
                         const wasVisible = nestedSub.style.display === 'block';
-                        Array.from(ctxMoveBoardSub.querySelectorAll('.ctx-sub')).forEach(d => d.style.display = 'none');
+                        
+                        // Close all nested board submenus
+                        $$('.board-nested-sub', ctx).forEach(d => d.style.display = 'none');
+
                         if (!wasVisible) {
                             if (nestedSub.children.length === 0) {
                                 const bData = getBoardData(b.id);
                                 const kanbanLists = bData.filter(d => d.type === 'kanban');
                                 if (kanbanLists.length === 0) {
-                                    const emptyMsg = document.createElement('div'); emptyMsg.textContent = '(Vazio)'; emptyMsg.style.padding = '8px'; emptyMsg.style.color = '#777'; nestedSub.appendChild(emptyMsg);
+                                    const emptyMsg = document.createElement('div'); 
+                                    emptyMsg.textContent = '(Vazio)'; 
+                                    emptyMsg.style.padding = '8px'; 
+                                    emptyMsg.style.color = '#777'; 
+                                    nestedSub.appendChild(emptyMsg);
                                 } else {
                                     kanbanLists.forEach(l => {
-                                        const lBtn = document.createElement('button'); lBtn.textContent = l.title || 'Sem título';
-                                        lBtn.onclick = function (ev) { ev.stopPropagation(); moveCardToBoard(ctxTarget, b.id, l.title); hideCtx(); };
+                                        const lBtn = document.createElement('button'); 
+                                        lBtn.type = 'button';
+                                        lBtn.textContent = l.title || 'Sem título';
+                                        lBtn.onclick = function (ev) { 
+                                            ev.stopPropagation(); 
+                                            moveCardToBoard(ctxTarget, b.id, l.title); 
+                                            hideCtx(); 
+                                        };
                                         nestedSub.appendChild(lBtn);
                                     });
                                 }
                             }
-                            smartPositionSubmenu(btn, nestedSub);
+                            
+                            // Position the nested submenu relative to the button
+                            const btnRect = btn.getBoundingClientRect();
+                            const ctxRect = ctx.getBoundingClientRect();
+                            
+                            nestedSub.style.display = 'block';
+                            
+                            // Calculate positioning
+                            let leftPos = btnRect.right - ctxRect.left;
+                            let topPos = btnRect.top - ctxRect.top;
+                            
+                            nestedSub.style.left = leftPos + 'px';
+                            nestedSub.style.top = topPos + 'px';
+                            
+                            // Smart flip left if offscreen
+                            const subRect = nestedSub.getBoundingClientRect();
+                            if (subRect.right > window.innerWidth) {
+                                // flip left
+                                nestedSub.style.left = (btnRect.left - ctxRect.left - subRect.width) + 'px';
+                            }
+                            // Smart vertical adjustment if offscreen
+                            if (subRect.bottom > window.innerHeight) {
+                                nestedSub.style.top = (btnRect.bottom - ctxRect.top - subRect.height) + 'px';
+                            }
                         }
                     };
                     ctxMoveBoardSub.appendChild(btn);
@@ -3999,6 +4407,17 @@
             }
 
             function smartPositionSubmenu(btnElement, submenuElement) {
+                const ctxMenu = submenuElement.closest('.ctx');
+                if (ctxMenu) {
+                    ctxMenu.querySelectorAll('div[style*="position:relative"]').forEach(div => {
+                        div.style.zIndex = '';
+                    });
+                }
+                const parentDiv = submenuElement.parentElement;
+                if (parentDiv && parentDiv.style.position === 'relative') {
+                    parentDiv.style.zIndex = '100';
+                }
+
                 submenuElement.classList.remove('flip-left');
                 submenuElement.style.display = 'block';
                 submenuElement.style.top = '0';
@@ -4125,10 +4544,10 @@
                     { id: 'turquesa', name: customColorLabels['#48c9b0'] || 'Turquesa', hex: '#48c9b0' }
                 ];
                 return [
-                    { id: 'q1', name: 'Verde (Faça agora)', hex: MATRIX_COLORS.Q1, noEdit: true },
-                    { id: 'q2', name: 'Azul (Agende)', hex: MATRIX_COLORS.Q2, noEdit: true },
-                    { id: 'q3', name: 'Âmbar (Delegue)', hex: MATRIX_COLORS.Q3, noEdit: true },
-                    { id: 'q4', name: 'Vermelho (Elimine)', hex: MATRIX_COLORS.Q4, noEdit: true }
+                    { id: 'q1', name: 'Verde (Faça agora)', hex: '#2e7d32', noEdit: true },
+                    { id: 'q2', name: 'Azul (Agende)', hex: '#1976d2', noEdit: true },
+                    { id: 'q3', name: 'Âmbar (Delegue)', hex: '#ffb300', noEdit: true },
+                    { id: 'q4', name: 'Vermelho (Elimine)', hex: '#c62828', noEdit: true }
                 ].concat(EXTRA_COLORS);
             }
             function routeByColor(card, hex) { if (!hex || !matrixEl) return; var map = {}; map[MATRIX_COLORS.Q1] = 'Q1'; map[MATRIX_COLORS.Q2] = 'Q2'; map[MATRIX_COLORS.Q3] = 'Q3'; map[MATRIX_COLORS.Q4] = 'Q4'; var quad = map[(hex || '').toLowerCase()]; if (!quad) return; var dest = matrixEl.querySelector('.list[data-quad="' + quad + '"] .cards'); if (dest) { dest.appendChild(card); card.dataset.when = ''; updateSlotsHasItems(); } }
@@ -4157,42 +4576,272 @@
 
             function openColorDialog(cards) {
                 if (!cards.length) return;
-                var modalElements = showModal('Editar cor', function () {
+                var modalElements = showModal('Cor da Etiqueta', function () {
                     var wrap = el('div');
-                    var grid = el('div', 'palette-grid'); grid.style.display = 'grid'; grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))'; grid.style.gap = '8px';
-                    var PALETTE = [{ id: 'none', name: 'Sem cor', hex: '' }].concat(buildFullPalette());
-                    PALETTE.forEach(function (p) {
-                        var b = el('button'); b.type = 'button'; b.style.border = '1px solid #2a4e78'; b.style.borderRadius = '8px'; b.style.padding = '10px'; b.style.cursor = 'pointer'; b.style.background = p.hex || '#0b2240'; b.style.color = '#fff'; b.textContent = p.name; b.dataset.hex = p.hex;
-                        b.addEventListener('click', function () { [].slice.call(grid.querySelectorAll('button')).forEach(function (x) { x.style.outline = ''; }); b.style.outline = '2px solid #fff'; wrap._chosen = p.hex; modalElements.okButton.click(); });
-                        if (p.hex === (cards[0].dataset.color || '')) b.style.outline = '2px solid #fff';
-                        grid.appendChild(b);
+                    wrap.style.display = 'flex';
+                    wrap.style.flexDirection = 'column';
+                    wrap.style.gap = '12px';
+                    wrap.style.minWidth = '320px';
+
+                    // 1. Grid de Etiquetas Predefinidas (Eisenhower)
+                    var sectionPre = el('div');
+                    var headerPre = el('strong');
+                    headerPre.style.fontSize = '12px';
+                    headerPre.style.color = '#9fb3d2';
+                    headerPre.style.display = 'block';
+                    headerPre.style.marginBottom = '6px';
+                    headerPre.textContent = 'Matriz de Eisenhower';
+                    sectionPre.appendChild(headerPre);
+
+                    var gridPre = el('div');
+                    gridPre.style.display = 'grid';
+                    gridPre.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    gridPre.style.gap = '8px';
+                    
+                    const eisenhowerList = [
+                        { name: 'Faça (Verde)', hex: '#2e7d32' },
+                        { name: 'Agende (Azul)', hex: '#1976d2' },
+                        { name: 'Delegue (Amarelo)', hex: '#ffb300' },
+                        { name: 'Elimine (Vermelho)', hex: '#c62828' }
+                    ];
+
+                    eisenhowerList.forEach(p => {
+                        var b = el('button');
+                        b.type = 'button';
+                        b.style.border = '1px solid #2a4e78';
+                        b.style.borderRadius = '8px';
+                        b.style.padding = '10px';
+                        b.style.cursor = 'pointer';
+                        b.style.background = p.hex;
+                        b.style.color = '#fff';
+                        b.style.fontWeight = 'bold';
+                        b.textContent = p.name;
+                        b.onclick = function () {
+                            wrap._chosen = p.hex;
+                            modalElements.okButton.click();
+                        };
+                        if (cards[0].dataset.labelColor === p.hex) {
+                            b.style.outline = '2px solid #fff';
+                        }
+                        gridPre.appendChild(b);
                     });
-                    var editor = el('div', 'palette-editor');
-                    EXTRA_COLORS.forEach(function (p) {
-                        var row = el('div', 'palette-editor-row'); var swatch = el('div', 'palette-editor-swatch'); swatch.style.background = p.hex; var input = el('input'); input.type = 'text'; input.value = p.name; input.dataset.hex = p.hex;
-                        row.appendChild(swatch); row.appendChild(input); editor.appendChild(row);
-                    });
-                    wrap.appendChild(grid); wrap.appendChild(editor); return wrap;
-                }, function (body, wrap) {
-                    const editor = body.querySelector('.palette-editor');
-                    if (editor.classList.contains('editing')) {
-                        $$('.palette-editor-row input', editor).forEach(input => { customColorLabels[input.dataset.hex] = input.value; });
-                        saveCustomLabels();
-                        return;
+                    sectionPre.appendChild(gridPre);
+                    wrap.appendChild(sectionPre);
+
+                    // 2. Outras Etiquetas
+                    var sectionCustom = el('div');
+                    var headerCustom = el('strong');
+                    headerCustom.style.fontSize = '12px';
+                    headerCustom.style.color = '#9fb3d2';
+                    headerCustom.style.display = 'block';
+                    headerCustom.style.marginBottom = '6px';
+                    headerCustom.textContent = 'Outras Etiquetas';
+                    sectionCustom.appendChild(headerCustom);
+                    
+                    var gridCustom = el('div');
+                    gridCustom.className = 'custom-labels-grid';
+                    gridCustom.style.display = 'grid';
+                    gridCustom.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                    gridCustom.style.gap = '8px';
+
+                    function renderCustomLabels() {
+                        gridCustom.innerHTML = '';
+                        // Sem etiqueta option
+                        var bNone = el('button');
+                        bNone.type = 'button';
+                        bNone.style.border = '1px solid #2a4e78';
+                        bNone.style.borderRadius = '8px';
+                        bNone.style.padding = '10px';
+                        bNone.style.cursor = 'pointer';
+                        bNone.style.background = '#0b2240';
+                        bNone.style.color = '#fff';
+                        bNone.textContent = 'Sem Etiqueta';
+                        bNone.onclick = function () {
+                            wrap._chosen = '';
+                            modalElements.okButton.click();
+                        };
+                        if (!cards[0].dataset.labelColor) {
+                            bNone.style.outline = '2px solid #fff';
+                        }
+                        gridCustom.appendChild(bNone);
+
+                        Object.keys(customColorLabels).forEach(hex => {
+                            var b = el('button');
+                            b.type = 'button';
+                            b.style.border = '1px solid #2a4e78';
+                            b.style.borderRadius = '8px';
+                            b.style.padding = '10px';
+                            b.style.cursor = 'pointer';
+                            b.style.background = hex;
+                            b.style.color = '#fff';
+                            b.style.fontWeight = 'bold';
+                            b.textContent = customColorLabels[hex] || hex;
+                            b.onclick = function () {
+                                wrap._chosen = hex;
+                                modalElements.okButton.click();
+                            };
+                            if (cards[0].dataset.labelColor === hex) {
+                                b.style.outline = '2px solid #fff';
+                            }
+                            gridCustom.appendChild(b);
+                        });
                     }
-                    var v = (body._chosen === undefined) ? (cards[0].dataset.color || '') : body._chosen;
-                    cards.forEach(function (c) { c.dataset.color = v || ''; paintCard(c); routeByColor(c, v || ''); });
-                    applyFilters(); document.body.removeChild(wrap); persist();
+                    renderCustomLabels();
+                    sectionCustom.appendChild(gridCustom);
+                    wrap.appendChild(sectionCustom);
+
+                    // 3. Adicionar/Gerir Nova Etiqueta (com Seletor de Cores RGB)
+                    var addArea = el('div');
+                    addArea.style.borderTop = '1px solid #24314a';
+                    addArea.style.paddingTop = '10px';
+                    addArea.style.display = 'flex';
+                    addArea.style.flexDirection = 'column';
+                    addArea.style.gap = '8px';
+
+                    var headerNew = el('strong');
+                    headerNew.style.fontSize = '12px';
+                    headerNew.style.color = '#9fb3d2';
+                    headerNew.style.display = 'block';
+                    headerNew.textContent = 'Criar Nova Etiqueta';
+                    addArea.appendChild(headerNew);
+                    
+                    var row = el('div');
+                    row.style.display = 'flex';
+                    row.style.gap = '8px';
+                    row.style.alignItems = 'center';
+
+                    var colorPicker = el('input');
+                    colorPicker.type = 'color';
+                    colorPicker.value = '#9f9f9f';
+                    colorPicker.style.border = 'none';
+                    colorPicker.style.background = 'transparent';
+                    colorPicker.style.width = '38px';
+                    colorPicker.style.height = '38px';
+                    colorPicker.style.cursor = 'pointer';
+
+                    var labelInput = el('input');
+                    labelInput.type = 'text';
+                    labelInput.placeholder = 'Nome da Etiqueta';
+                    labelInput.style.flex = '1';
+                    labelInput.style.padding = '8px';
+                    labelInput.style.background = '#0b2240';
+                    labelInput.style.border = '1px solid #2a4e78';
+                    labelInput.style.borderRadius = '8px';
+                    labelInput.style.color = '#fff';
+
+                    var addBtn = el('button');
+                    addBtn.type = 'button';
+                    addBtn.textContent = 'Adicionar';
+                    addBtn.style.padding = '8px 12px';
+                    addBtn.style.background = '#1976d2';
+                    addBtn.style.border = 'none';
+                    addBtn.style.borderRadius = '8px';
+                    addBtn.style.color = '#fff';
+                    addBtn.style.cursor = 'pointer';
+
+                    addBtn.onclick = function() {
+                        const name = labelInput.value.trim();
+                        const hex = colorPicker.value;
+                        if (name) {
+                            customColorLabels[hex] = name;
+                            saveCustomLabels();
+                            labelInput.value = '';
+                            renderCustomLabels();
+                        } else {
+                            alert('Por favor, introduza um nome para a etiqueta.');
+                        }
+                    };
+
+                    row.appendChild(colorPicker);
+                    row.appendChild(labelInput);
+                    row.appendChild(addBtn);
+                    addArea.appendChild(row);
+                    wrap.appendChild(addArea);
+
+                    // Area de gestão (excluir etiquetas)
+                    var manageArea = el('div');
+                    manageArea.style.display = 'none';
+                    manageArea.style.flexDirection = 'column';
+                    manageArea.style.gap = '6px';
+                    manageArea.style.maxHeight = '150px';
+                    manageArea.style.overflowY = 'auto';
+
+                    function renderManageArea() {
+                        manageArea.innerHTML = '';
+                        Object.keys(customColorLabels).forEach(hex => {
+                            var mRow = el('div');
+                            mRow.style.display = 'flex';
+                            mRow.style.justifyContent = 'space-between';
+                            mRow.style.alignItems = 'center';
+                            mRow.style.padding = '4px';
+                            mRow.style.borderBottom = '1px solid #1c273a';
+
+                            var labelSpan = el('span');
+                            labelSpan.textContent = customColorLabels[hex] + ` (${hex})`;
+                            labelSpan.style.color = hex;
+                            labelSpan.style.fontWeight = 'bold';
+
+                            var delBtn = el('button');
+                            delBtn.type = 'button';
+                            delBtn.textContent = '🗑️';
+                            delBtn.style.background = 'transparent';
+                            delBtn.style.border = 'none';
+                            delBtn.style.cursor = 'pointer';
+                            delBtn.onclick = function() {
+                                delete customColorLabels[hex];
+                                saveCustomLabels();
+                                renderCustomLabels();
+                                renderManageArea();
+                            };
+
+                            mRow.appendChild(labelSpan);
+                            mRow.appendChild(delBtn);
+                            manageArea.appendChild(mRow);
+                        });
+                    }
+                    renderManageArea();
+                    wrap.appendChild(manageArea);
+
+                    wrap._toggleManage = function(isManaging) {
+                        if (isManaging) {
+                            sectionPre.style.display = 'none';
+                            sectionCustom.style.display = 'none';
+                            addArea.style.display = 'none';
+                            manageArea.style.display = 'flex';
+                            renderManageArea();
+                        } else {
+                            sectionPre.style.display = 'block';
+                            sectionCustom.style.display = 'block';
+                            addArea.style.display = 'flex';
+                            manageArea.style.display = 'none';
+                        }
+                    };
+
+                    return wrap;
+                }, function (body, wrap) {
+                    if (body._isManaging) {
+                        return; // Se estiver no modo gestão, o OK apenas fecha o modal após salvar
+                    }
+                    var v = (body._chosen === undefined) ? (cards[0].dataset.labelColor || '') : body._chosen;
+                    cards.forEach(function (c) { 
+                        c.dataset.labelColor = v || ''; 
+                        paintCard(c); 
+                    });
+                    persist();
                 });
-                const manageBtn = el('button'); manageBtn.textContent = 'Gerir Etiquetas 🏷️'; manageBtn.className = 'manage-labels-btn';
-                const editorEl = modalElements.body.querySelector('.palette-editor');
-                const gridEl = modalElements.body.querySelector('.palette-grid');
+
+                const manageBtn = el('button'); 
+                manageBtn.textContent = 'Gerir Etiquetas 🏷️'; 
+                manageBtn.className = 'manage-labels-btn';
+                
+                let isManaging = false;
                 manageBtn.onclick = function (e) {
-                    e.preventDefault(); editorEl.classList.toggle('editing'); gridEl.classList.toggle('editing');
-                    const isEditing = editorEl.classList.contains('editing');
-                    manageBtn.textContent = isEditing ? 'Voltar à Seleção' : 'Gerir Etiquetas 🏷️';
-                    modalElements.okButton.textContent = isEditing ? 'Guardar Nomes' : 'OK';
-                    if (isEditing) editorEl.querySelector('input').focus();
+                    e.preventDefault(); 
+                    isManaging = !isManaging;
+                    modalElements.body._isManaging = isManaging;
+                    modalElements.body._toggleManage(isManaging);
+                    manageBtn.textContent = isManaging ? 'Voltar à Seleção' : 'Gerir Etiquetas 🏷️';
+                    modalElements.okButton.textContent = isManaging ? 'Concluído' : 'OK';
                 };
                 modalElements.wrap.querySelector('.row').prepend(manageBtn);
             }
