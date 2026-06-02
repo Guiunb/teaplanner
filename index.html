@@ -1922,12 +1922,23 @@
                 metaRef.on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val && Array.isArray(val)) {
+                        let updated = false;
+                        if (!val.some(b => b.id === 'board-todos')) {
+                            val.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
+                            updated = true;
+                        }
+                        if (!val.some(b => b.id === 'board-trash')) {
+                            val.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
+                            updated = true;
+                        }
                         if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                             updateBoardSelectUI();
-
+                            if (updated) {
+                                saveBoardsMetadata(true);
+                            }
                             if (!boardsMeta.find(b => b.id === currentBoardId)) {
                                 if (boardsMeta.length > 0) switchBoard(boardsMeta[0].id);
                                 else createNewBoard('Meu Quadro');
@@ -3159,6 +3170,8 @@
                 // IMPORTANTE: Ao mover para outro quadro, remove a data (sai da agenda global)
                 // A menos que a gente quisesse manter, mas conceitualmente se vai pro kanban de lá, vira backlog.
                 cardData.when = '';
+                cardData.boardId = targetBoardId;
+                cardData.color = getBoardColor(targetBoardId) || '';
 
                 const targetData = getBoardData(targetBoardId);
                 let moved = false;
