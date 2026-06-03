@@ -1704,13 +1704,13 @@
         <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
+        <button id="clearFilters">Limpar filtros</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
             title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
         <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
         <label>De <input id="fFrom" type="date"></label>
         <label>Até <input id="fTo" type="date"></label>
-        <button id="clearFilters">Limpar filtros</button>
 
         <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
         <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
@@ -1749,6 +1749,7 @@
             <div class="weekly-container collapsed" id="weekly-container">
                 <div class="weekly-controls">
                     <button id="prevWeekBtn" title="Semana Anterior">❮</button>
+                    <button id="todayWeekBtn" style="padding: 2px 8px; border-radius: 6px; font-size: 12px; height: 26px; cursor: pointer; background: #0e58a5; color: #fff; border: none;">Hoje</button>
                     <span id="weekRangeDisplay">Semana Atual</span>
                     <button id="nextWeekBtn" title="Próxima Semana">❯</button>
                 </div>
@@ -1780,6 +1781,7 @@
                     <div class="header-row">
                         <div class="date-nav">
                             <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
+                            <button id="todayDayBtn" style="font-size: 12px; padding: 4px 8px; cursor: pointer; background: #0e58a5; color: #fff; border: none; border-radius: 8px; margin-right: 4px;">Hoje</button>
                             <input id="agendaDate" type="date" />
                             <button id="nextDayBtn" title="Próximo Dia">&gt;</button>
                         </div>
@@ -1797,6 +1799,7 @@
         <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
         <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
         <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
+        <button data-action="agenda">📆 Agendar / Recorrência...</button>
         <div class="sep"></div>
         <div id="ctx-move-board" style="position:relative">
             <button data-action="move-board">🚀 Mover para Quadro ▶</button>
@@ -2575,7 +2578,12 @@
                     timerEnd: c.dataset.timerEnd || '',
                     completed: c.dataset.completed || 'false',
                     history: c.dataset.history || '[]',
-                    boardId: c.dataset.boardId || ''
+                    boardId: c.dataset.boardId || '',
+                    description: c.dataset.description || '',
+                    duration: c.dataset.duration || '',
+                    recurrence: c.dataset.recurrence || 'none',
+                    cardId: c.dataset.cardId || '',
+                    recurrenceParent: c.dataset.recurrenceParent || ''
                 };
             }
 
@@ -3494,6 +3502,13 @@
                 });
 
                 groupedByParent.forEach((cardList, parent) => {
+                    if (!parent) {
+                        cardList.forEach(c => {
+                            var newData = cardToData(c);
+                            createCard(newData);
+                        });
+                        return;
+                    }
                     // Find the last selected card in this parent to insert after
                     const lastOriginalCard = cardList[cardList.length - 1];
                     let insertReference = lastOriginalCard.nextSibling;
@@ -3661,6 +3676,11 @@
                 c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
                 c.dataset.history = _d.history || '[]';
+                c.dataset.description = _d.description || '';
+                c.dataset.duration = _d.duration || '';
+                c.dataset.recurrence = _d.recurrence || 'none';
+                c.dataset.cardId = _d.cardId || '';
+                c.dataset.recurrenceParent = _d.recurrenceParent || '';
 
                 // Create Card Header
                 var header = el('div', 'card-header');
@@ -3744,6 +3764,14 @@
                     handleCardDblClick(c);
                 });
 
+                c.addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearSelection();
+                    addSelection(c);
+                    showCtx(e.clientX, e.clientY, c);
+                });
+
                 if (!allCards.includes(c)) {
                     allCards.push(c);
                 }
@@ -3756,6 +3784,16 @@
                     addCardHistory(c, 'Enviado para a lixeira');
                     moveCardToBoard(c, 'board-trash', 'Apagados');
                     return;
+                }
+                const parentId = c.dataset.cardId;
+                if (parentId) {
+                    allCards = allCards.filter(card => {
+                        if (card.dataset.recurrenceParent === parentId) {
+                            card.remove();
+                            return false;
+                        }
+                        return true;
+                    });
                 }
                 var index = allCards.indexOf(c);
                 if (index > -1) allCards.splice(index, 1);
@@ -4024,16 +4062,18 @@
                     Q4: '#c62828'  // Red (Elimine)
                 };
 
-                let isMatrix = listElement && listElement.dataset.type === 'quad';
-                let quad = isMatrix ? listElement.dataset.quad : '';
+                const listEl = listElement ? (listElement.closest('.list') || listElement) : null;
 
-                if (listElement && listElement.dataset.date) {
-                    targetWhen = listElement.dataset.date + 'T';
-                } else if (listElement && listElement.dataset.type === 'time') {
-                    targetWhen = day + 'T' + listElement.dataset.time;
-                } else if (listElement && listElement.dataset.type === 'goal') {
+                let isMatrix = listEl && listEl.dataset.type === 'quad';
+                let quad = isMatrix ? listEl.dataset.quad : '';
+
+                if (listEl && listEl.dataset.date) {
+                    targetWhen = listEl.dataset.date + 'T';
+                } else if (listEl && listEl.dataset.type === 'time') {
+                    targetWhen = day + 'T' + listEl.dataset.time;
+                } else if (listEl && listEl.dataset.type === 'goal') {
                     targetWhen = day + 'TGOAL';
-                } else if (listElement && listElement.closest('.unscheduled-slot')) {
+                } else if (listEl && listEl.closest('.unscheduled-slot')) {
                     targetWhen = day + 'T';
                 } else {
                     targetWhen = '';
@@ -4585,6 +4625,7 @@
                 else if (action === 'del') { block.forEach(function (n) { removeCard(n); }); }
                 else if (action === 'color') { openColorDialog(block); }
                 else if (action === 'date') { openDateDialog(block); }
+                else if (action === 'agenda') { if (block.length) openAgendaDialog(block[0]); }
                 else if (action === 'timer') { openTimerDialog(block); }
                 else if (action === 'gemini-subtasks') { generateSubtasks(block); }
                 else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
@@ -4973,6 +5014,427 @@
             }
 
             function openDateDialog(cards) { if (!cards.length) return; showModal('Editar data', function () { var r = el('div'); var i = el('input'); i.type = 'date'; if (cards[0].dataset.due) i.value = cards[0].dataset.due; r.appendChild(i); return r; }, function (r, wrap) { var v = r.querySelector('input').value; cards.forEach(function (c) { c.dataset.due = v || ''; paintCard(c); }); applyFilters(); }); }
+
+            function generateRecurrences(parentCard) {
+                const parentId = parentCard.dataset.cardId;
+                if (!parentId) return;
+
+                const parentDateStr = parentCard.dataset.when.split('T')[0];
+                const parentTimeSuffix = parentCard.dataset.when.includes('T') ? parentCard.dataset.when.split('T')[1] : '';
+
+                // Delete all future child cards belonging to this parent
+                allCards = allCards.filter(c => {
+                    if (c.dataset.recurrenceParent === parentId) {
+                        c.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+                const recurrence = parentCard.dataset.recurrence;
+                if (!recurrence || recurrence === 'none') {
+                    return;
+                }
+
+                const startDate = new Date(parentDateStr + 'T12:00:00');
+                let count = 0;
+                let currentDate = new Date(startDate);
+
+                let maxInstances = 30; // default for daily/weekdays
+                if (recurrence === 'weekly') maxInstances = 12;
+                if (recurrence === 'monthly') maxInstances = 12;
+
+                while (count < maxInstances) {
+                    if (recurrence === 'daily') {
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    } else if (recurrence === 'weekdays') {
+                        do {
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        } while (currentDate.getDay() === 0 || currentDate.getDay() === 6);
+                    } else if (recurrence === 'weekly') {
+                        currentDate.setDate(currentDate.getDate() + 7);
+                    } else if (recurrence === 'monthly') {
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                    } else {
+                        break;
+                    }
+
+                    const dateStr = currentDate.toISOString().slice(0, 10);
+                    const whenVal = dateStr + 'T' + parentTimeSuffix;
+
+                    const childData = {
+                        text: (parentCard.querySelector('.text') ? parentCard.querySelector('.text').textContent : '').trim(),
+                        color: parentCard.dataset.color || '',
+                        labelColor: parentCard.dataset.labelColor || '',
+                        due: parentCard.dataset.due || '',
+                        when: whenVal,
+                        timerTotal: parentCard.dataset.timerTotal || '',
+                        timerLeft: parentCard.dataset.timerLeft || '',
+                        timerState: 'stopped',
+                        timerEnd: '',
+                        completed: 'false',
+                        history: JSON.stringify([{ action: 'Criado por recorrência', time: Date.now() }]),
+                        boardId: parentCard.dataset.boardId || '',
+                        description: parentCard.dataset.description || '',
+                        duration: parentCard.dataset.duration || '',
+                        recurrence: 'none',
+                        cardId: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        recurrenceParent: parentId
+                    };
+
+                    createCard(childData);
+                    count++;
+                }
+            }
+
+            function openAgendaDialog(card) {
+                if (!card) return;
+
+                if (!card.dataset.cardId) {
+                    card.dataset.cardId = 'card_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                }
+
+                const whenVal = card.dataset.when || '';
+                let cardDate = '';
+                let cardTime = '09:00';
+                let isGoal = false;
+                let isAllDay = false;
+
+                if (whenVal.includes('T')) {
+                    const parts = whenVal.split('T');
+                    cardDate = parts[0];
+                    const timePart = parts[1] || '';
+                    if (timePart === 'GOAL') {
+                        isGoal = true;
+                        isAllDay = true;
+                    } else if (timePart === '') {
+                        isAllDay = true;
+                    } else {
+                        cardTime = timePart;
+                    }
+                }
+                if (!cardDate) {
+                    cardDate = new Date().toISOString().slice(0, 10);
+                }
+
+                const currentRecurrence = card.dataset.recurrence || 'none';
+                const currentDuration = card.dataset.duration || '60';
+                const currentDescription = card.dataset.description || '';
+                const currentLabelColor = card.dataset.labelColor || '';
+
+                var modalElements = showModal('Agendar / Recorrência', function () {
+                    var r = el('div');
+                    r.style.display = 'flex';
+                    r.style.flexDirection = 'column';
+                    r.style.gap = '14px';
+                    r.style.minWidth = '360px';
+                    r.style.maxWidth = '460px';
+                    r.style.color = '#fff';
+                    r.style.fontFamily = 'inherit';
+
+                    const titleRow = el('div');
+                    titleRow.innerHTML = `<input type="text" id="agendaTitle" placeholder="Adicionar título" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent : '').replace(/^🍃\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid #24314a; background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; outline: none; transition: border-color 0.2s;" />`;
+                    const titleInput = titleRow.querySelector('#agendaTitle');
+                    titleInput.addEventListener('focus', () => titleInput.style.borderBottomColor = '#1976d2');
+                    titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = '#24314a');
+                    r.appendChild(titleRow);
+
+                    const dateTimeRow = el('div');
+                    dateTimeRow.style.display = 'flex';
+                    dateTimeRow.style.gap = '10px';
+                    dateTimeRow.style.alignItems = 'center';
+                    dateTimeRow.style.flexWrap = 'wrap';
+
+                    const datePicker = el('input');
+                    datePicker.type = 'date';
+                    datePicker.value = cardDate;
+                    datePicker.style.border = '1px solid #24314a';
+                    datePicker.style.background = '#111a2e';
+                    datePicker.style.color = '#fff';
+                    datePicker.style.padding = '6px 8px';
+                    datePicker.style.borderRadius = '6px';
+                    datePicker.style.fontSize = '14px';
+                    datePicker.style.cursor = 'pointer';
+
+                    const timePicker = el('input');
+                    timePicker.type = 'time';
+                    timePicker.value = cardTime;
+                    timePicker.style.border = '1px solid #24314a';
+                    timePicker.style.background = '#111a2e';
+                    timePicker.style.color = '#fff';
+                    timePicker.style.padding = '6px 8px';
+                    timePicker.style.borderRadius = '6px';
+                    timePicker.style.fontSize = '14px';
+                    timePicker.style.cursor = 'pointer';
+                    if (isAllDay) {
+                        timePicker.style.display = 'none';
+                    }
+
+                    const allDayLabel = el('label');
+                    allDayLabel.style.display = 'flex';
+                    allDayLabel.style.alignItems = 'center';
+                    allDayLabel.style.gap = '4px';
+                    allDayLabel.style.fontSize = '13px';
+                    allDayLabel.style.color = '#9fb3d2';
+                    allDayLabel.style.cursor = 'pointer';
+                    allDayLabel.innerHTML = `<input type="checkbox" id="agendaAllDay" ${isAllDay ? 'checked' : ''} /> Dia inteiro`;
+                    const allDayCheckbox = allDayLabel.querySelector('#agendaAllDay');
+
+                    const goalLabel = el('label');
+                    goalLabel.style.display = 'flex';
+                    goalLabel.style.alignItems = 'center';
+                    goalLabel.style.gap = '4px';
+                    goalLabel.style.fontSize = '13px';
+                    goalLabel.style.color = '#9fb3d2';
+                    goalLabel.style.cursor = 'pointer';
+                    goalLabel.innerHTML = `<input type="checkbox" id="agendaGoal" ${isGoal ? 'checked' : ''} /> Meta do dia`;
+                    const goalCheckbox = goalLabel.querySelector('#agendaGoal');
+
+                    allDayCheckbox.addEventListener('change', function () {
+                        if (allDayCheckbox.checked) {
+                            timePicker.style.display = 'none';
+                            durationSelect.style.display = 'none';
+                            durationLabel.style.display = 'none';
+                        } else {
+                            timePicker.style.display = '';
+                            durationSelect.style.display = '';
+                            durationLabel.style.display = '';
+                            goalCheckbox.checked = false;
+                        }
+                    });
+
+                    goalCheckbox.addEventListener('change', function () {
+                        if (goalCheckbox.checked) {
+                            allDayCheckbox.checked = true;
+                            timePicker.style.display = 'none';
+                            durationSelect.style.display = 'none';
+                            durationLabel.style.display = 'none';
+                        }
+                    });
+
+                    dateTimeRow.appendChild(datePicker);
+                    dateTimeRow.appendChild(timePicker);
+                    dateTimeRow.appendChild(allDayLabel);
+                    dateTimeRow.appendChild(goalLabel);
+                    r.appendChild(dateTimeRow);
+
+                    const durRecRow = el('div');
+                    durRecRow.style.display = 'flex';
+                    durRecRow.style.gap = '10px';
+                    durRecRow.style.alignItems = 'center';
+                    durRecRow.style.flexWrap = 'wrap';
+
+                    const durationLabel = el('span');
+                    durationLabel.textContent = 'Duração:';
+                    durationLabel.style.fontSize = '13px';
+                    durationLabel.style.color = '#9fb3d2';
+                    if (isAllDay) durationLabel.style.display = 'none';
+
+                    const durationSelect = el('select');
+                    durationSelect.style.border = '1px solid #24314a';
+                    durationSelect.style.background = '#111a2e';
+                    durationSelect.style.color = '#fff';
+                    durationSelect.style.padding = '6px 8px';
+                    durationSelect.style.borderRadius = '6px';
+                    durationSelect.style.fontSize = '14px';
+                    durationSelect.style.cursor = 'pointer';
+                    if (isAllDay) durationSelect.style.display = 'none';
+
+                    const durations = [
+                        { val: '15', text: '15 min' },
+                        { val: '30', text: '30 min' },
+                        { val: '60', text: '1 hora' },
+                        { val: '120', text: '2 horas' },
+                        { val: '180', text: '3 horas' },
+                        { val: 'custom', text: 'Personalizado...' }
+                    ];
+                    durations.forEach(d => {
+                        const opt = el('option');
+                        opt.value = d.val;
+                        opt.textContent = d.text;
+                        durationSelect.appendChild(opt);
+                    });
+
+                    const customDurationInput = el('input');
+                    customDurationInput.type = 'number';
+                    customDurationInput.placeholder = 'Minutos';
+                    customDurationInput.style.border = '1px solid #24314a';
+                    customDurationInput.style.background = '#111a2e';
+                    customDurationInput.style.color = '#fff';
+                    customDurationInput.style.padding = '6px 8px';
+                    customDurationInput.style.borderRadius = '6px';
+                    customDurationInput.style.fontSize = '14px';
+                    customDurationInput.style.width = '80px';
+                    customDurationInput.style.display = 'none';
+
+                    if (['15', '30', '60', '120', '180'].includes(currentDuration)) {
+                        durationSelect.value = currentDuration;
+                    } else if (currentDuration) {
+                        durationSelect.value = 'custom';
+                        customDurationInput.value = currentDuration;
+                        customDurationInput.style.display = '';
+                    } else {
+                        durationSelect.value = '60';
+                    }
+
+                    durationSelect.addEventListener('change', function () {
+                        if (durationSelect.value === 'custom') {
+                            customDurationInput.style.display = '';
+                        } else {
+                            customDurationInput.style.display = 'none';
+                        }
+                    });
+
+                    const recLabel = el('span');
+                    recLabel.textContent = 'Repetir:';
+                    recLabel.style.fontSize = '13px';
+                    recLabel.style.color = '#9fb3d2';
+
+                    const recurrenceSelect = el('select');
+                    recurrenceSelect.style.border = '1px solid #24314a';
+                    recurrenceSelect.style.background = '#111a2e';
+                    recurrenceSelect.style.color = '#fff';
+                    recurrenceSelect.style.padding = '6px 8px';
+                    recurrenceSelect.style.borderRadius = '6px';
+                    recurrenceSelect.style.fontSize = '14px';
+                    recurrenceSelect.style.cursor = 'pointer';
+
+                    const recOptions = [
+                        { val: 'none', text: 'Não se repete' },
+                        { val: 'daily', text: 'Todos os dias' },
+                        { val: 'weekdays', text: 'Dias da semana (segunda a sexta)' },
+                        { val: 'weekly', text: 'Semanalmente' },
+                        { val: 'monthly', text: 'Mensalmente' }
+                    ];
+                    recOptions.forEach(o => {
+                        const opt = el('option');
+                        opt.value = o.val;
+                        opt.textContent = o.text;
+                        if (o.val === currentRecurrence) opt.selected = true;
+                        recurrenceSelect.appendChild(opt);
+                    });
+
+                    durRecRow.appendChild(durationLabel);
+                    durRecRow.appendChild(durationSelect);
+                    durRecRow.appendChild(customDurationInput);
+                    durRecRow.appendChild(recLabel);
+                    durRecRow.appendChild(recurrenceSelect);
+                    r.appendChild(durRecRow);
+
+                    const colorsContainer = el('div');
+                    colorsContainer.style.display = 'flex';
+                    colorsContainer.style.flexDirection = 'column';
+                    colorsContainer.style.gap = '6px';
+
+                    const colorsTitle = el('strong');
+                    colorsTitle.style.fontSize = '12px';
+                    colorsTitle.style.color = '#9fb3d2';
+                    colorsTitle.textContent = 'Cor da etiqueta';
+                    colorsContainer.appendChild(colorsTitle);
+
+                    const colorsGrid = el('div');
+                    colorsGrid.style.display = 'grid';
+                    colorsGrid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+                    colorsGrid.style.gap = '8px';
+
+                    const googleColors = [
+                        { name: 'Peacock (Azul)', hex: '#039be5' },
+                        { name: 'Basil (Verde)', hex: '#0b8043' },
+                        { name: 'Tomato (Vermelho)', hex: '#d50000' },
+                        { name: 'Tangerine (Laranja)', hex: '#f4511e' },
+                        { name: 'Banana (Amarelo)', hex: '#f6bf26' },
+                        { name: 'Sage (Verde Claro)', hex: '#33b679' },
+                        { name: 'Blueberry (Índigo)', hex: '#3f51b5' },
+                        { name: 'Lavender (Lilás)', hex: '#7986cb' },
+                        { name: 'Grape (Roxo)', hex: '#8e24aa' },
+                        { name: 'Flamingo (Rosa)', hex: '#e67c73' },
+                        { name: 'Graphite (Cinza)', hex: '#616161' },
+                        { name: 'Cocoa (Marrom)', hex: '#795548' }
+                    ];
+
+                    let selectedColor = currentLabelColor;
+                    googleColors.forEach(gc => {
+                        const colBtn = el('button');
+                        colBtn.type = 'button';
+                        colBtn.title = gc.name;
+                        colBtn.style.background = gc.hex;
+                        colBtn.style.border = '1px solid rgba(255,255,255,0.1)';
+                        colBtn.style.borderRadius = '50%';
+                        colBtn.style.width = '26px';
+                        colBtn.style.height = '26px';
+                        colBtn.style.cursor = 'pointer';
+                        colBtn.style.transition = 'transform 0.1s, border 0.1s';
+                        if (selectedColor.toLowerCase() === gc.hex.toLowerCase()) {
+                            colBtn.style.border = '2px solid #fff';
+                            colBtn.style.transform = 'scale(1.15)';
+                        }
+                        colBtn.onclick = function () {
+                            selectedColor = gc.hex;
+                            colorsGrid.querySelectorAll('button').forEach(btn => {
+                                btn.style.border = '1px solid rgba(255,255,255,0.1)';
+                                btn.style.transform = '';
+                            });
+                            colBtn.style.border = '2px solid #fff';
+                            colBtn.style.transform = 'scale(1.15)';
+                        };
+                        colorsGrid.appendChild(colBtn);
+                    });
+                    colorsContainer.appendChild(colorsGrid);
+                    r.appendChild(colorsContainer);
+
+                    const descRow = el('div');
+                    descRow.innerHTML = `<textarea id="agendaDescription" placeholder="Adicionar descrição..." style="width: 100%; min-height: 80px; border: 1px solid #24314a; background: #111a2e; color: #fff; border-radius: 6px; padding: 8px; font-size: 14px; resize: vertical; outline: none; font-family: inherit;"></textarea>`;
+                    const descTextarea = descRow.querySelector('#agendaDescription');
+                    descTextarea.value = currentDescription;
+                    descTextarea.addEventListener('focus', () => descTextarea.style.borderColor = '#1976d2');
+                    descTextarea.addEventListener('blur', () => descTextarea.style.borderColor = '#24314a');
+                    r.appendChild(descRow);
+
+                    r._chosenColor = () => selectedColor;
+
+                    return r;
+                }, function (body, wrap) {
+                    const titleVal = body.querySelector('#agendaTitle').value.trim();
+                    const dateVal = body.querySelector('input[type="date"]').value;
+                    const timeVal = body.querySelector('input[type="time"]').value;
+                    const isAllDayChecked = body.querySelector('#agendaAllDay').checked;
+                    const isGoalChecked = body.querySelector('#agendaGoal').checked;
+                    const recVal = body.querySelector('select:last-of-type').value;
+                    const descVal = body.querySelector('#agendaDescription').value.trim();
+
+                    const durSelVal = body.querySelector('select:first-of-type').value;
+                    let durVal = durSelVal;
+                    if (durSelVal === 'custom') {
+                        durVal = body.querySelector('input[type="number"]').value.trim();
+                    }
+
+                    const targetCard = card._originalReference || card;
+                    const txtSpan = targetCard.querySelector('.text');
+                    if (txtSpan) {
+                        txtSpan.textContent = (isGoalChecked ? '🎯 ' : '') + titleVal;
+                    }
+
+                    targetCard.dataset.description = descVal;
+                    targetCard.dataset.duration = isAllDayChecked ? '' : durVal;
+                    targetCard.dataset.recurrence = recVal;
+                    targetCard.dataset.labelColor = body._chosenColor();
+
+                    if (isGoalChecked) {
+                        targetCard.dataset.when = dateVal + 'TGOAL';
+                    } else if (isAllDayChecked) {
+                        targetCard.dataset.when = dateVal + 'T';
+                    } else {
+                        targetCard.dataset.when = dateVal + 'T' + timeVal;
+                    }
+
+                    targetCard.dataset.recurrenceParent = '';
+
+                    paintCard(targetCard);
+                    generateRecurrences(targetCard);
+                    applyFilters();
+                    updateSlotsHasItems();
+                });
+            }
             function openTimerDialog(cards, onOkCallback) {
                 if (!cards.length) return;
                 var modalElements = showModal('Definir Timer (minutos)', function () {
@@ -5026,10 +5488,12 @@
                 return week;
             }
 
+            let weeklyActiveDate = new Date().toISOString().slice(0, 10);
+
             function renderWeeklyView() {
                 if (!weeklyGrid || weeklyContainer.classList.contains('collapsed')) return;
                 weeklyGrid.innerHTML = '';
-                const currentDay = getActiveDay();
+                const currentDay = weeklyActiveDate;
                 const weekDates = getWeekRange(currentDay);
                 const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                 const startW = weekDates[0].split('-').reverse().slice(0, 2).join('/');
@@ -5113,6 +5577,14 @@
                             handleCardDblClick(originalCard);
                         });
 
+                        clone.addEventListener('contextmenu', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            clearSelection();
+                            addSelection(originalCard);
+                            showCtx(e.clientX, e.clientY, originalCard);
+                        });
+
                         clone.addEventListener('dragstart', function (e) {
                             e.stopPropagation();
                             const block = selected.has(originalCard) ? Array.from(selected) : [originalCard];
@@ -5182,13 +5654,17 @@
             }
 
             function changeWeek(offset) {
-                const currentDate = new Date(agendaDateInput.value + 'T12:00:00');
+                const currentDate = new Date(weeklyActiveDate + 'T12:00:00');
                 currentDate.setDate(currentDate.getDate() + (offset * 7));
-                agendaDateInput.value = currentDate.toISOString().slice(0, 10);
+                weeklyActiveDate = currentDate.toISOString().slice(0, 10);
                 applyFilters();
             }
             document.getElementById('prevWeekBtn').addEventListener('click', () => changeWeek(-1));
             document.getElementById('nextWeekBtn').addEventListener('click', () => changeWeek(1));
+            document.getElementById('todayWeekBtn').addEventListener('click', () => {
+                weeklyActiveDate = new Date().toISOString().slice(0, 10);
+                applyFilters();
+            });
 
             // ===== INITIALIZATION =====
             const toggleAgendaBtn = document.getElementById('toggleAgendaBtn');
@@ -5290,6 +5766,10 @@
             function changeDay(days) { let currentDate = new Date(agendaDateInput.value + 'T12:00:00'); currentDate.setDate(currentDate.getDate() + days); agendaDateInput.value = currentDate.toISOString().slice(0, 10); applyFilters(); }
             document.getElementById('prevDayBtn').addEventListener('click', () => changeDay(-1));
             document.getElementById('nextDayBtn').addEventListener('click', () => changeDay(1));
+            document.getElementById('todayDayBtn').addEventListener('click', () => {
+                agendaDateInput.value = new Date().toISOString().slice(0, 10);
+                applyFilters();
+            });
             agendaDateInput.addEventListener('change', applyFilters);
 
             boardEl.addEventListener('wheel', (e) => { if (e.altKey) { e.preventDefault(); boardEl.scrollLeft += e.deltaY; } });
