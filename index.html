@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
@@ -14975,8 +14975,36 @@ Regras Importantes:
                 function checkAndRestoreFallback() {
                     try {
                         const rawMeta = localStorage.getItem('tea-planner-boards-meta');
-                        if (!rawMeta || JSON.parse(rawMeta).length <= 2) {
-                            console.log("Fallback: Metadados locais vazios ou incompletos. Restaurando backup de seguranÃ§a embutido...");
+                        let totalCards = 0;
+                        if (rawMeta) {
+                            const meta = JSON.parse(rawMeta);
+                            if (Array.isArray(meta)) {
+                                meta.forEach(function(b) {
+                                    if (b.id === 'board-trash' || b.id === 'board-todos') return;
+                                    const bStr = localStorage.getItem('tea-planner-board-' + b.id);
+                                    if (bStr) {
+                                        try {
+                                            const lists = JSON.parse(bStr);
+                                            if (Array.isArray(lists)) {
+                                                lists.forEach(function(l) {
+                                                    if (l.cards && Array.isArray(l.cards)) {
+                                                        totalCards += l.cards.length;
+                                                    }
+                                                });
+                                            }
+                                        } catch (err) {}
+                                    }
+                                });
+                            }
+                        }
+
+                        let metaLength = 0;
+                        try {
+                            if (rawMeta) metaLength = JSON.parse(rawMeta).length;
+                        } catch (err) {}
+
+                        if (!rawMeta || metaLength <= 2 || totalCards === 0) {
+                            console.log("Fallback: Dados vazios detectados (Total cartões = " + totalCards + "). Restaurando backup de segurança...");
                             localStorage.setItem('tea-planner-boards-meta', JSON.stringify(BACKUP_FALLBACK.boardsMeta));
                             localStorage.setItem('tea-planner-global-agenda', JSON.stringify(BACKUP_FALLBACK.globalAgenda || []));
                             Object.keys(BACKUP_FALLBACK.boards).forEach(function(boardId) {
@@ -14985,7 +15013,7 @@ Regras Importantes:
                             localStorage.setItem('tea-planner-force-cloud-sync', 'true');
                         }
                     } catch (e) {
-                        console.error("Erro na verificaÃ§Ã£o do fallback de backup:", e);
+                        console.error("Erro na verificação do fallback de backup:", e);
                     }
                 }
                 checkAndRestoreFallback();
