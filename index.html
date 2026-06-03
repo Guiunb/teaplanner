@@ -5613,8 +5613,14 @@
                 try {
                     const saved = JSON.parse(localStorage.getItem('TEA_RESIZERS') || '{}');
                     if (saved.sidebarWidth && window.innerWidth > 700) sidebar.style.flexBasis = saved.sidebarWidth + 'px';
-                    if (saved.boardHeight) boardContainer.style.height = saved.boardHeight + 'px';
-                    if (saved.weeklyHeight) weeklyContainer.style.height = saved.weeklyHeight + 'px';
+                    if (saved.boardHeight) {
+                        const h = parseInt(saved.boardHeight);
+                        boardContainer.style.height = (isNaN(h) || h < 100) ? '300px' : h + 'px';
+                    }
+                    if (saved.weeklyHeight) {
+                        const h = parseInt(saved.weeklyHeight);
+                        weeklyContainer.style.height = (isNaN(h) || h < 50) ? '250px' : h + 'px';
+                    }
                 } catch(e) {}
 
                 function saveResizerState() {
