@@ -385,9 +385,9 @@
         }
 
         .card {
-            background: var(--card);
-            border: 1px solid #20486f;
-            border-left: 6px solid var(--board-color, transparent);
+            background: color-mix(in srgb, var(--board-color, #20486f) 14%, var(--card));
+            border: 1px solid color-mix(in srgb, var(--board-color, #20486f) 35%, rgba(255, 255, 255, 0.15));
+            border-left: 6px solid var(--board-color, #20486f);
             border-radius: 8px;
             padding: 0;
             cursor: grab;
@@ -3100,6 +3100,8 @@
                 if (undoBtn) undoBtn.disabled = !canUndo();
                 if (redoBtn) redoBtn.disabled = !canRedo();
             }
+            function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
+            function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
             function loadAndRenderAll() {
                 let boardData = [];
                 let agendaData = [];
@@ -3916,13 +3918,11 @@
 
             function paintCard(c) {
                 var boardColor = getBoardColor(c.dataset.boardId) || c.dataset.color;
+                c.style.borderColor = '';
+                c.style.borderLeftColor = '';
                 if (boardColor) {
-                    c.style.borderColor = boardColor;
-                    c.style.borderLeftColor = boardColor;
                     c.style.setProperty('--board-color', boardColor);
                 } else {
-                    c.style.borderColor = '#20486f';
-                    c.style.borderLeftColor = 'transparent';
                     c.style.setProperty('--board-color', '#20486f');
                 }
 
