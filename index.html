@@ -1096,6 +1096,29 @@
                 display: none
             }
 
+            .board-container,
+            .board-container.collapsed,
+            .matrix-container,
+            .matrix-container.collapsed {
+                height: auto !important;
+                min-height: unset !important;
+                overflow: visible !important;
+                opacity: 1 !important;
+                display: flex !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .weekly-container:not(.collapsed) {
+                height: auto !important;
+                min-height: unset !important;
+                overflow: visible !important;
+            }
+
+            .resizer {
+                display: none !important;
+            }
+
             .board {
                 order: 1;
                 overflow: visible;
@@ -1761,6 +1784,161 @@
         .weekday-btn:active {
             transform: scale(0.9);
         }
+
+        /* ANALOG TIME PICKER STYLES */
+        .analog-time-picker-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15000;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .analog-time-picker-modal {
+            background: #192638;
+            border: 1px solid #283e5a;
+            border-radius: 16px;
+            width: 310px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            user-select: none;
+        }
+        .analog-time-picker-title {
+            color: #9fb3d2;
+            font-size: 13px;
+            margin-bottom: 12px;
+            align-self: flex-start;
+            font-weight: 500;
+        }
+        .analog-time-picker-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .analog-time-picker-display input {
+            width: 68px;
+            height: 58px;
+            background: #0f1c2c;
+            border: 1px solid #243c5b;
+            border-radius: 8px;
+            color: #9fb3d2;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            padding: 0;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .analog-time-picker-display input.active {
+            background: #1976d2;
+            color: #fff;
+            border-color: #2196f3;
+        }
+        .analog-time-picker-display span {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .analog-time-picker-face-container {
+            position: relative;
+            width: 230px;
+            height: 230px;
+            background: #0b1726;
+            border-radius: 50%;
+            margin-bottom: 16px;
+            touch-action: none;
+        }
+        .analog-time-picker-number {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #9fb3d2;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+            transition: color 0.1s;
+        }
+        .analog-time-picker-number.selected {
+            color: #fff;
+        }
+        .analog-time-picker-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 230px;
+            height: 230px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .analog-time-picker-keyboard-input-msg {
+            color: #9fb3d2;
+            font-size: 13px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        .analog-time-picker-footer {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .analog-time-picker-keyboard-btn {
+            background: transparent;
+            border: none;
+            color: #9fb3d2;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .analog-time-picker-keyboard-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .analog-time-picker-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .analog-time-picker-buttons button {
+            background: transparent;
+            border: none;
+            color: #ffd54f;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .analog-time-picker-buttons button:hover {
+            background: rgba(255, 213, 79, 0.1);
+        }
+
+        /* CHECKLIST FILTERS STYLES */
+        .filter-checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 6px 2px;
+        }
     </style>
 </head>
 
@@ -1822,6 +2000,7 @@
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <button id="clearFilters">Limpar filtros</button>
+        <button id="filterBoardsBtn" title="Filtrar quadros exibidos no TODOS" style="display: none; background: #2e7d32;">Filtrar Quadros</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" name="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
             title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
@@ -2921,10 +3100,6 @@
                 if (undoBtn) undoBtn.disabled = !canUndo();
                 if (redoBtn) redoBtn.disabled = !canRedo();
             }
-            function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
-            function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
-
-            // Função unificada para carregar tudo
             function loadAndRenderAll() {
                 let boardData = [];
                 let agendaData = [];
@@ -2933,9 +3108,11 @@
                     // Aggregate all boards except trash and board-todos itself
                     let mergedKanbanLists = [];
                     let mergedQuadLists = { Q1: [], Q2: [], Q3: [], Q4: [] };
+                    const vBoards = getVisibleBoardsInTodos();
 
                     boardsMeta.forEach(b => {
                         if (b.id === 'board-trash' || b.id === 'board-todos') return;
+                        if (!vBoards.has(b.id)) return;
                         let bData = [];
                         try {
                             const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
@@ -2973,7 +3150,7 @@
                             let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
                             if (!targetList) {
                                 targetList = { type: 'kanban', title: list.title, cards: [], boardId: 'board-todos' };
-                                mergedKanbanLists.push(targetList);
+                                    mergedKanbanLists.push(targetList);
                             }
                             const cardsWithBoardId = (list.cards || []).map(c => {
                                 return { ...c, boardId: c.boardId || 'board-todos' };
@@ -3002,6 +3179,17 @@
                     const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
                     if (aStr) agendaData = JSON.parse(aStr);
                 } catch (e) { console.error("Erro load agenda", e); }
+
+                // Filter global agenda data if on board-todos
+                if (currentBoardId === 'board-todos') {
+                    const vBoards = getVisibleBoardsInTodos();
+                    agendaData = agendaData.map(list => {
+                        return {
+                            ...list,
+                            cards: (list.cards || []).filter(c => vBoards.has(c.boardId || 'board-todos'))
+                        };
+                    });
+                }
 
                 // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
                 // (Isso previne perda de dados ao atualizar o código)
@@ -3276,6 +3464,11 @@
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
                 localStorage.setItem(LS_CURRENT_BOARD, id);
+
+                const filterBoardsBtn = document.getElementById('filterBoardsBtn');
+                if (filterBoardsBtn) {
+                    filterBoardsBtn.style.display = (id === 'board-todos') ? 'inline-block' : 'none';
+                }
 
                 const board = boardsMeta.find(b => b.id === id);
                 if (board) setBoardTheme(board.color);
@@ -4550,6 +4743,21 @@
 
             // ===== Filtros & MENUS (ENCHUGADOS) =====
             var selectedColors = new Set();
+            var LS_VISIBLE_BOARDS = 'tea-planner-visible-boards-in-todos';
+            var visibleBoardsInTodos = null;
+
+            function getVisibleBoardsInTodos() {
+                if (visibleBoardsInTodos) return visibleBoardsInTodos;
+                try {
+                    const stored = localStorage.getItem(LS_VISIBLE_BOARDS);
+                    if (stored) {
+                        visibleBoardsInTodos = new Set(JSON.parse(stored));
+                        return visibleBoardsInTodos;
+                    }
+                } catch (e) {}
+                visibleBoardsInTodos = new Set(boardsMeta.map(b => b.id).filter(id => id !== 'board-trash' && id !== 'board-todos'));
+                return visibleBoardsInTodos;
+            }
             function parseTime(timeStr) {
                 if (!timeStr) return 0;
                 var totalMinutes = 0;
@@ -5796,10 +6004,11 @@
                     datePicker.style.cursor = 'pointer';
 
                     const timePicker = el('input');
-                    timePicker.type = 'time';
+                    timePicker.type = 'text';
                     timePicker.id = 'agendaTimeVal';
                     timePicker.name = 'agendaTimeVal';
                     timePicker.value = cardTime;
+                    timePicker.readOnly = true;
                     timePicker.style.border = '1px solid #24314a';
                     timePicker.style.background = '#111a2e';
                     timePicker.style.color = '#fff';
@@ -5807,6 +6016,12 @@
                     timePicker.style.borderRadius = '6px';
                     timePicker.style.fontSize = '14px';
                     timePicker.style.cursor = 'pointer';
+                    timePicker.style.textAlign = 'center';
+                    timePicker.onclick = function () {
+                        openAnalogTimePicker(timePicker.value, function (selectedTime) {
+                            timePicker.value = selectedTime;
+                        });
+                    };
                     if (isAllDay) {
                         timePicker.style.display = 'none';
                     }
@@ -6154,27 +6369,607 @@
                 });
                 modalElements.cancelButton.onclick = function () { modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); document.body.removeChild(modalElements.wrap); persist(); }
             }
-            function openColorFilters() {
-                var PALETTE = [{ name: 'Todas', hex: '*' }, { name: 'Sem cor', hex: '' }].concat(buildFullPalette().map(function (p) { return { name: p.name, hex: p.hex }; }));
-                showModal('Filtrar por cor', function () {
-                    var wrap = el('div'); wrap.style.display = 'grid'; wrap.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))'; wrap.style.gap = '8px';
-                    PALETTE.forEach(function (p) {
-                        var b = el('button'); b.type = 'button'; b.textContent = p.name; b.dataset.hex = p.hex; b.style.padding = '10px'; b.style.borderRadius = '8px'; b.style.border = '1px solid #2a4e78'; b.style.background = (p.hex && p.hex !== '*' ? p.hex : '#0b2240'); b.style.color = '#fff';
-                        if ((p.hex === '*' && selectedColors.size === 0) || selectedColors.has(p.hex.toLowerCase())) b.style.outline = '2px solid #fff';
-                        b.onclick = function () {
-                            if (p.hex === '*' && selectedColors.size > 0) { selectedColors.clear(); }
-                            else if (p.hex === '*' && selectedColors.size === 0) { }
-                            else if (p.hex !== '*') { if (selectedColors.has(p.hex.toLowerCase())) selectedColors.delete(p.hex.toLowerCase()); else selectedColors.add(p.hex.toLowerCase()); }
-                            if (selectedColors.size > 0 && p.hex !== '*') { const allBtn = wrap.querySelector('button[data-hex="*"]'); if (allBtn) allBtn.style.outline = ''; }
-                            [].slice.call(wrap.querySelectorAll('button')).forEach(function (btn) {
-                                btn.style.outline = ''; const btnHex = (btn.dataset.hex || '').toLowerCase();
-                                if ((btnHex === '*' && selectedColors.size === 0) || selectedColors.has(btnHex)) { btn.style.outline = '2px solid #fff'; }
-                            });
-                        };
-                        wrap.appendChild(b);
+            function openAnalogTimePicker(initialTime, onSelect) {
+                // Parse initialTime (format "HH:MM")
+                let parts = (initialTime || "09:00").split(":");
+                let currentHour = parseInt(parts[0], 10);
+                let currentMinute = parseInt(parts[1], 10);
+                if (isNaN(currentHour) || currentHour < 0 || currentHour > 23) currentHour = 9;
+                if (isNaN(currentMinute) || currentMinute < 0 || currentMinute > 59) currentMinute = 0;
+
+                // State
+                let activeMode = 'hour'; // 'hour' or 'minute'
+                let inputMode = 'analog'; // 'analog' or 'keyboard'
+
+                // Create backdrop
+                const backdrop = el('div', 'analog-time-picker-backdrop');
+                const modal = el('div', 'analog-time-picker-modal');
+                
+                const title = el('div', 'analog-time-picker-title');
+                title.textContent = 'Selecionar horário';
+                modal.appendChild(title);
+
+                // Digital display
+                const displayRow = el('div', 'analog-time-picker-display');
+                
+                const hourInput = el('input');
+                hourInput.type = 'text';
+                hourInput.id = 'analog-hour-input';
+                hourInput.value = to2(currentHour);
+                hourInput.readOnly = true;
+                hourInput.maxLength = 2;
+                hourInput.pattern = '[0-9]*';
+                hourInput.inputMode = 'numeric';
+                hourInput.classList.add('active');
+
+                const colon = el('span');
+                colon.textContent = ':';
+
+                const minuteInput = el('input');
+                minuteInput.type = 'text';
+                minuteInput.id = 'analog-minute-input';
+                minuteInput.value = to2(currentMinute);
+                minuteInput.readOnly = true;
+                minuteInput.maxLength = 2;
+                minuteInput.pattern = '[0-9]*';
+                minuteInput.inputMode = 'numeric';
+
+                displayRow.appendChild(hourInput);
+                displayRow.appendChild(colon);
+                displayRow.appendChild(minuteInput);
+                modal.appendChild(displayRow);
+
+                // Face Container
+                const faceContainer = el('div', 'analog-time-picker-face-container');
+                modal.appendChild(faceContainer);
+
+                // Keyboard input help message (hidden by default)
+                const keyboardMsg = el('div', 'analog-time-picker-keyboard-input-msg');
+                keyboardMsg.textContent = 'Digite o horário desejado nos campos acima.';
+                keyboardMsg.style.display = 'none';
+                modal.appendChild(keyboardMsg);
+
+                // SVG for needle drawing
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute("class", "analog-time-picker-svg");
+                faceContainer.appendChild(svg);
+
+                // Helper to update SVGNeedle
+                function updateNeedle(value) {
+                    // Clear existing elements in SVG
+                    svg.innerHTML = '';
+                    
+                    let R = 92; // Default outer radius
+                    let angleStep = 30; // 360 / 12
+                    
+                    if (activeMode === 'hour') {
+                        R = value < 12 ? 92 : 62;
+                        angleStep = 30;
+                    } else {
+                        R = 92;
+                        angleStep = 6; // 360 / 60
+                    }
+
+                    const angleDeg = (value * angleStep) - 90;
+                    const angleRad = angleDeg * Math.PI / 180;
+                    const centerX = 115;
+                    const centerY = 115;
+                    const targetX = centerX + R * Math.cos(angleRad);
+                    const targetY = centerY + R * Math.sin(angleRad);
+
+                    // Create line
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", centerX);
+                    line.setAttribute("y1", centerY);
+                    line.setAttribute("x2", targetX);
+                    line.setAttribute("y2", targetY);
+                    line.setAttribute("stroke", "#1976d2");
+                    line.setAttribute("stroke-width", "2");
+                    svg.appendChild(line);
+
+                    // Center pivot circle
+                    const pivot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    pivot.setAttribute("cx", centerX);
+                    pivot.setAttribute("cy", centerY);
+                    pivot.setAttribute("r", "4");
+                    pivot.setAttribute("fill", "#1976d2");
+                    svg.appendChild(pivot);
+
+                    // End selection circle
+                    const targetCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    targetCircle.setAttribute("cx", targetX);
+                    targetCircle.setAttribute("cy", targetY);
+                    targetCircle.setAttribute("r", "16");
+                    targetCircle.setAttribute("fill", "#1976d2");
+                    targetCircle.setAttribute("opacity", "0.85");
+                    svg.appendChild(targetCircle);
+
+                    // Small center dot in target circle
+                    const targetCenter = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    targetCenter.setAttribute("cx", targetX);
+                    targetCenter.setAttribute("cy", targetY);
+                    targetCenter.setAttribute("r", "3");
+                    targetCenter.setAttribute("fill", "#fff");
+                    svg.appendChild(targetCenter);
+                    
+                    // Highlight selected number HTML element
+                    faceContainer.querySelectorAll('.analog-time-picker-number').forEach(numEl => {
+                        const val = parseInt(numEl.dataset.value, 10);
+                        if (val === value) {
+                            numEl.classList.add('selected');
+                        } else {
+                            numEl.classList.remove('selected');
+                        }
                     });
+                }
+
+                // Render Clock Face Numbers
+                function renderFace() {
+                    // Remove existing HTML numbers (keep SVG)
+                    faceContainer.querySelectorAll('.analog-time-picker-number').forEach(el => el.remove());
+
+                    const centerX = 115;
+                    const centerY = 115;
+
+                    if (activeMode === 'hour') {
+                        // Outer circle (0-11)
+                        for (let h = 0; h < 12; h++) {
+                            const numEl = el('div', 'analog-time-picker-number');
+                            numEl.textContent = h === 0 ? '0' : h.toString();
+                            numEl.dataset.value = h;
+                            const angle = (h * 30 - 90) * Math.PI / 180;
+                            const x = centerX + 92 * Math.cos(angle) - 14;
+                            const y = centerY + 92 * Math.sin(angle) - 14;
+                            numEl.style.left = x + 'px';
+                            numEl.style.top = y + 'px';
+                            faceContainer.appendChild(numEl);
+                        }
+                        // Inner circle (12-23)
+                        for (let h = 12; h < 24; h++) {
+                            const numEl = el('div', 'analog-time-picker-number');
+                            numEl.textContent = h.toString();
+                            numEl.dataset.value = h;
+                            const angle = ((h - 12) * 30 - 90) * Math.PI / 180;
+                            const x = centerX + 62 * Math.cos(angle) - 14;
+                            const y = centerY + 62 * Math.sin(angle) - 14;
+                            numEl.style.left = x + 'px';
+                            numEl.style.top = y + 'px';
+                            faceContainer.appendChild(numEl);
+                        }
+                        updateNeedle(currentHour);
+                    } else {
+                        // Minutes (0-55, step 5)
+                        for (let m = 0; m < 60; m += 5) {
+                            const numEl = el('div', 'analog-time-picker-number');
+                            numEl.textContent = m === 0 ? '0' : to2(m);
+                            numEl.dataset.value = m;
+                            const angle = ((m / 5) * 30 - 90) * Math.PI / 180;
+                            const x = centerX + 92 * Math.cos(angle) - 14;
+                            const y = centerY + 92 * Math.sin(angle) - 14;
+                            numEl.style.left = x + 'px';
+                            numEl.style.top = y + 'px';
+                            faceContainer.appendChild(numEl);
+                        }
+                        updateNeedle(currentMinute);
+                    }
+                }
+
+                // Interactive selection handler from click/touch coordinates
+                function handlePointer(clientX, clientY, isEnd = false) {
+                    const rect = faceContainer.getBoundingClientRect();
+                    const x = clientX - rect.left - 115;
+                    const y = clientY - rect.top - 115;
+                    
+                    let angleRad = Math.atan2(y, x);
+                    let angleDeg = angleRad * 180 / Math.PI + 90;
+                    if (angleDeg < 0) angleDeg += 360;
+
+                    if (activeMode === 'hour') {
+                        // Determine outer vs inner ring
+                        const dist = Math.sqrt(x*x + y*y);
+                        const isInner = dist < 77; // threshold between 62px and 92px radius (midpoint is 77px)
+                        
+                        let hourBase = Math.round(angleDeg / 30) % 12;
+                        let val = isInner ? hourBase + 12 : hourBase;
+                        
+                        currentHour = val;
+                        hourInput.value = to2(currentHour);
+                        updateNeedle(currentHour);
+                        
+                        if (isEnd) {
+                            // Switch to minutes mode on release
+                            activeMode = 'minute';
+                            hourInput.classList.remove('active');
+                            minuteInput.classList.add('active');
+                            renderFace();
+                        }
+                    } else {
+                        let minVal = Math.round(angleDeg / 6) % 60;
+                        currentMinute = minVal;
+                        minuteInput.value = to2(currentMinute);
+                        updateNeedle(currentMinute);
+                    }
+                }
+
+                // Pointer Events on Face
+                let isDragging = false;
+                faceContainer.onpointerdown = (e) => {
+                    e.preventDefault();
+                    isDragging = true;
+                    faceContainer.setPointerCapture(e.pointerId);
+                    handlePointer(e.clientX, e.clientY);
+                };
+                faceContainer.onpointermove = (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        handlePointer(e.clientX, e.clientY);
+                    }
+                };
+                faceContainer.onpointerup = (e) => {
+                    if (isDragging) {
+                        isDragging = false;
+                        faceContainer.releasePointerCapture(e.pointerId);
+                        handlePointer(e.clientX, e.clientY, true);
+                    }
+                };
+
+                // Click digital displays to toggle modes
+                hourInput.onclick = () => {
+                    if (inputMode === 'analog') {
+                        activeMode = 'hour';
+                        hourInput.classList.add('active');
+                        minuteInput.classList.remove('active');
+                        renderFace();
+                    }
+                };
+                minuteInput.onclick = () => {
+                    if (inputMode === 'analog') {
+                        activeMode = 'minute';
+                        hourInput.classList.remove('active');
+                        minuteInput.classList.add('active');
+                        renderFace();
+                    }
+                };
+
+                // Footer section with Keyboard and OK/Cancel buttons
+                const footer = el('div', 'analog-time-picker-footer');
+                
+                const keyboardBtn = el('button', 'analog-time-picker-keyboard-btn');
+                keyboardBtn.type = 'button';
+                keyboardBtn.innerHTML = '⌨️'; // Keyboard icon
+                keyboardBtn.title = 'Digitar horário';
+                footer.appendChild(keyboardBtn);
+
+                const buttonsDiv = el('div', 'analog-time-picker-buttons');
+                
+                const cancelBtn = el('button');
+                cancelBtn.type = 'button';
+                cancelBtn.textContent = 'Cancelar';
+                
+                const okBtn = el('button');
+                okBtn.type = 'button';
+                okBtn.textContent = 'OK';
+                
+                buttonsDiv.appendChild(cancelBtn);
+                buttonsDiv.appendChild(okBtn);
+                footer.appendChild(buttonsDiv);
+                modal.appendChild(footer);
+                backdrop.appendChild(modal);
+                document.body.appendChild(backdrop);
+
+                // Initial face render
+                renderFace();
+
+                // Keyboard Toggle Handler
+                keyboardBtn.onclick = () => {
+                    if (inputMode === 'analog') {
+                        // Switch to keyboard mode
+                        inputMode = 'keyboard';
+                        keyboardBtn.innerHTML = '🕒'; // Clock icon
+                        keyboardBtn.title = 'Usar relógio';
+                        faceContainer.style.display = 'none';
+                        keyboardMsg.style.display = 'block';
+                        
+                        hourInput.readOnly = false;
+                        minuteInput.readOnly = false;
+                        hourInput.classList.add('active');
+                        minuteInput.classList.add('active');
+                        hourInput.focus();
+                        hourInput.select();
+                    } else {
+                        // Switch to analog mode
+                        inputMode = 'analog';
+                        keyboardBtn.innerHTML = '⌨️';
+                        keyboardBtn.title = 'Digitar horário';
+                        faceContainer.style.display = 'block';
+                        keyboardMsg.style.display = 'none';
+                        
+                        // Parse values currently in inputs, clamp if invalid
+                        let h = parseInt(hourInput.value, 10);
+                        let m = parseInt(minuteInput.value, 10);
+                        if (isNaN(h) || h < 0 || h > 23) h = 9;
+                        if (isNaN(m) || m < 0 || m > 59) m = 0;
+                        currentHour = h;
+                        currentMinute = m;
+                        
+                        hourInput.value = to2(currentHour);
+                        minuteInput.value = to2(currentMinute);
+                        
+                        hourInput.readOnly = true;
+                        minuteInput.readOnly = true;
+                        
+                        activeMode = 'hour';
+                        hourInput.classList.add('active');
+                        minuteInput.classList.remove('active');
+                        renderFace();
+                    }
+                };
+
+                // Limit keyboard entry logic
+                hourInput.oninput = () => {
+                    hourInput.value = hourInput.value.replace(/[^0-9]/g, '');
+                    let v = parseInt(hourInput.value, 10);
+                    if (hourInput.value.length >= 2) {
+                        if (!isNaN(v)) {
+                            if (v > 23) hourInput.value = '23';
+                            currentHour = parseInt(hourInput.value, 10);
+                        }
+                        minuteInput.focus();
+                        minuteInput.select();
+                    }
+                };
+                minuteInput.oninput = () => {
+                    minuteInput.value = minuteInput.value.replace(/[^0-9]/g, '');
+                    let v = parseInt(minuteInput.value, 10);
+                    if (minuteInput.value.length >= 2) {
+                        if (!isNaN(v) && v > 59) {
+                            minuteInput.value = '59';
+                        }
+                        if (!isNaN(v)) {
+                            currentMinute = parseInt(minuteInput.value, 10);
+                        }
+                    }
+                };
+                hourInput.onblur = () => {
+                    let v = parseInt(hourInput.value, 10);
+                    if (isNaN(v) || v < 0 || v > 23) v = 9;
+                    currentHour = v;
+                    hourInput.value = to2(currentHour);
+                };
+                minuteInput.onblur = () => {
+                    let v = parseInt(minuteInput.value, 10);
+                    if (isNaN(v) || v < 0 || v > 59) v = 0;
+                    currentMinute = v;
+                    minuteInput.value = to2(currentMinute);
+                };
+
+                // OK / Cancel Action Handlers
+                cancelBtn.onclick = () => {
+                    backdrop.remove();
+                };
+                
+                okBtn.onclick = () => {
+                    let h = parseInt(hourInput.value, 10);
+                    let m = parseInt(minuteInput.value, 10);
+                    if (isNaN(h) || h < 0 || h > 23) h = currentHour;
+                    if (isNaN(m) || m < 0 || m > 59) m = currentMinute;
+                    
+                    h = Math.min(23, Math.max(0, h));
+                    m = Math.min(59, Math.max(0, m));
+
+                    const formattedTime = to2(h) + ':' + to2(m);
+                    onSelect(formattedTime);
+                    backdrop.remove();
+                };
+
+                // Close on pressing Escape inside picker
+                backdrop.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cancelBtn.click();
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        okBtn.click();
+                    }
+                });
+            }
+
+            function openBoardFilters() {
+                const vBoards = getVisibleBoardsInTodos();
+                showModal('Filtrar Quadros', function () {
+                    const wrap = el('div');
+                    wrap.style.display = 'flex';
+                    wrap.style.flexDirection = 'column';
+                    wrap.style.gap = '10px';
+                    wrap.style.minWidth = '280px';
+                    wrap.style.color = '#fff';
+
+                    // Select All / Deselect All buttons
+                    const btnRow = el('div');
+                    btnRow.style.display = 'flex';
+                    btnRow.style.gap = '8px';
+                    btnRow.style.marginBottom = '6px';
+                    
+                    const selectAll = el('button');
+                    selectAll.type = 'button';
+                    selectAll.textContent = 'Selecionar Todos';
+                    selectAll.style.flex = '1';
+                    selectAll.style.background = '#0e58a5';
+                    selectAll.style.border = 'none';
+                    selectAll.style.borderRadius = '6px';
+                    selectAll.style.padding = '6px';
+                    selectAll.style.color = '#fff';
+                    selectAll.style.cursor = 'pointer';
+                    selectAll.onclick = () => {
+                        wrap.querySelectorAll('.board-filter-chk').forEach(chk => chk.checked = true);
+                    };
+
+                    const deselectAll = el('button');
+                    deselectAll.type = 'button';
+                    deselectAll.textContent = 'Desmarcar Todos';
+                    deselectAll.style.flex = '1';
+                    deselectAll.style.background = '#3a3f4b';
+                    deselectAll.style.border = 'none';
+                    deselectAll.style.borderRadius = '6px';
+                    deselectAll.style.padding = '6px';
+                    deselectAll.style.color = '#fff';
+                    deselectAll.style.cursor = 'pointer';
+                    deselectAll.onclick = () => {
+                        wrap.querySelectorAll('.board-filter-chk').forEach(chk => chk.checked = false);
+                    };
+
+                    btnRow.appendChild(selectAll);
+                    btnRow.appendChild(deselectAll);
+                    wrap.appendChild(btnRow);
+
+                    const listWrap = el('div', 'filter-checkbox-list');
+
+                    // Add a checkbox for each board (except trash and board-todos)
+                    boardsMeta.forEach(b => {
+                        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+                        
+                        const label = el('label');
+                        label.style.display = 'flex';
+                        label.style.alignItems = 'center';
+                        label.style.gap = '10px';
+                        label.style.fontSize = '14px';
+                        label.style.cursor = 'pointer';
+                        label.style.padding = '4px 0';
+
+                        const checked = vBoards.has(b.id) ? 'checked' : '';
+                        label.innerHTML = `
+                            <input type="checkbox" class="board-filter-chk" data-id="${b.id}" ${checked} style="cursor: pointer; width: 16px; height: 16px;">
+                            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${b.color || '#1976d2'};"></span>
+                            <span>${b.name}</span>
+                        `;
+                        listWrap.appendChild(label);
+                    });
+                    wrap.appendChild(listWrap);
+
                     return wrap;
-                }, function (body, wrap) { applyFilters(); });
+                }, function (body, wrap) {
+                    const newVisible = new Set();
+                    body.querySelectorAll('.board-filter-chk').forEach(chk => {
+                        if (chk.checked) {
+                            newVisible.add(chk.dataset.id);
+                        }
+                    });
+                    visibleBoardsInTodos = newVisible;
+                    localStorage.setItem(LS_VISIBLE_BOARDS, JSON.stringify(Array.from(newVisible)));
+                    loadAndRenderAll();
+                });
+            }
+
+            function openColorFilters() {
+                const PALETTE = buildFullPalette();
+                showModal('Filtrar por Etiquetas', function () {
+                    const wrap = el('div');
+                    wrap.style.display = 'flex';
+                    wrap.style.flexDirection = 'column';
+                    wrap.style.gap = '10px';
+                    wrap.style.minWidth = '300px';
+                    wrap.style.color = '#fff';
+
+                    // Help/Instruction
+                    const info = el('div');
+                    info.textContent = 'Selecione quais etiquetas deseja exibir. Cartões com cores desmarcadas serão ocultados.';
+                    info.style.fontSize = '12px';
+                    info.style.color = '#9fb3d2';
+                    info.style.marginBottom = '6px';
+                    wrap.appendChild(info);
+
+                    // Select All / Deselect All buttons
+                    const btnRow = el('div');
+                    btnRow.style.display = 'flex';
+                    btnRow.style.gap = '8px';
+                    btnRow.style.marginBottom = '6px';
+
+                    const selectAll = el('button');
+                    selectAll.type = 'button';
+                    selectAll.textContent = 'Selecionar Todas';
+                    selectAll.style.flex = '1';
+                    selectAll.style.background = '#0e58a5';
+                    selectAll.style.border = 'none';
+                    selectAll.style.borderRadius = '6px';
+                    selectAll.style.padding = '6px';
+                    selectAll.style.color = '#fff';
+                    selectAll.style.cursor = 'pointer';
+                    selectAll.onclick = () => {
+                        wrap.querySelectorAll('.color-filter-chk').forEach(chk => chk.checked = true);
+                    };
+
+                    const deselectAll = el('button');
+                    deselectAll.type = 'button';
+                    deselectAll.textContent = 'Desmarcar Todas';
+                    deselectAll.style.flex = '1';
+                    deselectAll.style.background = '#3a3f4b';
+                    deselectAll.style.border = 'none';
+                    deselectAll.style.borderRadius = '6px';
+                    deselectAll.style.padding = '6px';
+                    deselectAll.style.color = '#fff';
+                    deselectAll.style.cursor = 'pointer';
+                    deselectAll.onclick = () => {
+                        wrap.querySelectorAll('.color-filter-chk').forEach(chk => chk.checked = false);
+                    };
+
+                    btnRow.appendChild(selectAll);
+                    btnRow.appendChild(deselectAll);
+                    wrap.appendChild(btnRow);
+
+                    const listWrap = el('div', 'filter-checkbox-list');
+
+                    // 1. Sem cor (No color) item
+                    const noColorLabel = el('label');
+                    noColorLabel.style.display = 'flex';
+                    noColorLabel.style.alignItems = 'center';
+                    noColorLabel.style.gap = '10px';
+                    noColorLabel.style.fontSize = '14px';
+                    noColorLabel.style.cursor = 'pointer';
+                    noColorLabel.style.padding = '4px 0';
+                    
+                    const noColorChecked = (selectedColors.size === 0 || selectedColors.has('')) ? 'checked' : '';
+                    noColorLabel.innerHTML = `
+                        <input type="checkbox" class="color-filter-chk" data-hex="" ${noColorChecked} style="cursor: pointer; width: 16px; height: 16px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1px dashed #9fb3d2; background: transparent;"></span>
+                        <span>Sem etiqueta</span>
+                    `;
+                    listWrap.appendChild(noColorLabel);
+
+                    // 2. Palette colors
+                    PALETTE.forEach(p => {
+                        const label = el('label');
+                        label.style.display = 'flex';
+                        label.style.alignItems = 'center';
+                        label.style.gap = '10px';
+                        label.style.fontSize = '14px';
+                        label.style.cursor = 'pointer';
+                        label.style.padding = '4px 0';
+
+                        const checked = (selectedColors.size === 0 || selectedColors.has(p.hex.toLowerCase())) ? 'checked' : '';
+                        label.innerHTML = `
+                            <input type="checkbox" class="color-filter-chk" data-hex="${p.hex.toLowerCase()}" ${checked} style="cursor: pointer; width: 16px; height: 16px;">
+                            <span style="display: inline-block; width: 12px; height: 12px; border-radius: 4px; background: ${p.hex};"></span>
+                            <span>${p.name}</span>
+                        `;
+                        listWrap.appendChild(label);
+                    });
+                    wrap.appendChild(listWrap);
+
+                    return wrap;
+                }, function (body, wrap) {
+                    const checkedCheckboxes = body.querySelectorAll('.color-filter-chk:checked');
+                    const allCheckboxes = body.querySelectorAll('.color-filter-chk');
+                    
+                    selectedColors.clear();
+                    
+                    if (checkedCheckboxes.length < allCheckboxes.length) {
+                        checkedCheckboxes.forEach(chk => {
+                            selectedColors.add(chk.dataset.hex);
+                        });
+                    }
+                    
+                    applyFilters();
+                });
             }
 
             // ===== WEEKLY VIEW =====
@@ -6424,6 +7219,7 @@
 
             document.getElementById('addList').onclick = function () { createList('Nova lista'); persist(); };
             document.getElementById('filterColorsBtn').addEventListener('click', openColorFilters);
+            document.getElementById('filterBoardsBtn').addEventListener('click', openBoardFilters);
             document.getElementById('undo').onclick = doUndo; document.getElementById('redo').onclick = doRedo;
             document.getElementById('clearFilters').onclick = function () { selectedColors.clear(); document.getElementById('fFrom').value = ''; document.getElementById('fTo').value = ''; document.getElementById('fTime').value = ''; applyFilters(); };
 
