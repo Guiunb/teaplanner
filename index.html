@@ -1920,7 +1920,27 @@
                 // 1. Sincronizar METADADOS (Lista de Quadros)
                 const metaRef = db.ref('users/' + user.uid + '/meta');
                 metaRef.on('value', (snapshot) => {
-                    const val = snapshot.val();
+                    let val = snapshot.val();
+                    if (val && !Array.isArray(val)) {
+                        val = Object.keys(val).map(k => val[k]);
+                    }
+
+                    if (!snapshot.exists() || !val || val.length === 0) {
+                        const localMetaStr = localStorage.getItem(LS_BOARDS_META);
+                        if (localMetaStr) {
+                            try {
+                                const localMeta = JSON.parse(localMetaStr);
+                                if (localMeta && localMeta.length > 0) {
+                                    console.log("Sync: Firebase meta não existe, enviando metadados locais...");
+                                    metaRef.set(localMeta);
+                                    return;
+                                }
+                            } catch (e) {
+                                console.error("Erro ao ler metadados locais na sincronização:", e);
+                            }
+                        }
+                    }
+
                     if (val && Array.isArray(val)) {
                         let updated = false;
                         if (!val.some(b => b.id === 'board-todos')) {
@@ -1963,6 +1983,20 @@
 
                 globalAgendaRef.on('value', (snapshot) => {
                     let val = snapshot.val();
+                    
+                    if (!snapshot.exists()) {
+                        const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
+                        if (localAgendaStr && localAgendaStr !== '[]' && localAgendaStr !== '') {
+                            console.log("Sync: Firebase agenda global não existe, enviando local...");
+                            try {
+                                globalAgendaRef.set(JSON.parse(localAgendaStr));
+                                return;
+                            } catch (e) {
+                                console.error("Erro ao fazer parse da agenda local para enviar:", e);
+                            }
+                        }
+                    }
+
                     if (!val) val = []; // Agenda vazia
 
                     const currentLocal = localStorage.getItem(LS_GLOBAL_AGENDA);
@@ -1990,6 +2024,20 @@
 
                 currentBoardRef.on('value', (snapshot) => {
                     let val = snapshot.val();
+                    
+                    if (!snapshot.exists()) {
+                        const localBoardStr = localStorage.getItem(LS_BOARD_PREFIX + boardId);
+                        if (localBoardStr && localBoardStr !== '[]' && localBoardStr !== '') {
+                            console.log(`Sync: Firebase board ${boardId} não existe, enviando local...`);
+                            try {
+                                currentBoardRef.set(JSON.parse(localBoardStr));
+                                return;
+                            } catch (e) {
+                                console.error("Erro ao fazer parse do quadro local para enviar:", e);
+                            }
+                        }
+                    }
+
                     if (!val) val = [];
 
                     const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
@@ -2630,8 +2678,50 @@
                                 }
                                 localStorage.setItem(LS_CURRENT_BOARD, newCurrentId);
                                 
-                                alert('Backup restaurado com sucesso!');
-                                window.location.reload();
+                                // Se o Firebase estiver pronto e o usuário logado, salva na nuvem antes de recarregar
+                                if (isFirebaseReady && auth && auth.currentUser) {
+                                    const uid = auth.currentUser.uid;
+                                    const promises = [];
+                                    
+                                    promises.push(db.ref('users/' + uid + '/meta').set(data.boardsMeta));
+                                    promises.push(db.ref('users/' + uid + '/global/agenda').set(data.globalAgenda || []));
+                                    Object.keys(data.boards).forEach(boardId => {
+                                        promises.push(db.ref('users/' + uid + '/boards/' + boardId).set(data.boards[boardId]));
+                                    });
+                                    
+                                    // Adiciona um overlay visual de loading
+                                    const overlay = document.createElement('div');
+                                    overlay.style.position = 'fixed';
+                                    overlay.style.top = '0';
+                                    overlay.style.left = '0';
+                                    overlay.style.width = '100vw';
+                                    overlay.style.height = '100vh';
+                                    overlay.style.background = 'rgba(0,0,0,0.7)';
+                                    overlay.style.color = '#fff';
+                                    overlay.style.display = 'flex';
+                                    overlay.style.alignItems = 'center';
+                                    overlay.style.justifyContent = 'center';
+                                    overlay.style.fontSize = '24px';
+                                    overlay.style.zIndex = '99999';
+                                    overlay.innerText = 'Sincronizando com a nuvem... Por favor aguarde.';
+                                    document.body.appendChild(overlay);
+                                    
+                                    Promise.all(promises)
+                                        .then(() => {
+                                            document.body.removeChild(overlay);
+                                            alert('Backup restaurado com sucesso e sincronizado na nuvem!');
+                                            window.location.reload();
+                                        })
+                                        .catch(err => {
+                                            document.body.removeChild(overlay);
+                                            console.error("Erro ao sincronizar backup com o Firebase:", err);
+                                            alert('O backup foi restaurado localmente, mas falhou ao enviar para a nuvem: ' + err.message);
+                                            window.location.reload();
+                                        });
+                                } else {
+                                    alert('Backup restaurado com sucesso!');
+                                    window.location.reload();
+                                }
                             });
                         } else {
                             showConfirm('Detectado formato de backup de quadro único. Deseja mesclar com o quadro ativo?', function() {
@@ -2644,14 +2734,37 @@
                                 const agendaData = dataToRestore.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
                                 
                                 localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
+                                let mergedAgenda = [];
                                 if (agendaData.length > 0) {
                                     const currentAgenda = JSON.parse(localStorage.getItem(LS_GLOBAL_AGENDA) || '[]');
-                                    const mergedAgenda = currentAgenda.concat(agendaData);
+                                    mergedAgenda = currentAgenda.concat(agendaData);
                                     localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(mergedAgenda));
                                 }
                                 
-                                alert('Quadro importado com sucesso!');
-                                window.location.reload();
+                                // Se o Firebase estiver pronto e o usuário logado, salva na nuvem antes de recarregar
+                                if (isFirebaseReady && auth && auth.currentUser) {
+                                    const uid = auth.currentUser.uid;
+                                    const promises = [];
+                                    
+                                    promises.push(db.ref('users/' + uid + '/boards/' + currentBoardId).set(boardData));
+                                    if (agendaData.length > 0) {
+                                        promises.push(db.ref('users/' + uid + '/global/agenda').set(mergedAgenda));
+                                    }
+                                    
+                                    Promise.all(promises)
+                                        .then(() => {
+                                            alert('Quadro importado com sucesso e sincronizado na nuvem!');
+                                            window.location.reload();
+                                        })
+                                        .catch(err => {
+                                            console.error("Erro ao sincronizar quadro único:", err);
+                                            alert('Quadro importado localmente, mas falhou ao enviar para a nuvem: ' + err.message);
+                                            window.location.reload();
+                                        });
+                                } else {
+                                    alert('Quadro importado com sucesso!');
+                                    window.location.reload();
+                                }
                             });
                         }
                     } catch (err) {
