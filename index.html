@@ -3949,6 +3949,7 @@
                 updateTotalTimerDisplay(); 
             }
             function addSelection(c) { 
+                if (!c) return;
                 if (!selected.has(c)) { 
                     selected.add(c); 
                     c.classList.add('selected'); 
@@ -3958,6 +3959,7 @@
                 updateTotalTimerDisplay(); 
             }
             function toggleSelection(c) { 
+                if (!c) return;
                 if (selected.has(c)) { 
                     selected.delete(c); 
                     c.classList.remove('selected'); 
@@ -4629,7 +4631,7 @@
                 else if (action === 'timer') { openTimerDialog(block); }
                 else if (action === 'gemini-subtasks') { generateSubtasks(block); }
                 else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
-                else if (action === 'select-mode') { if (!isSelectionMode) toggleSelectionMode(); addSelection(ctxTarget); }
+                else if (action === 'select-mode') { if (!isSelectionMode) toggleSelectionMode(); addSelection(block[0]); }
                 else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
             });
 
