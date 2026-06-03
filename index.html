@@ -2216,32 +2216,7 @@
                 console.error("Error initializing Firebase:", e);
             }
 
-            function setupFirebaseSync(user) {
-                // Forçar upload do backup para o Firebase se foi restaurado localmente
-                const forceSync = localStorage.getItem('tea-planner-force-cloud-sync') === 'true';
-                if (forceSync) {
-                    console.log("Sync: Forçando upload do backup local para o Firebase...");
-                    localStorage.removeItem('tea-planner-force-cloud-sync');
-                    try {
-                        const localMetaStr = localStorage.getItem(LS_BOARDS_META);
-                        if (localMetaStr) db.ref('users/' + user.uid + '/meta').set(JSON.parse(localMetaStr));
-                        const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
-                        if (localAgendaStr) db.ref('users/' + user.uid + '/global/agenda').set(JSON.parse(localAgendaStr));
-                        
-                        // Envia cada quadro
-                        const localMeta = localMetaStr ? JSON.parse(localMetaStr) : [];
-                        localMeta.forEach(b => {
-                            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
-                            if (bStr) {
-                                db.ref('users/' + user.uid + '/boards/' + b.id).set(JSON.parse(bStr))
-                                    .catch(e => console.error("Erro ao enviar board " + b.id, e));
-                            }
-                        });
-                    } catch (e) {
-                        console.error("Erro no upload do backup para o Firebase:", e);
-                    }
-                }
-
+            function registerFirebaseListeners(user) {
                 // 1. Sincronizar METADADOS (Lista de Quadros)
                 const metaRef = db.ref('users/' + user.uid + '/meta');
                 metaRef.on('value', (snapshot) => {
@@ -2297,6 +2272,49 @@
 
                 // 3. Sincronizar o QUADRO ATUAL
                 subscribeToCurrentBoard(user.uid, currentBoardId);
+            }
+
+            function setupFirebaseSync(user) {
+                // Forçar upload do backup para o Firebase se foi restaurado localmente
+                const forceSync = localStorage.getItem('tea-planner-force-cloud-sync') === 'true';
+                if (forceSync) {
+                    console.log("Sync: Forçando upload do backup local para o Firebase...");
+                    localStorage.removeItem('tea-planner-force-cloud-sync');
+                    try {
+                        const localMetaStr = localStorage.getItem(LS_BOARDS_META);
+                        const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
+                        
+                        const promises = [];
+                        if (localMetaStr) promises.push(db.ref('users/' + user.uid + '/meta').set(JSON.parse(localMetaStr)));
+                        if (localAgendaStr) promises.push(db.ref('users/' + user.uid + '/global/agenda').set(JSON.parse(localAgendaStr)));
+                        
+                        // Envia cada quadro
+                        const localMeta = localMetaStr ? JSON.parse(localMetaStr) : [];
+                        localMeta.forEach(b => {
+                            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+                            if (bStr) {
+                                promises.push(db.ref('users/' + user.uid + '/boards/' + b.id).set(JSON.parse(bStr)));
+                            }
+                        });
+
+                        Promise.all(promises)
+                            .then(() => {
+                                console.log("Sync: Upload do backup concluído com sucesso. Ativando escutas do Firebase...");
+                                registerFirebaseListeners(user);
+                                loadAndRenderAll();
+                            })
+                            .catch(err => {
+                                console.error("Erro ao sincronizar backup com o Firebase:", err);
+                                registerFirebaseListeners(user);
+                                loadAndRenderAll();
+                            });
+                    } catch (e) {
+                        console.error("Erro no upload do backup para o Firebase:", e);
+                        registerFirebaseListeners(user);
+                    }
+                } else {
+                    registerFirebaseListeners(user);
+                }
             }
 
             function subscribeToGlobalAgenda(uid) {
