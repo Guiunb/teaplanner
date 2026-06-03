@@ -5141,7 +5141,18 @@
                         const timeStr = (originalCard.dataset.when || '').split('T')[1];
                         if (timeStr) {
                             let timeBadge = clone.querySelector('.due-date.time-badge');
-                            if (!timeBadge) { timeBadge = el('span', 'due-date time-badge'); timeBadge.style.backgroundColor = '#4285F4'; timeBadge.style.color = 'white'; timeBadge.style.marginRight = '5px'; clone.querySelector('.meta').prepend(timeBadge); }
+                            if (!timeBadge) {
+                                timeBadge = el('span', 'due-date time-badge');
+                                timeBadge.style.backgroundColor = '#4285F4';
+                                timeBadge.style.color = 'white';
+                                timeBadge.style.marginRight = '5px';
+                                const cardHeader = clone.querySelector('.card-header');
+                                if (cardHeader) {
+                                    const kbBtn = cardHeader.querySelector('.kebab');
+                                    if (kbBtn) cardHeader.insertBefore(timeBadge, kbBtn);
+                                    else cardHeader.appendChild(timeBadge);
+                                }
+                            }
                             timeBadge.textContent = timeStr;
                         }
                         cardsContainer.appendChild(clone);
@@ -5150,7 +5161,17 @@
                     floatingCards.forEach(originalCard => {
                         const clone = createInteractiveMirror(originalCard, false);
                         let info = clone.querySelector('.due-date.info-badge');
-                        if (!info) { info = el('span', 'due-date info-badge'); info.textContent = 'A definir'; info.style.opacity = '0.5'; clone.querySelector('.meta').appendChild(info); }
+                        if (!info) {
+                            info = el('span', 'due-date info-badge');
+                            info.textContent = 'A definir';
+                            info.style.opacity = '0.5';
+                            const cardHeader = clone.querySelector('.card-header');
+                            if (cardHeader) {
+                                const kbBtn = cardHeader.querySelector('.kebab');
+                                if (kbBtn) cardHeader.insertBefore(info, kbBtn);
+                                else cardHeader.appendChild(info);
+                            }
+                        }
                         cardsContainer.appendChild(clone);
                     });
 
