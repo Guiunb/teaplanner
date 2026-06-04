@@ -85,21 +85,43 @@
         }
 
         header.app input,
+        header.app select,
         header.app button {
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 6px 10px;
-            background: #0e58a5;
-            color: #fff
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-family: inherit;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        header.app input:focus,
+        header.app select:focus,
+        header.app button:hover {
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        header.app input[type="date"] {
+            color-scheme: dark;
+        }
+
+        header.app select option {
+            background: var(--panel);
+            color: var(--ink);
         }
 
         header.app button {
-            cursor: pointer
+            cursor: pointer;
         }
 
         header.app button.active {
-            background: #ffd54f;
-            color: #10243a
+            background: #fff;
+            color: var(--brand);
+            font-weight: bold;
+            border-color: transparent;
         }
 
         #sumTimersDisplay {
@@ -150,14 +172,17 @@
 
         .toggle-switch-input:checked+.toggle-switch-label+.toggle-switch-button {
             background: #ffd54f;
+            color: #10243a;
+            border-color: #ffd54f;
         }
 
         .toggle-switch-button {
             font-size: 12px;
             padding: 2px 4px;
             border-radius: 6px;
-            background: #0e58a5;
-            color: #10243a;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             transition: background .2s;
         }
 
@@ -311,7 +336,7 @@
 
         .list {
             background: var(--panel);
-            border: 1px solid #183453;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             display: flex;
             flex-direction: column;
@@ -327,8 +352,8 @@
             gap: 8px;
             align-items: center;
             padding: 8px 10px;
-            border-bottom: 1px solid #19375b;
-            background: #122b4a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.15);
             flex-shrink: 0;
         }
 
@@ -337,7 +362,7 @@
             border: none;
             border-radius: 8px;
             padding: 6px 8px;
-            background: #0e2542;
+            background: rgba(0, 0, 0, 0.2);
             color: var(--ink);
             min-width: 0;
         }
@@ -469,8 +494,8 @@
         }
 
         .card.selected {
-            outline: 2px solid #2a71ff;
-            background: #0f2f57
+            outline: 2px solid var(--brand);
+            background: color-mix(in srgb, var(--brand) 20%, var(--card));
         }
 
         .card.editing {
@@ -601,7 +626,7 @@
 
         .add {
             padding: 8px;
-            border-top: 1px solid #19375b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
             display: none;
             /* ESCONDIDO POR PADRÃO - MINIMALISTA */
@@ -614,12 +639,18 @@
 
         .add input[type=text] {
             flex: 1;
-            border: 1px solid #2a4e78;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 8px;
-            background: #0b2240;
+            background: rgba(0, 0, 0, 0.2);
             color: var(--ink);
             min-width: 0;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .add input[type=text]:focus {
+            border-color: var(--brand);
+            background: rgba(0, 0, 0, 0.3);
+            outline: none;
         }
 
         .axis {
@@ -627,9 +658,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            color: #cfe0ff;
-            background: #102b4f;
-            border: 1px solid #1a4e78;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             text-align: center;
         }
@@ -699,7 +730,7 @@
 
         .schedule {
             background: var(--panel);
-            border: 1px solid #183453;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             width: 100%;
             height: 100%;
@@ -723,7 +754,7 @@
             flex-direction: column;
             gap: 8px;
             padding: 8px 10px;
-            background: #0b437e;
+            background: var(--brand);
             color: #fff;
             border-top-left-radius: 12px;
             border-top-right-radius: 12px
@@ -742,9 +773,10 @@
         }
 
         .schedule header input[type=date] {
-            background: #0b2240;
+            color-scheme: dark;
+            background: rgba(0, 0, 0, 0.2);
             color: #fff;
-            border: 1px solid #2a4e78;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 6px 8px;
             width: 120px;
@@ -764,13 +796,19 @@
 
         .schedule header button {
             padding: 6px 10px;
-            background: #0e58a5;
-            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             line-height: 1;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .schedule header button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .schedule header .date-nav button {
@@ -784,7 +822,7 @@
         }
 
         .slot {
-            border-bottom: 1px dashed #244b78
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08)
         }
 
         .slot>div.head {
@@ -797,7 +835,8 @@
         .slot .time {
             font-weight: 700;
             font-size: 11px;
-            color: #9fc1ff;
+            color: var(--ink);
+            opacity: 0.7;
             flex-grow: 1;
         }
 
@@ -812,13 +851,13 @@
         }
 
         .slot.hover {
-            background: #0e2446;
-            box-shadow: inset 0 0 0 2px #1976d2
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 0 0 2px var(--brand);
         }
 
         .goal-slot {
-            background: #1c3a61;
-            border-bottom: 1px solid #3a6a9e;
+            background: color-mix(in srgb, var(--brand) 15%, var(--panel));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .goal-slot>.head .goal-label {
@@ -829,7 +868,7 @@
 
         /* Estilo para o slot de "Horário a definir" na agenda */
         .unscheduled-slot {
-            background: #1a2333;
+            background: color-mix(in srgb, var(--brand) 10%, var(--panel));
             border-bottom: 2px solid #b85d00;
             display: none;
             /* Escondido por padrão */
@@ -850,20 +889,20 @@
 
         .placeholder {
             height: 38px;
-            border: 2px dashed #1976d2;
+            border: 2px dashed var(--brand);
             border-radius: 8px;
-            background: #0e2446;
+            background: rgba(255, 255, 255, 0.04);
             margin: 4px 0
         }
 
         .ctx {
             position: fixed;
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
+            background: var(--panel);
+            color: var(--ink);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             min-width: 240px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
             display: none;
             z-index: 1000
         }
@@ -876,14 +915,14 @@
             text-align: left;
             background: transparent;
             border: none;
-            color: #dbe7ff;
+            color: var(--ink);
             padding: 10px 12px;
             border-radius: 0;
             cursor: pointer
         }
 
         .ctx button:hover {
-            background: #1a2842
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .ctx .shortcut {
@@ -895,7 +934,7 @@
 
         .ctx .sep {
             height: 1px;
-            background: #23314a;
+            background: rgba(255, 255, 255, 0.05);
             margin: 6px 0
         }
 
@@ -903,16 +942,16 @@
             position: absolute;
             left: 100%;
             top: 0;
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
+            background: var(--panel);
+            color: var(--ink);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             min-width: 240px;
             /* CORREÇÃO DE MENU: Altura máxima e Scroll */
             max-height: 60vh;
             overflow-y: auto;
             overflow-x: hidden;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
             display: none
         }
 
@@ -920,7 +959,7 @@
         .ctx-sub.flip-left {
             left: auto !important;
             right: 100% !important;
-            border-right: 1px solid #24314a;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
             border-left: none;
             margin-right: 2px;
         }
@@ -947,14 +986,44 @@
         }
 
         .modal {
-            background: #0b1220;
-            color: #fff;
-            border: 1px solid #24314a;
+            background: var(--panel);
+            color: var(--ink);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             min-width: 280px;
             max-width: 94vw;
             padding: 14px 14px 10px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, .5)
+        }
+
+        /* Globally style all inputs, selects and textareas within modals to be dynamic and theme-cohesive */
+        .modal input[type="text"],
+        .modal input[type="number"],
+        .modal input[type="password"],
+        .modal input[type="date"],
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 8px !important;
+            color: var(--ink) !important;
+            box-sizing: border-box !important;
+            outline: none !important;
+            font-size: 14px !important;
+            font-family: inherit !important;
+            transition: border-color 0.2s, background-color 0.2s !important;
+        }
+
+        .modal input[type="text"]:focus,
+        .modal input[type="number"]:focus,
+        .modal input[type="password"]:focus,
+        .modal input[type="date"]:focus,
+        .modal select:focus,
+        .modal textarea:focus {
+            border-color: var(--brand) !important;
+            background: color-mix(in srgb, var(--brand) 5%, var(--bg)) !important;
         }
 
         .modal h3 {
@@ -970,16 +1039,26 @@
         }
 
         .modal .row button {
-            background: #1976d2;
+            background: var(--brand);
             border: none;
             border-radius: 8px;
             color: #fff;
             padding: 8px 10px;
-            cursor: pointer
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal .row button:hover {
+            opacity: 0.9;
         }
 
         .modal .row button.cancel {
-            background: #6b7a93
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .modal .row button.cancel:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .import-options button {
@@ -1019,8 +1098,8 @@
         }
 
         .palette-editor input {
-            background: #0b2240;
-            border: 1px solid #2a4e78;
+            background: var(--bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             color: #fff;
             padding: 6px 8px;
@@ -1185,14 +1264,14 @@
             align-items: center;
             gap: 15px;
             padding: 5px;
-            background: #122b4a;
-            border-bottom: 1px solid #19375b;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .weekly-controls button {
-            background: #0e58a5;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
-            border: none;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -1201,6 +1280,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .weekly-controls button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .weekly-controls span {
@@ -1225,7 +1310,7 @@
 
         .day-column {
             background: var(--panel);
-            border: 1px solid #183453;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -1234,14 +1319,14 @@
         }
 
         .day-column.today {
-            border-color: #ffd54f;
-            background: #162a45;
+            border-color: var(--brand);
+            background: color-mix(in srgb, var(--brand) 15%, var(--panel));
         }
 
         .day-column header {
             padding: 8px 12px;
-            background: #122b4a;
-            border-bottom: 1px solid #19375b;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             font-weight: bold;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
@@ -1275,8 +1360,8 @@
 
         /* Diferenciar visualmente apenas cartões agendados */
         .card.mirror-card.is-scheduled {
-            border: 1px dashed #4285F4;
-            background: #0f2f45;
+            border: 1px dashed var(--brand);
+            background: color-mix(in srgb, var(--brand) 10%, var(--card));
         }
 
         .card.mirror-card .text::before {
@@ -1372,8 +1457,8 @@
         /* SELECTION MARQUEE */
         #marquee {
             position: fixed;
-            border: 1px dashed #2a71ff;
-            background: rgba(42, 113, 255, 0.15);
+            border: 1px dashed var(--brand);
+            background: color-mix(in srgb, var(--brand) 15%, transparent);
             pointer-events: none;
             display: none;
             z-index: 10000;
@@ -1381,14 +1466,14 @@
 
         /* RESIZERS */
         .resizer {
-            background-color: #19375b;
+            background-color: rgba(255, 255, 255, 0.08);
             position: relative;
             z-index: 10;
             transition: background-color 0.2s;
         }
         
         .resizer:hover, .resizer.resizing {
-            background-color: #2a71ff;
+            background-color: var(--brand);
         }
 
         .resizer-v {
@@ -1491,12 +1576,15 @@
         }
 
         .ai-send-btn {
-            background: #0e58a5;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
+            transition: background-color 0.2s, border-color 0.2s;
         }
 
         .ai-send-btn:hover {
-            background: #1976d2;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .ai-response-bubble {
@@ -1505,11 +1593,11 @@
             left: 0;
             right: 0;
             margin-top: 6px;
-            background: #0b1220;
-            border: 1px solid #24314a;
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             padding: 10px 12px;
-            color: #e9f1ff;
+            color: var(--ink);
             font-size: 13px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, .4);
             display: none;
@@ -1589,9 +1677,9 @@
         }
 
         .header-dropdown-btn {
-            background: #0e58a5;
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 6px 12px;
             font-weight: bold;
@@ -1600,13 +1688,14 @@
             align-items: center;
             gap: 6px;
             font-size: 13px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, border-color 0.2s;
             height: 28px;
             line-height: 1;
         }
 
         .header-dropdown-btn:hover {
-            background: #0c4d91;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         .header-dropdown-content {
@@ -1614,33 +1703,64 @@
             position: absolute;
             top: 100%;
             left: 0;
-            background: #0b1220;
-            min-width: 180px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+            background: color-mix(in srgb, var(--panel) 92%, #000);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            min-width: 185px;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.6);
             z-index: 1000;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid #24314a;
-            margin-top: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 6px;
+            animation: dropdownSlideIn 0.2s ease-out;
         }
 
-        .header-dropdown-content button {
-            color: #fff;
-            padding: 10px 14px;
-            text-decoration: none;
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: transparent;
-            border: none;
-            border-radius: 0;
-            font-size: 13px;
-            transition: background-color 0.2s;
-            cursor: pointer;
+        @keyframes dropdownSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .header-dropdown-content button:hover {
-            background-color: #1a2538;
+        /* High specificity overrides to completely strip default header button styles */
+        header.app .header-dropdown-content button {
+            color: var(--ink) !important;
+            padding: 10px 14px !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            width: 100% !important;
+            text-align: left !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            line-height: inherit !important;
+            height: auto !important;
+            transition: background-color 0.2s, padding-left 0.2s, color 0.2s !important;
+            cursor: pointer !important;
+        }
+
+        header.app .header-dropdown-content button:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            border-color: transparent !important;
+            padding-left: 20px !important;
+            color: #fff !important;
+        }
+
+        header.app .header-dropdown-content button#menuDeleteBoard {
+            color: #ff6b6b !important;
+        }
+
+        header.app .header-dropdown-content button#menuDeleteBoard:hover {
+            background-color: rgba(255, 107, 107, 0.15) !important;
+            color: #ff8e8e !important;
         }
 
         .header-dropdown.active .header-dropdown-content {
@@ -1674,8 +1794,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 10px 12px;
-            background: #111a2e;
-            border: 1px solid #24314a;
+            background: var(--bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             margin-bottom: 12px;
         }
@@ -1699,7 +1819,7 @@
             position: absolute;
             cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #24314a;
+            background-color: rgba(255, 255, 255, 0.15);
             transition: .3s;
             border-radius: 26px;
             border: 1px solid #37474f;
@@ -1717,8 +1837,8 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         input:checked + .premium-slider {
-            background-color: #1976d2;
-            border-color: #1e88e5;
+            background-color: var(--brand);
+            border-color: var(--brand);
         }
         input:checked + .premium-slider:before {
             transform: translateX(20px);
@@ -1730,8 +1850,8 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 14px;
-            background: #111a2e;
-            border: 1px solid #24314a;
+            background: var(--bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             margin-bottom: 8px;
             cursor: pointer;
@@ -1744,11 +1864,11 @@
             border-color: #2e3f5d;
         }
         .alert-option-item.selected {
-            background: #1a2f54;
-            border-color: #1976d2;
+            background: color-mix(in srgb, var(--brand) 15%, var(--panel));
+            border-color: var(--brand);
         }
         .alert-option-item .check-mark {
-            color: #1976d2;
+            color: var(--brand);
             font-weight: bold;
             font-size: 15px;
             display: none;
@@ -1762,7 +1882,7 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            border: 1px solid #24314a;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             background: transparent;
             color: #fff;
             cursor: pointer;
@@ -1778,8 +1898,8 @@
             background: rgba(255,255,255,0.05);
         }
         .weekday-btn.selected {
-            background: #1976d2;
-            border-color: #2196f3;
+            background: var(--brand);
+            border-color: var(--brand);
         }
         .weekday-btn:active {
             transform: scale(0.9);
@@ -1838,9 +1958,9 @@
             cursor: pointer;
         }
         .analog-time-picker-display input.active {
-            background: #1976d2;
+            background: var(--brand);
             color: #fff;
-            border-color: #2196f3;
+            border-color: var(--brand);
         }
         .analog-time-picker-display span {
             color: #fff;
@@ -1964,7 +2084,7 @@
         <div class="board-controls"
             style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
             <select id="boardSelect"
-                style="background:#0f223d; color:white; border:1px solid #1f4068; padding: 4px 8px; border-radius:4px; max-width: 200px; cursor: pointer;">
+                style="background: rgba(255, 255, 255, 0.12); color: white; border: 1px solid rgba(255, 255, 255, 0.15); padding: 4px 8px; border-radius: 8px; max-width: 200px; cursor: pointer; font-weight: bold;">
                 <!-- Options populated by JS -->
             </select>
             
@@ -2045,7 +2165,7 @@
             <div class="weekly-container collapsed" id="weekly-container">
                 <div class="weekly-controls">
                     <button id="prevWeekBtn" title="Semana Anterior">❮</button>
-                    <button id="todayWeekBtn" style="padding: 2px 8px; border-radius: 6px; font-size: 12px; height: 26px; cursor: pointer; background: #0e58a5; color: #fff; border: none;">Hoje</button>
+                    <button id="todayWeekBtn" style="padding: 2px 8px; border-radius: 6px; font-size: 12px; height: 26px; cursor: pointer; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.15);">Hoje</button>
                     <span id="weekRangeDisplay">Semana Atual</span>
                     <button id="nextWeekBtn" title="Próxima Semana">❯</button>
                 </div>
@@ -2077,7 +2197,7 @@
                     <div class="header-row">
                         <div class="date-nav">
                             <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
-                            <button id="todayDayBtn" style="font-size: 12px; padding: 4px 8px; cursor: pointer; background: #0e58a5; color: #fff; border: none; border-radius: 8px; margin-right: 4px;">Hoje</button>
+                            <button id="todayDayBtn" style="font-size: 12px; padding: 4px 8px; cursor: pointer; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; margin-right: 4px;">Hoje</button>
                             <input id="agendaDate" name="agendaDate" type="date" />
                             <button id="nextDayBtn" title="Próximo Dia">&gt;</button>
                         </div>
@@ -2251,10 +2371,15 @@
                             val.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
                             updated = true;
                         }
+                        
+                        // Reconcile board IDs by matching board names
+                        reconcileBoardIds(val);
+
                         if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
+                            visibleBoardsInTodos = null;
                             updateBoardSelectUI();
                             if (updated) {
                                 saveBoardsMetadata(true);
@@ -2343,6 +2468,21 @@
                     if (!val) val = []; // Agenda vazia
 
                     const currentLocal = localStorage.getItem(LS_GLOBAL_AGENDA);
+                    const remoteIsEmpty = !val || (Array.isArray(val) && val.length === 0) || (typeof val === 'object' && Object.keys(val).length === 0);
+
+                    if (remoteIsEmpty && currentLocal && currentLocal !== '[]' && currentLocal !== '') {
+                        try {
+                            const localAgendaData = JSON.parse(currentLocal);
+                            if (Array.isArray(localAgendaData) && localAgendaData.length > 0) {
+                                console.warn("Sync: Agenda global remota vazia, mas local populada. Protegendo dados locais e enviando para o Firebase.");
+                                globalAgendaRef.set(localAgendaData);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Erro ao fazer parse da agenda global local para proteção de dados:", e);
+                        }
+                    }
+
                     const valStr = JSON.stringify(val);
 
                     if (valStr === currentLocal) return;
@@ -2384,6 +2524,21 @@
                     if (!val) val = [];
 
                     const currentLocalData = localStorage.getItem(LS_BOARD_PREFIX + boardId);
+                    const remoteIsEmpty = !val || (Array.isArray(val) && val.length === 0) || (typeof val === 'object' && Object.keys(val).length === 0);
+
+                    if (remoteIsEmpty && currentLocalData && currentLocalData !== '[]' && currentLocalData !== '') {
+                        try {
+                            const localBoardData = JSON.parse(currentLocalData);
+                            if (Array.isArray(localBoardData) && localBoardData.length > 0) {
+                                console.warn(`Sync: Quadro remoto ${boardId} vazio, mas local populado. Protegendo dados locais e enviando para o Firebase.`);
+                                currentBoardRef.set(localBoardData);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Erro ao fazer parse do quadro local para proteção de dados:", e);
+                        }
+                    }
+
                     const valStr = JSON.stringify(val);
 
                     if (valStr === currentLocalData) return;
@@ -2401,6 +2556,126 @@
 
 
             // ===== Helpers =====
+            function normalizeBoardName(name) {
+                if (!name) return '';
+                return name.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '')
+                           .replace(/[^a-zA-Z0-9\s]/g, '')
+                           .toLowerCase()
+                           .trim();
+            }
+
+            function reconcileBoardIds(remoteMeta) {
+                if (!Array.isArray(remoteMeta)) return;
+
+                let reconciledAny = false;
+
+                remoteMeta.forEach(remoteBoard => {
+                    if (remoteBoard.id === 'board-todos' || remoteBoard.id === 'board-trash') return;
+
+                    const remoteNorm = normalizeBoardName(remoteBoard.name);
+                    if (!remoteNorm) return;
+
+                    // Procura nos metadados locais (boardsMeta) se existe algum quadro com o mesmo nome mas ID diferente
+                    const localMatch = boardsMeta.find(b => 
+                        b.id !== 'board-todos' && 
+                        b.id !== 'board-trash' && 
+                        b.id !== remoteBoard.id && 
+                        normalizeBoardName(b.name) === remoteNorm
+                    );
+
+                    if (localMatch) {
+                        const oldId = localMatch.id;
+                        const newId = remoteBoard.id;
+
+                        console.log(`Reconciliation: Mapeando quadro local "${localMatch.name}" (ID antigo: ${oldId}) para ID remoto: ${newId}`);
+
+                        // 1. Move os dados do quadro no localStorage e Firebase
+                        const oldBoardKey = LS_BOARD_PREFIX + oldId;
+                        const newBoardKey = LS_BOARD_PREFIX + newId;
+                        let oldBoardDataStr = localStorage.getItem(oldBoardKey);
+
+                        if (oldBoardDataStr) {
+                            try {
+                                let oldBoardData = JSON.parse(oldBoardDataStr);
+                                if (Array.isArray(oldBoardData) && oldBoardData.length > 0) {
+                                    oldBoardData.forEach(list => {
+                                        if (list.cards) {
+                                            list.cards.forEach(c => {
+                                                c.boardId = newId;
+                                            });
+                                        }
+                                        list.boardId = newId;
+                                    });
+
+                                    localStorage.setItem(newBoardKey, JSON.stringify(oldBoardData));
+                                    localStorage.removeItem(oldBoardKey);
+                                    
+                                    if (isFirebaseReady && auth && auth.currentUser) {
+                                        db.ref('users/' + auth.currentUser.uid + '/boards/' + newId).set(oldBoardData)
+                                            .then(() => console.log(`Reconciliation: Re-uploaded board ${newId} data to Firebase`))
+                                            .catch(e => console.error("Reconciliation upload error:", e));
+                                    }
+                                    console.log(`Reconciliation: Dados do quadro migrados com sucesso de ${oldId} para ${newId}`);
+                                }
+                            } catch (e) {
+                                console.error(`Erro ao migrar dados do quadro de ${oldId} para ${newId}:`, e);
+                            }
+                        }
+
+                        // 2. Atualiza os boardId correspondentes na Agenda Global no localStorage e Firebase
+                        let globalAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
+                        if (globalAgendaStr) {
+                            try {
+                                let agendaData = JSON.parse(globalAgendaStr);
+                                if (Array.isArray(agendaData)) {
+                                    let agendaUpdated = false;
+                                    agendaData.forEach(list => {
+                                        if (list.cards) {
+                                            list.cards.forEach(c => {
+                                                if (c.boardId === oldId) {
+                                                    c.boardId = newId;
+                                                    agendaUpdated = true;
+                                                }
+                                            });
+                                        }
+                                    });
+                                    if (agendaUpdated) {
+                                        localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
+                                        if (isFirebaseReady && auth && auth.currentUser) {
+                                            db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
+                                                .then(() => console.log("Reconciliation: Re-uploaded reconciled global agenda to Firebase"))
+                                                .catch(e => console.error("Reconciliation agenda upload error:", e));
+                                        }
+                                        console.log(`Reconciliation: boardId dos cartões da agenda global atualizados de ${oldId} para ${newId}`);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Erro ao atualizar agenda global na reconciliação:", e);
+                            }
+                        }
+
+                        // 3. Se o ID que mudou era o ID ativo, atualiza o currentBoardId
+                        if (currentBoardId === oldId) {
+                            currentBoardId = newId;
+                            localStorage.setItem(LS_CURRENT_BOARD, newId);
+                            console.log(`Reconciliation: Quadro ativo alterado para ${newId}`);
+                            if (isFirebaseReady && auth && auth.currentUser) {
+                                subscribeToCurrentBoard(auth.currentUser.uid, newId);
+                            }
+                        }
+
+                        reconciledAny = true;
+                    }
+                });
+
+                if (reconciledAny) {
+                    boardsMeta = remoteMeta;
+                    localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
+                    visibleBoardsInTodos = null;
+                    updateBoardSelectUI();
+                }
+            }
+
             function el(t, c) { var n = document.createElement(t); if (c) n.className = c; return n; }
             function $$(s, r) { if (!r) r = document; return Array.prototype.slice.call(r.querySelectorAll(s)); }
             function to2(n) { return (n < 10 ? '0' + n : '' + n); }
@@ -3965,16 +4240,19 @@
                     }
 
                     if (state === 'running') {
+                        disp.textContent = `⏱️ ${to2(mins)}:${to2(secs)}`;
                         disp.style.color = '#66bb6a';
                         disp.style.background = 'rgba(102, 187, 106, 0.2)';
                         card.classList.add('timer-running');
                     }
                     else if (state === 'paused') { 
+                        disp.textContent = `⏱️ ${to2(mins)}:${to2(secs)}`;
                         disp.style.color = '#ffa726'; 
                         disp.style.background = 'rgba(255, 167, 38, 0.2)'; 
                         card.classList.add('timer-paused');
                     }
                     else if (state === 'finished') {
+                        disp.textContent = `⏱️ 00:00`;
                         disp.style.color = '#ef5350';
                         disp.style.background = 'rgba(239, 83, 80, 0.2)';
                         card.classList.add('timer-finished');
@@ -4382,9 +4660,9 @@
                 toast.style.position = 'fixed';
                 toast.style.top = '20px';
                 toast.style.right = '20px';
-                toast.style.background = '#0e2240';
+                toast.style.background = 'var(--panel)';
                 toast.style.color = '#fff';
-                toast.style.borderLeft = '4px solid #f4511e';
+                toast.style.borderLeft = '4px solid var(--brand)';
                 toast.style.padding = '12px 18px';
                 toast.style.borderRadius = '8px';
                 toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
@@ -4841,14 +5119,16 @@
             var visibleBoardsInTodos = null;
 
             function getVisibleBoardsInTodos() {
-                if (visibleBoardsInTodos && visibleBoardsInTodos.size > 0) return visibleBoardsInTodos;
                 try {
                     const stored = localStorage.getItem(LS_VISIBLE_BOARDS);
                     if (stored) {
                         const parsed = JSON.parse(stored);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            visibleBoardsInTodos = new Set(parsed);
-                            return visibleBoardsInTodos;
+                        if (Array.isArray(parsed)) {
+                            const validIds = parsed.filter(id => boardsMeta.some(b => b.id === id));
+                            if (validIds.length > 0) {
+                                visibleBoardsInTodos = new Set(validIds);
+                                return visibleBoardsInTodos;
+                            }
                         }
                     }
                 } catch (e) {}
@@ -5302,7 +5582,7 @@
                     eisenhowerList.forEach(p => {
                         var b = el('button');
                         b.type = 'button';
-                        b.style.border = '1px solid #2a4e78';
+                        b.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                         b.style.borderRadius = '8px';
                         b.style.padding = '10px';
                         b.style.cursor = 'pointer';
@@ -5343,11 +5623,11 @@
                         // Sem etiqueta option
                         var bNone = el('button');
                         bNone.type = 'button';
-                        bNone.style.border = '1px solid #2a4e78';
+                        bNone.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                         bNone.style.borderRadius = '8px';
                         bNone.style.padding = '10px';
                         bNone.style.cursor = 'pointer';
-                        bNone.style.background = '#0b2240';
+                        bNone.style.background = 'var(--bg)';
                         bNone.style.color = '#fff';
                         bNone.textContent = 'Sem Etiqueta';
                         bNone.onclick = function () {
@@ -5362,7 +5642,7 @@
                         Object.keys(customColorLabels).forEach(hex => {
                             var b = el('button');
                             b.type = 'button';
-                            b.style.border = '1px solid #2a4e78';
+                            b.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                             b.style.borderRadius = '8px';
                             b.style.padding = '10px';
                             b.style.cursor = 'pointer';
@@ -5386,7 +5666,7 @@
 
                     // 3. Adicionar/Gerir Nova Etiqueta (com Seletor de Cores RGB)
                     var addArea = el('div');
-                    addArea.style.borderTop = '1px solid #24314a';
+                    addArea.style.borderTop = '1px solid rgba(255, 255, 255, 0.15)';
                     addArea.style.paddingTop = '10px';
                     addArea.style.display = 'flex';
                     addArea.style.flexDirection = 'column';
@@ -5422,8 +5702,8 @@
                     labelInput.placeholder = 'Nome da Etiqueta';
                     labelInput.style.flex = '1';
                     labelInput.style.padding = '8px';
-                    labelInput.style.background = '#0b2240';
-                    labelInput.style.border = '1px solid #2a4e78';
+                    labelInput.style.background = 'var(--bg)';
+                    labelInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                     labelInput.style.borderRadius = '8px';
                     labelInput.style.color = '#fff';
 
@@ -5431,7 +5711,7 @@
                     addBtn.type = 'button';
                     addBtn.textContent = 'Adicionar';
                     addBtn.style.padding = '8px 12px';
-                    addBtn.style.background = '#1976d2';
+                    addBtn.style.background = 'var(--brand)';
                     addBtn.style.border = 'none';
                     addBtn.style.borderRadius = '8px';
                     addBtn.style.color = '#fff';
@@ -5706,8 +5986,8 @@
                     intervalRow.style.fontSize = '14px';
                     intervalRow.innerHTML = `
                         <span>Repete a cada</span>
-                        <input type="number" id="recInterval" name="recInterval" value="${recRule.interval || 1}" min="1" style="width: 60px; border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px;" />
-                        <select id="recFreq" name="recFreq" style="border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                        <input type="number" id="recInterval" name="recInterval" value="${recRule.interval || 1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px;" />
+                        <select id="recFreq" name="recFreq" style="border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px; cursor: pointer;">
                             <option value="daily" ${recRule.freq === 'daily' ? 'selected' : ''}>dia(s)</option>
                             <option value="weekly" ${recRule.freq === 'weekly' ? 'selected' : ''}>semana(s)</option>
                             <option value="monthly" ${recRule.freq === 'monthly' ? 'selected' : ''}>mês(es)</option>
@@ -5772,7 +6052,7 @@
                     endSection.style.flexDirection = 'column';
                     endSection.style.gap = '8px';
                     endSection.style.marginTop = '6px';
-                    endSection.style.borderTop = '1px solid #24314a';
+                    endSection.style.borderTop = '1px solid rgba(255, 255, 255, 0.15)';
                     endSection.style.paddingTop = '10px';
                     
                     const endTitle = el('span');
@@ -5801,7 +6081,7 @@
                     dateLabel.style.cursor = 'pointer';
                     dateLabel.innerHTML = `
                         <input type="radio" id="recEndOnDate" name="recEndType" value="date" ${recRule.endType === 'date' ? 'checked' : ''} /> Em
-                        <input type="date" id="recEndDate" name="recEndDate" value="${recRule.endDate || new Date().toISOString().slice(0, 10)}" style="border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
+                        <input type="date" id="recEndDate" name="recEndDate" value="${recRule.endDate || new Date().toISOString().slice(0, 10)}" style="border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
                     `;
                     endSection.appendChild(dateLabel);
 
@@ -5814,7 +6094,7 @@
                     countLabel.style.cursor = 'pointer';
                     countLabel.innerHTML = `
                         <input type="radio" id="recEndAfterCount" name="recEndType" value="count" ${recRule.endType === 'count' ? 'checked' : ''} /> Após
-                        <input type="number" id="recEndCount" name="recEndCount" value="${recRule.endCount || 1}" min="1" style="width: 60px; border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
+                        <input type="number" id="recEndCount" name="recEndCount" value="${recRule.endCount || 1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
                         <span>ocorrências</span>
                     `;
                     endSection.appendChild(countLabel);
@@ -5928,14 +6208,14 @@
                     customFields.style.gap = '6px';
                     customFields.style.padding = '10px';
                     customFields.style.background = '#0a1424';
-                    customFields.style.border = '1px solid #24314a';
+                    customFields.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                     customFields.style.borderRadius = '8px';
                     customFields.style.marginTop = '4px';
                     customFields.innerHTML = `
                         <span style="font-size: 12px; color: #9fb3d2;">Tempo personalizado:</span>
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="number" id="alertCustomValSub" name="alertCustomValSub" min="1" value="${matchedIdx === predefinedOptions.length - 1 ? currentVal : 15}" style="width: 70px; border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px;" />
-                            <select id="alertCustomUnitSub" name="alertCustomUnitSub" style="flex:1; border: 1px solid #24314a; background: #111a2e; color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                            <input type="number" id="alertCustomValSub" name="alertCustomValSub" min="1" value="${matchedIdx === predefinedOptions.length - 1 ? currentVal : 15}" style="width: 70px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px;" />
+                            <select id="alertCustomUnitSub" name="alertCustomUnitSub" style="flex:1; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px; cursor: pointer;">
                                 <option value="minutos" ${currentUnit === 'minutos' ? 'selected' : ''}>minutos antes</option>
                                 <option value="horas" ${currentUnit === 'horas' ? 'selected' : ''}>horas antes</option>
                                 <option value="dias" ${currentUnit === 'dias' ? 'selected' : ''}>dias antes</option>
@@ -5971,11 +6251,11 @@
                     // 2. Tipo de alerta section
                     const alertTypeSection = el('div');
                     alertTypeSection.style.marginTop = '10px';
-                    alertTypeSection.style.borderTop = '1px solid #24314a';
+                    alertTypeSection.style.borderTop = '1px solid rgba(255, 255, 255, 0.15)';
                     alertTypeSection.style.paddingTop = '10px';
                     alertTypeSection.innerHTML = `
                         <span style="font-size: 13px; color: #9fb3d2; font-weight: 500; display: block; margin-bottom: 6px;">Tipo de alerta</span>
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #111a2e; border: 1px solid #24314a; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--bg); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;">
                             <span style="font-size: 14px;">Notificação (Pop-up e Som)</span>
                             <span style="color: #1976d2; font-weight: bold;">✔</span>
                         </div>
@@ -6074,10 +6354,10 @@
 
                     // 1. Title Input
                     const titleRow = el('div');
-                    titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" placeholder="Adicionar título" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent : '').replace(/^🍃\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid #24314a; background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; outline: none; transition: border-color 0.2s;" />`;
+                    titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" placeholder="Adicionar título" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent : '').replace(/^🍃\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.15); background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; outline: none; transition: border-color 0.2s;" />`;
                     const titleInput = titleRow.querySelector('#agendaTitle');
-                    titleInput.addEventListener('focus', () => titleInput.style.borderBottomColor = '#1976d2');
-                    titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = '#24314a');
+                    titleInput.addEventListener('focus', () => titleInput.style.borderBottomColor = 'var(--brand)');
+                    titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = 'rgba(255, 255, 255, 0.15)');
                     r.appendChild(titleRow);
 
                     // 2. Date & Time Row
@@ -6092,8 +6372,8 @@
                     datePicker.id = 'agendaDateVal';
                     datePicker.name = 'agendaDateVal';
                     datePicker.value = cardDate;
-                    datePicker.style.border = '1px solid #24314a';
-                    datePicker.style.background = '#111a2e';
+                    datePicker.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    datePicker.style.background = 'var(--bg)';
                     datePicker.style.color = '#fff';
                     datePicker.style.padding = '6px 8px';
                     datePicker.style.borderRadius = '6px';
@@ -6106,8 +6386,8 @@
                     timePicker.name = 'agendaTimeVal';
                     timePicker.value = cardTime;
                     timePicker.readOnly = true;
-                    timePicker.style.border = '1px solid #24314a';
-                    timePicker.style.background = '#111a2e';
+                    timePicker.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    timePicker.style.background = 'var(--bg)';
                     timePicker.style.color = '#fff';
                     timePicker.style.padding = '6px 8px';
                     timePicker.style.borderRadius = '6px';
@@ -6187,8 +6467,8 @@
                     const durationSelect = el('select');
                     durationSelect.id = 'agendaDuration';
                     durationSelect.name = 'agendaDuration';
-                    durationSelect.style.border = '1px solid #24314a';
-                    durationSelect.style.background = '#111a2e';
+                    durationSelect.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    durationSelect.style.background = 'var(--bg)';
                     durationSelect.style.color = '#fff';
                     durationSelect.style.padding = '6px 8px';
                     durationSelect.style.borderRadius = '6px';
@@ -6216,8 +6496,8 @@
                     customDurationInput.id = 'agendaCustomDuration';
                     customDurationInput.name = 'agendaCustomDuration';
                     customDurationInput.placeholder = 'Minutos';
-                    customDurationInput.style.border = '1px solid #24314a';
-                    customDurationInput.style.background = '#111a2e';
+                    customDurationInput.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    customDurationInput.style.background = 'var(--bg)';
                     customDurationInput.style.color = '#fff';
                     customDurationInput.style.padding = '6px 8px';
                     customDurationInput.style.borderRadius = '6px';
@@ -6251,8 +6531,8 @@
                     const recurrenceSelect = el('select');
                     recurrenceSelect.id = 'agendaRecurrence';
                     recurrenceSelect.name = 'agendaRecurrence';
-                    recurrenceSelect.style.border = '1px solid #24314a';
-                    recurrenceSelect.style.background = '#111a2e';
+                    recurrenceSelect.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    recurrenceSelect.style.background = 'var(--bg)';
                     recurrenceSelect.style.color = '#fff';
                     recurrenceSelect.style.padding = '6px 8px';
                     recurrenceSelect.style.borderRadius = '6px';
@@ -6283,8 +6563,8 @@
                     const recEditBtn = el('button');
                     recEditBtn.type = 'button';
                     recEditBtn.textContent = '⚙️ Editar';
-                    recEditBtn.style.border = '1px solid #24314a';
-                    recEditBtn.style.background = '#111a2e';
+                    recEditBtn.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+                    recEditBtn.style.background = 'var(--bg)';
                     recEditBtn.style.color = '#fff';
                     recEditBtn.style.padding = '6px 8px';
                     recEditBtn.style.borderRadius = '6px';
@@ -6334,14 +6614,14 @@
                     alertRow.style.alignItems = 'center';
                     alertRow.style.justifyContent = 'space-between';
                     alertRow.style.padding = '10px 12px';
-                    alertRow.style.background = '#111a2e';
-                    alertRow.style.border = '1px solid #24314a';
+                    alertRow.style.background = 'var(--bg)';
+                    alertRow.style.border = '1px solid rgba(255, 255, 255, 0.15)';
                     alertRow.style.borderRadius = '8px';
                     alertRow.style.cursor = 'pointer';
                     alertRow.style.marginTop = '6px';
                     alertRow.style.transition = 'background 0.2s';
-                    alertRow.onmouseover = () => alertRow.style.background = '#16243f';
-                    alertRow.onmouseout = () => alertRow.style.background = '#111a2e';
+                    alertRow.onmouseover = () => alertRow.style.background = 'color-mix(in srgb, var(--brand) 10%, var(--panel))';
+                    alertRow.onmouseout = () => alertRow.style.background = 'var(--bg)';
 
                     function updateAlertRowSummary() {
                         const summaryEl = alertRow.querySelector('#agendaAlertSummary');
@@ -6387,11 +6667,11 @@
 
                     // 5. Description Textarea
                     const descRow = el('div');
-                    descRow.innerHTML = `<textarea id="agendaDescription" name="agendaDescription" placeholder="Adicionar descrição..." style="width: 100%; min-height: 80px; border: 1px solid #24314a; background: #111a2e; color: #fff; border-radius: 6px; padding: 8px; font-size: 14px; resize: vertical; outline: none; font-family: inherit;"></textarea>`;
+                    descRow.innerHTML = `<textarea id="agendaDescription" name="agendaDescription" placeholder="Adicionar descrição..." style="width: 100%; min-height: 80px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: #fff; border-radius: 6px; padding: 8px; font-size: 14px; resize: vertical; outline: none; font-family: inherit;"></textarea>`;
                     const descTextarea = descRow.querySelector('#agendaDescription');
                     descTextarea.value = currentDescription;
-                    descTextarea.addEventListener('focus', () => descTextarea.style.borderColor = '#1976d2');
-                    descTextarea.addEventListener('blur', () => descTextarea.style.borderColor = '#24314a');
+                    descTextarea.addEventListener('focus', () => descTextarea.style.borderColor = 'var(--brand)');
+                    descTextarea.addEventListener('blur', () => descTextarea.style.borderColor = 'rgba(255, 255, 255, 0.15)');
                     r.appendChild(descRow);
 
                     return r;
@@ -6452,7 +6732,7 @@
                 var modalElements = showModal('Definir Timer (minutos)', function () {
                     var r = el('div');
                     var timerVal = Math.round(parseInt(cards[0].dataset.timerTotal || '0', 10) / 60) || '';
-                    r.innerHTML = `<label style="display: block;">Tempo para o timer (em minutos):<input type="number" id="timerInputValue" name="timerInputValue" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; margin-top: 4px;"></label>`;
+                    r.innerHTML = `<label style="display: block;">Tempo para o timer (em minutos):<input type="number" id="timerInputValue" name="timerInputValue" class="timer-input" placeholder="Ex: 25" value="${timerVal}" style="width:100%; padding:8px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; margin-top: 4px;"></label>`;
                     const input = r.querySelector('.timer-input'); if (input) { input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); modalElements.okButton.click(); } }); }
                     return r;
                 }, function (r, wrap) {
@@ -6560,7 +6840,7 @@
                     line.setAttribute("y1", centerY);
                     line.setAttribute("x2", targetX);
                     line.setAttribute("y2", targetY);
-                    line.setAttribute("stroke", "#1976d2");
+                    line.setAttribute("stroke", "var(--brand)");
                     line.setAttribute("stroke-width", "2");
                     svg.appendChild(line);
 
@@ -6569,7 +6849,7 @@
                     pivot.setAttribute("cx", centerX);
                     pivot.setAttribute("cy", centerY);
                     pivot.setAttribute("r", "4");
-                    pivot.setAttribute("fill", "#1976d2");
+                    pivot.setAttribute("fill", "var(--brand)");
                     svg.appendChild(pivot);
 
                     // End selection circle
@@ -6577,7 +6857,7 @@
                     targetCircle.setAttribute("cx", targetX);
                     targetCircle.setAttribute("cy", targetY);
                     targetCircle.setAttribute("r", "16");
-                    targetCircle.setAttribute("fill", "#1976d2");
+                    targetCircle.setAttribute("fill", "var(--brand)");
                     targetCircle.setAttribute("opacity", "0.85");
                     svg.appendChild(targetCircle);
 
@@ -6891,7 +7171,7 @@
                     selectAll.type = 'button';
                     selectAll.textContent = 'Selecionar Todos';
                     selectAll.style.flex = '1';
-                    selectAll.style.background = '#0e58a5';
+                    selectAll.style.background = 'var(--brand)';
                     selectAll.style.border = 'none';
                     selectAll.style.borderRadius = '6px';
                     selectAll.style.padding = '6px';
@@ -6985,7 +7265,7 @@
                     selectAll.type = 'button';
                     selectAll.textContent = 'Selecionar Todas';
                     selectAll.style.flex = '1';
-                    selectAll.style.background = '#0e58a5';
+                    selectAll.style.background = 'var(--brand)';
                     selectAll.style.border = 'none';
                     selectAll.style.borderRadius = '6px';
                     selectAll.style.padding = '6px';
@@ -7207,7 +7487,7 @@
                             let timeBadge = clone.querySelector('.due-date.time-badge');
                             if (!timeBadge) {
                                 timeBadge = el('span', 'due-date time-badge');
-                                timeBadge.style.backgroundColor = '#4285F4';
+                                timeBadge.style.backgroundColor = 'var(--brand)';
                                 timeBadge.style.color = 'white';
                                 timeBadge.style.marginRight = '5px';
                                 const cardHeader = clone.querySelector('.card-header');
@@ -7818,7 +8098,7 @@
                     div.innerHTML = `
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Provedor de IA</label>
-                            <select id="dialogAiProvider" name="dialogAiProvider" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
+                            <select id="dialogAiProvider" name="dialogAiProvider" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                                 <option value="gemini">Google Gemini</option>
                                 <option value="openai">OpenAI (ChatGPT / Compatível)</option>
                                 <option value="anthropic">Anthropic (Claude)</option>
@@ -7829,11 +8109,11 @@
                         <div id="settings-gemini" class="provider-settings-panel" style="display: none;">
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Chave API do Gemini</label>
-                                <input type="password" id="dialogGeminiApiKeyInput" name="dialogGeminiApiKeyInput" placeholder="Cole sua API Key do Gemini (ex: AIzaSy...)" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="password" id="dialogGeminiApiKeyInput" name="dialogGeminiApiKeyInput" placeholder="Cole sua API Key do Gemini (ex: AIzaSy...)" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Modelo do Gemini</label>
-                                <select id="dialogGeminiModelSelect" name="dialogGeminiModelSelect" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
+                                <select id="dialogGeminiModelSelect" name="dialogGeminiModelSelect" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                                     <option value="auto">Auto (Flash/Pro Sequencial)</option>
                                     <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                                     <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
@@ -7845,7 +8125,7 @@
                             </div>
                             <div id="geminiCustomModelRow" style="margin-bottom: 12px; display: none;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Nome do Modelo Personalizado</label>
-                                <input type="text" id="dialogGeminiCustomModelInput" name="dialogGeminiCustomModelInput" placeholder="ex: gemini-2.0-pro-exp-02-05" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogGeminiCustomModelInput" name="dialogGeminiCustomModelInput" placeholder="ex: gemini-2.0-pro-exp-02-05" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                         </div>
 
@@ -7853,11 +8133,11 @@
                         <div id="settings-openai" class="provider-settings-panel" style="display: none;">
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Chave API da OpenAI (sk-...)</label>
-                                <input type="password" id="dialogOpenaiApiKeyInput" name="dialogOpenaiApiKeyInput" placeholder="Cole sua API Key (sk-...)" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="password" id="dialogOpenaiApiKeyInput" name="dialogOpenaiApiKeyInput" placeholder="Cole sua API Key (sk-...)" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Modelo da OpenAI</label>
-                                <select id="dialogOpenaiModelSelect" name="dialogOpenaiModelSelect" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
+                                <select id="dialogOpenaiModelSelect" name="dialogOpenaiModelSelect" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                                     <option value="gpt-4o-mini">GPT-4o Mini (Recomendado)</option>
                                     <option value="gpt-4o">GPT-4o</option>
                                     <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -7866,11 +8146,11 @@
                             </div>
                             <div id="openaiCustomModelRow" style="margin-bottom: 12px; display: none;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Nome do Modelo Personalizado</label>
-                                <input type="text" id="dialogOpenaiCustomModelInput" name="dialogOpenaiCustomModelInput" placeholder="ex: gpt-4-turbo" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogOpenaiCustomModelInput" name="dialogOpenaiCustomModelInput" placeholder="ex: gpt-4-turbo" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">URL Base da API (Opcional)</label>
-                                <input type="text" id="dialogOpenaiCustomUrlInput" name="dialogOpenaiCustomUrlInput" placeholder="Padrão: https://api.openai.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogOpenaiCustomUrlInput" name="dialogOpenaiCustomUrlInput" placeholder="Padrão: https://api.openai.com/v1" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                                 <span style="font-size: 11px; color: #88a3c7; display: block; margin-top: 4px; line-height: 1.3;">Para usar OpenRouter, LM Studio, Ollama ou proxies de CORS.</span>
                             </div>
                         </div>
@@ -7879,11 +8159,11 @@
                         <div id="settings-anthropic" class="provider-settings-panel" style="display: none;">
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Chave API da Anthropic (sk-ant-...)</label>
-                                <input type="password" id="dialogAnthropicApiKeyInput" name="dialogAnthropicApiKeyInput" placeholder="Cole sua API Key (sk-ant-...)" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="password" id="dialogAnthropicApiKeyInput" name="dialogAnthropicApiKeyInput" placeholder="Cole sua API Key (sk-ant-...)" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Modelo da Anthropic</label>
-                                <select id="dialogAnthropicModelSelect" name="dialogAnthropicModelSelect" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
+                                <select id="dialogAnthropicModelSelect" name="dialogAnthropicModelSelect" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                                     <option value="claude-3-5-sonnet-latest">Claude 3.5 Sonnet</option>
                                     <option value="claude-3-5-haiku-latest">Claude 3.5 Haiku</option>
                                     <option value="claude-3-opus-latest">Claude 3 Opus</option>
@@ -7892,16 +8172,16 @@
                             </div>
                             <div id="anthropicCustomModelRow" style="margin-bottom: 12px; display: none;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Nome do Modelo Personalizado</label>
-                                <input type="text" id="dialogAnthropicCustomModelInput" name="dialogAnthropicCustomModelInput" placeholder="ex: claude-3-haiku-20240307" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogAnthropicCustomModelInput" name="dialogAnthropicCustomModelInput" placeholder="ex: claude-3-haiku-20240307" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">URL Base da API (Opcional)</label>
-                                <input type="text" id="dialogAnthropicCustomUrlInput" name="dialogAnthropicCustomUrlInput" placeholder="Padrão: https://api.anthropic.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogAnthropicCustomUrlInput" name="dialogAnthropicCustomUrlInput" placeholder="Padrão: https://api.anthropic.com/v1" style="width:100%; padding:10px; background:var(--bg); border:1px solid rgba(255, 255, 255, 0.15); border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                                 <span style="font-size: 11px; color: #88a3c7; display: block; margin-top: 4px; line-height: 1.3;">Requer um proxy de CORS para uso direto do navegador.</span>
                             </div>
                         </div>
 
-                        <div style="margin-top: 15px; font-size: 11px; color: #ffa726; line-height: 1.4; border-top: 1px solid #24314a; padding-top: 10px;">
+                        <div style="margin-top: 15px; font-size: 11px; color: #ffa726; line-height: 1.4; border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 10px;">
                             <span>⚠️ Suas credenciais são salvas <strong>localmente</strong> no seu navegador (localStorage) com segurança.</span>
                         </div>
                     `;
@@ -15028,6 +15308,7 @@ Regras Importantes:
                             Object.keys(BACKUP_FALLBACK.boards).forEach(function(boardId) {
                                 localStorage.setItem('tea-planner-board-' + boardId, JSON.stringify(BACKUP_FALLBACK.boards[boardId]));
                             });
+                            localStorage.setItem('tea-planner-current-board', 'board-todos');
                             localStorage.setItem('tea-planner-force-cloud-sync', 'true');
                         }
                     } catch (e) {
@@ -15042,6 +15323,40 @@ Regras Importantes:
                 initAiControls();
                 startAlertCheck();
                 if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
+                // Floating debug overlay
+                const debugDiv = document.createElement('div');
+                debugDiv.id = 'weekly-debug-overlay';
+                debugDiv.style.position = 'fixed';
+                debugDiv.style.bottom = '10px';
+                debugDiv.style.left = '10px';
+                debugDiv.style.backgroundColor = 'rgba(0,0,0,0.85)';
+                debugDiv.style.color = '#00ff00';
+                debugDiv.style.padding = '10px';
+                debugDiv.style.zIndex = '99999';
+                debugDiv.style.fontFamily = 'monospace';
+                debugDiv.style.fontSize = '12px';
+                debugDiv.style.maxHeight = '200px';
+                debugDiv.style.overflowY = 'auto';
+                debugDiv.style.borderRadius = '8px';
+                debugDiv.style.pointerEvents = 'none';
+                document.body.appendChild(debugDiv);
+
+                window.setInterval(() => {
+                    const date = '2026-06-03';
+                    const dayPrefix = date + 'T';
+                    const floatingCards = allCards.filter(c => { const w = c.dataset.when || ''; return w === dayPrefix || w === dayPrefix + 'GOAL'; });
+                    const scheduledCards = allCards.filter(c => { const w = c.dataset.when || ''; return w.startsWith(dayPrefix) && w.length > 11 && w !== dayPrefix + 'GOAL'; });
+                    debugDiv.innerHTML = `
+                        <b>Debug Overlay (2026-06-03)</b><br>
+                        allCards: ${allCards.length}<br>
+                        floating: ${floatingCards.length}<br>
+                        scheduled: ${scheduledCards.length}<br>
+                        matrix collapsed: ${matrixContainer.classList.contains('collapsed')}<br>
+                        weekly collapsed: ${weeklyContainer.classList.contains('collapsed')}<br>
+                        is board-todos: ${currentBoardId === 'board-todos'}
+                    `;
+                }, 1000);
+
             }
 
             initApp();
