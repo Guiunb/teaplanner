@@ -3294,7 +3294,7 @@
                 } else if (typeof auth !== 'undefined' && auth && auth.currentUser) {
                     username = auth.currentUser.displayName || auth.currentUser.email || 'Usuario';
                 }
-                username = username.replace(/[/\\?%*:|"<>\s]+/g, ' ').trim();
+                username = username.replace(/[\/\\?%*:|"<>\s]+/g, ' ').trim();
                 if (!username) username = 'Usuario';
 
                 const now = new Date();
