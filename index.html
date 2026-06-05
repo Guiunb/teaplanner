@@ -2120,7 +2120,7 @@
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <button id="clearFilters">Limpar filtros</button>
-        <button id="filterBoardsBtn" title="Filtrar quadros exibidos no TODOS" style="display: none; background: #2e7d32;">Filtrar Quadros</button>
+        <button id="filterBoardsBtn" title="Filtrar quadros exibidos no TODOS" style="display: none;">Filtrar Quadros</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" name="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
             title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
@@ -2233,16 +2233,17 @@
             <button data-action="move">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
         </div>
-        <div id="ctx-move-all" style="position:relative">
+        <div id="ctx-move-all" style="position:relative; display:none;">
             <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
             <div class="ctx-sub" id="ctx-moveall-sub"></div>
         </div>
-        <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="del-all" style="display:none;">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
     <div id="ctx-list" class="ctx">
         <button data-action="list-del">🗑️ Excluir lista</button>
-        <button data-action="list-move-all">➡️ Mover todos para ▶</button>
+        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
     </div>
 
@@ -2303,10 +2304,14 @@
 
                         if (user) {
                             loginBtn.textContent = 'Sair';
+                            loginBtn.removeAttribute('style');
                             userInfo.textContent = `Olá, ${user.displayName || user.email}`;
                             setupFirebaseSync(user);
                         } else {
                             loginBtn.textContent = 'Login Google';
+                            loginBtn.style.background = '#4285F4';
+                            loginBtn.style.color = 'white';
+                            loginBtn.style.borderColor = 'transparent';
                             userInfo.textContent = '';
                             if (currentBoardRef) currentBoardRef.off();
                             if (globalAgendaRef) globalAgendaRef.off();
@@ -2451,6 +2456,9 @@
 
                 globalAgendaRef.on('value', (snapshot) => {
                     let val = snapshot.val();
+                    if (val && !Array.isArray(val)) {
+                        val = Object.keys(val).map(k => val[k]);
+                    }
                     
                     if (!snapshot.exists()) {
                         const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
@@ -2507,6 +2515,9 @@
 
                 currentBoardRef.on('value', (snapshot) => {
                     let val = snapshot.val();
+                    if (val && !Array.isArray(val)) {
+                        val = Object.keys(val).map(k => val[k]);
+                    }
                     
                     if (!snapshot.exists()) {
                         const localBoardStr = localStorage.getItem(LS_BOARD_PREFIX + boardId);
@@ -3511,7 +3522,7 @@
                     });
                 }
 
-                // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
+// Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
                 // (Isso previne perda de dados ao atualizar o código)
                 if (agendaData.length === 0 && boardData.some(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled')) {
                     console.log("Migrando agenda do quadro para global...");
@@ -3544,6 +3555,17 @@
             }
 
             function renderFromData(boardData, agendaData) {
+                // === PRESERVAR SELEÇÃO ===
+                window._selectedIdsToRestore = new Set();
+                if (typeof selected !== 'undefined' && selected.forEach) {
+                    selected.forEach(card => {
+                        if (card && card.dataset && card.dataset.cardId) {
+                            window._selectedIdsToRestore.add(card.dataset.cardId);
+                        }
+                    });
+                    selected.clear();
+                }
+
                 // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
                 // Na verdade, a função original renderFromData aceitava um array único.
                 // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
@@ -3622,6 +3644,7 @@
                         element.scrollTop = pos.top;
                     }
                 });
+                window._selectedIdsToRestore = null;
             }
 
             function restore(histObj) {
@@ -4365,7 +4388,12 @@
                 c.dataset.description = _d.description || '';
                 c.dataset.duration = _d.duration || '';
                 c.dataset.recurrence = _d.recurrence || 'none';
-                c.dataset.cardId = _d.cardId || '';
+                const cardId = _d.cardId || 'card_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+                c.dataset.cardId = cardId;
+                if (window._selectedIdsToRestore && window._selectedIdsToRestore.has(cardId)) {
+                    selected.add(c);
+                    c.classList.add('selected');
+                }
                 c.dataset.recurrenceParent = _d.recurrenceParent || '';
                 c.dataset.alertEnabled = _d.alertEnabled || 'false';
                 c.dataset.alertValue = _d.alertValue || '15';
@@ -5496,7 +5524,29 @@
                 if (goalSlot) addMoveButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveSub);
                 $$('.list[data-type="time"]', schedule).forEach(function (l) { addMoveButton(l, l.dataset.time, ctxMoveSub); });
             }
-            listCtx.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; var action = b.dataset.action; if (action === 'list-move-all') { listMoveSub.style.display = (listMoveSub.style.display === 'block' ? 'none' : 'block'); return; } if (action === 'list-del' && listCtxTarget) { showConfirm('Excluir a lista inteira?', function () { listCtxTarget.remove(); persist(); }); } listCtx.style.display = 'none'; });
+            listCtx.addEventListener('click', function (e) {
+                var b = e.target.closest('button');
+                if (!b) return;
+                var action = b.dataset.action;
+                if (action === 'list-move-all') {
+                    listMoveSub.style.display = (listMoveSub.style.display === 'block' ? 'none' : 'block');
+                    return;
+                }
+                if (action === 'list-del' && listCtxTarget) {
+                    showConfirm('Excluir a lista inteira?', function () {
+                        listCtxTarget.remove();
+                        persist();
+                    });
+                }
+                if (action === 'list-del-all' && listCtxTarget) {
+                    showConfirm('Excluir TODOS os cartões desta lista?', function () {
+                        $$('.card', listCtxTarget).forEach(function (c) { removeCard(c); });
+                        persist();
+                        updateSlotsHasItems();
+                    });
+                }
+                listCtx.style.display = 'none';
+            });
 
             // ===== Modal helpers + Paleta =====
             var MATRIX_COLORS = { Q1: '#104239', Q2: '#0e3155', Q3: '#5a4014', Q4: '#5a1419' };
@@ -6134,6 +6184,16 @@
             }
 
             function openAlertDialog(cardOrData, onSave, onCancel) {
+                const predefinedOptions = [
+                    { text: 'No horário do evento', val: 0, unit: 'minutos' },
+                    { text: '5 minutos antes', val: 5, unit: 'minutos' },
+                    { text: '15 minutos antes', val: 15, unit: 'minutos' },
+                    { text: '30 minutos antes', val: 30, unit: 'minutos' },
+                    { text: '1 hora antes', val: 1, unit: 'horas' },
+                    { text: '2 horas antes', val: 2, unit: 'horas' },
+                    { text: '1 dia antes', val: 1, unit: 'dias' },
+                    { text: 'Personalizado...', val: -1, unit: 'custom' }
+                ];
                 const dataset = cardOrData.dataset ? cardOrData.dataset : cardOrData;
                 const isEnabled = dataset.alertEnabled === 'true';
                 const currentVal = parseInt(dataset.alertValue || '15', 10);
@@ -6264,7 +6324,8 @@
 
                     return r;
                 }, function (body, wrap) {
-                    const enabled = enabledCheckbox.checked;
+                    const enabledCheckboxSub = body.querySelector('#alertSubEnabled');
+                    const enabled = enabledCheckboxSub ? enabledCheckboxSub.checked : false;
                     let val = 15;
                     let unit = 'minutos';
 
@@ -7782,6 +7843,45 @@
                     }
                     return;
                 }
+
+                // Shift + Setas (Cima / Baixo) para mover cartão pela agenda
+                if (currentSelection.length > 0 && e.shiftKey) {
+                    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                        let targetCard = currentSelection[0];
+                        let mirrorCard = Array.from(slotsRoot.querySelectorAll('.card')).find(clone => clone._originalReference === targetCard);
+                        let currentSlot = (mirrorCard ? mirrorCard.closest('#slots > .list') : null) || targetCard.closest('#slots > .list');
+                        
+                        if (currentSlot) {
+                            e.preventDefault();
+                            const slots = Array.from(slotsRoot.children);
+                            const currentIndex = slots.indexOf(currentSlot);
+                            let targetIndex = e.key === 'ArrowUp' ? currentIndex - 1 : currentIndex + 1;
+                            
+                            if (targetIndex >= 0 && targetIndex < slots.length) {
+                                const targetSlot = slots[targetIndex];
+                                if (targetSlot.dataset.type === 'goal') {
+                                    targetCard.dataset.when = getActiveDay() + 'TGOAL';
+                                } else if (targetSlot.dataset.type === 'unscheduled') {
+                                    targetCard.dataset.when = getActiveDay() + 'T';
+                                } else if (targetSlot.dataset.type === 'time') {
+                                    targetCard.dataset.when = getActiveDay() + 'T' + targetSlot.dataset.time;
+                                }
+                                persist(); loadAndRenderAll();
+                                updateSlotsHasItems();
+                                
+                                // Focar e rolar para o novo espelho gerado na agenda
+                                setTimeout(() => {
+                                    let newMirror = Array.from(slotsRoot.querySelectorAll('.card')).find(clone => clone._originalReference === targetCard);
+                                    if (newMirror) {
+                                        newMirror.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                    }
+                                }, 50);
+                            }
+                            return;
+                        }
+                    }
+                }
+
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateCards(currentSelection); return; }
                 if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartão(s)?', function () { currentSelection.forEach(function (n) { removeCard(n); }); clearSelection(); }); return; }
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey)) {
