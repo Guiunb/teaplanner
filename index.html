@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
@@ -367,8 +367,8 @@
             gap: 8px;
             align-items: center;
             padding: 8px 10px;
-            border-bottom: 1px solid #19375b;
-            background: #122b4a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--card);
             flex-shrink: 0;
         }
 
@@ -377,7 +377,7 @@
             border: none;
             border-radius: 8px;
             padding: 6px 8px;
-            background: #0e2542;
+            background: rgba(0, 0, 0, 0.2);
             color: var(--ink);
             min-width: 0;
         }
@@ -426,7 +426,7 @@
 
         .card {
             background: var(--card);
-            border: 1px solid #20486f;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-left: 6px solid var(--board-color, transparent);
             border-radius: 8px;
             padding: 0;
@@ -641,7 +641,7 @@
 
         .add {
             padding: 8px;
-            border-top: 1px solid #19375b;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
             display: none;
             /* ESCONDIDO POR PADRÃO - MINIMALISTA */
@@ -667,9 +667,9 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            color: #cfe0ff;
-            background: #102b4f;
-            border: 1px solid #1a4e78;
+            color: var(--ink);
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             text-align: center;
         }
@@ -739,7 +739,7 @@
 
         .schedule {
             background: var(--panel);
-            border: 1px solid #183453;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             width: 100%;
             height: 100%;
@@ -763,8 +763,9 @@
             flex-direction: column;
             gap: 8px;
             padding: 8px 10px;
-            background: #0b437e;
-            color: #fff;
+            background: var(--card);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--ink);
             border-top-left-radius: 12px;
             border-top-right-radius: 12px
         }
@@ -782,9 +783,9 @@
         }
 
         .schedule header input[type=date] {
-            background: #0b2240;
-            color: #fff;
-            border: 1px solid #2a4e78;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--ink);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             padding: 6px 8px;
             width: 120px;
@@ -804,9 +805,9 @@
 
         .schedule header button {
             padding: 6px 10px;
-            background: #0e58a5;
+            background: var(--brand);
             border: none;
-            color: #fff;
+            color: var(--header-text, #fff);
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
@@ -824,7 +825,7 @@
         }
 
         .slot {
-            border-bottom: 1px dashed #244b78
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08)
         }
 
         .slot>div.head {
@@ -852,13 +853,13 @@
         }
 
         .slot.hover {
-            background: #0e2446;
-            box-shadow: inset 0 0 0 2px #1976d2
+            background: rgba(var(--brand-rgb), 0.15);
+            box-shadow: inset 0 0 0 2px var(--brand);
         }
 
         .goal-slot {
-            background: #1c3a61;
-            border-bottom: 1px solid #3a6a9e;
+            background: var(--card);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .goal-slot>.head .goal-label {
@@ -869,8 +870,8 @@
 
         /* Estilo para o slot de "Horário a definir" na agenda */
         .unscheduled-slot {
-            background: #1a2333;
-            border-bottom: 2px solid #b85d00;
+            background: var(--panel);
+            border-bottom: 2px solid var(--brand);
             display: none;
             /* Escondido por padrão */
         }
@@ -890,9 +891,9 @@
 
         .placeholder {
             height: 38px;
-            border: 2px dashed #1976d2;
+            border: 2px dashed var(--brand);
             border-radius: 8px;
-            background: #0e2446;
+            background: rgba(var(--brand-rgb), 0.1);
             margin: 4px 0
         }
 
@@ -1202,13 +1203,13 @@
             align-items: center;
             gap: 15px;
             padding: 5px;
-            background: #122b4a;
-            border-bottom: 1px solid #19375b;
+            background: var(--card);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .weekly-controls button {
-            background: #0e58a5;
-            color: #fff;
+            background: var(--brand);
+            color: var(--header-text, #fff);
             border: none;
             border-radius: 50%;
             width: 30px;
@@ -1221,7 +1222,7 @@
         }
 
         .weekly-controls span {
-            color: #fff;
+            color: var(--ink);
             font-weight: bold;
             font-size: 14px;
         }
@@ -1242,7 +1243,7 @@
 
         .day-column {
             background: var(--panel);
-            border: 1px solid #183453;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -1251,14 +1252,15 @@
         }
 
         .day-column.today {
-            border-color: #ffd54f;
-            background: #162a45;
+            border-color: var(--brand);
+            background: var(--card);
         }
 
         .day-column header {
             padding: 8px 12px;
-            background: #122b4a;
-            border-bottom: 1px solid #19375b;
+            background: var(--card);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--ink);
             font-weight: bold;
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
@@ -3325,6 +3327,7 @@
                 const r = document.querySelector(':root');
                 const safeColor = color || DEFAULT_THEME_COLOR;
                 const theme = THEMES[safeColor] || THEMES[DEFAULT_THEME_COLOR];
+                const brandColor = theme ? theme.brand : safeColor;
 
                 if (theme) {
                     r.style.setProperty('--brand', theme.brand);
@@ -3338,6 +3341,34 @@
                     r.style.setProperty('--panel', '#0f223d');
                     r.style.setProperty('--card', '#112b4a');
                     r.style.setProperty('--ink', '#e9f1ff');
+                }
+
+                // Definir --brand-rgb para opacidades em CSS
+                try {
+                    var hex = brandColor.replace('#', '');
+                    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+                    var rVal = parseInt(hex.substr(0,2), 16);
+                    var gVal = parseInt(hex.substr(2,2), 16);
+                    var bVal = parseInt(hex.substr(4,2), 16);
+                    r.style.setProperty('--brand-rgb', `${rVal}, ${gVal}, ${bVal}`);
+                } catch (e) {
+                    r.style.setProperty('--brand-rgb', '25, 118, 210');
+                }
+
+                // Cálculo do contraste YIQ para o cabeçalho e painéis temáticos
+                const contrast = getContrastYIQ(brandColor);
+                if (contrast === 'light') {
+                    r.style.setProperty('--header-text', '#122b4a');
+                    r.style.setProperty('--header-btn-bg', 'rgba(0, 0, 0, 0.08)');
+                    r.style.setProperty('--header-btn-border', 'rgba(0, 0, 0, 0.15)');
+                    r.style.setProperty('--header-btn-hover', 'rgba(0, 0, 0, 0.15)');
+                    r.style.setProperty('--header-btn-hover-border', 'rgba(0, 0, 0, 0.25)');
+                } else {
+                    r.style.setProperty('--header-text', '#ffffff');
+                    r.style.setProperty('--header-btn-bg', 'rgba(255, 255, 255, 0.12)');
+                    r.style.setProperty('--header-btn-border', 'rgba(255, 255, 255, 0.2)');
+                    r.style.setProperty('--header-btn-hover', 'rgba(255, 255, 255, 0.22)');
+                    r.style.setProperty('--header-btn-hover-border', 'rgba(255, 255, 255, 0.35)');
                 }
             }
 
@@ -3453,7 +3484,7 @@
                         const lists = $$('.list[data-type="kanban"]');
                         const targetListEl = lists.find(l => {
                             const titleInp = l.querySelector('.title');
-                            return titleInp && titleInp.value.toLowerCase().trim() === targetListTitle.toLowerCase().trim() && l.dataset.boardId === targetBoardId;
+                            return titleInp && titleInp.value.toLowerCase().trim() === targetListTitle.toLowerCase().trim();
                         });
                         if (targetListEl) {
                             const cardsContainer = targetListEl.querySelector('.cards');
@@ -3748,6 +3779,14 @@
                     c.style.borderColor = '#20486f';
                     c.style.borderLeftColor = 'transparent';
                     c.style.setProperty('--board-color', '#20486f');
+                }
+
+                // Atualizar tooltip indicando a qual quadro o cartão pertence
+                const board = boardsMeta.find(b => b.id === c.dataset.boardId);
+                if (board) {
+                    c.title = "Quadro: " + board.name;
+                } else {
+                    c.title = '';
                 }
 
                 var labelColor = c.dataset.labelColor || '';
