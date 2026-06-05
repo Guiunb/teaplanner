@@ -40,6 +40,53 @@
         }
 
         body {
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
+
+    <title>TEA PLANNER (Sync Final Fix)</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg: #0f1a2a;
+            --panel: #0f223d;
+            --ink: #e9f1ff;
+            --brand: #1976d2;
+            --muted: #9fb3d2;
+            --card: #112b4a;
+            --header-text: #ffffff;
+            --header-btn-bg: rgba(255, 255, 255, 0.12);
+            --header-btn-border: rgba(255, 255, 255, 0.2);
+            --header-btn-hover: rgba(255, 255, 255, 0.22);
+            --header-btn-hover-border: rgba(255, 255, 255, 0.35);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        body {
             margin: 0;
             font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
             color: var(--ink);
@@ -57,14 +104,15 @@
             align-items: center;
             padding: 10px 12px;
             background: var(--brand);
-            color: #fff;
+            color: var(--header-text);
             flex-wrap: wrap;
             transition: background-color .3s;
             flex-shrink: 0;
         }
 
         header.app.filters-active {
-            background: #b85d00
+            background: #b85d00 !important;
+            color: #ffffff !important;
         }
 
         header.app h1 {
@@ -79,27 +127,34 @@
         .header-icon {
             width: 22px;
             height: 22px;
-            stroke: #fff;
+            stroke: var(--header-text);
             vertical-align: -4px;
             margin-right: 8px;
         }
 
         header.app input,
         header.app button {
-            border: none;
+            border: 1px solid var(--header-btn-border);
             border-radius: 8px;
             padding: 6px 10px;
-            background: #0e58a5;
-            color: #fff
+            background: var(--header-btn-bg);
+            color: var(--header-text);
+            transition: background-color 0.2s, border-color 0.2s;
         }
 
         header.app button {
             cursor: pointer
         }
 
+        header.app button:hover {
+            background: var(--header-btn-hover);
+            border-color: var(--header-btn-hover-border);
+        }
+
         header.app button.active {
-            background: #ffd54f;
-            color: #10243a
+            background: #ffd54f !important;
+            color: #10243a !important;
+            border-color: #ffd54f !important;
         }
 
         #sumTimersDisplay {
@@ -1559,16 +1614,16 @@
             50% { transform: scaleY(2); }
         }
 
-                /* Styling for Header Dropdowns */
+        /* Styling for Header Dropdowns - Premium Glassmorphism */
         .header-dropdown {
             position: relative;
             display: inline-block;
         }
 
         .header-dropdown-btn {
-            background: rgba(25, 118, 210, 0.12) !important;
-            color: #fff !important;
-            border: 1px solid rgba(25, 118, 210, 0.25) !important;
+            background: var(--header-btn-bg) !important;
+            color: var(--header-text) !important;
+            border: 1px solid var(--header-btn-border) !important;
             border-radius: 8px;
             padding: 6px 14px;
             font-weight: 600;
@@ -1583,9 +1638,9 @@
         }
 
         .header-dropdown-btn:hover {
-            background: rgba(25, 118, 210, 0.22) !important;
-            border-color: rgba(25, 118, 210, 0.45) !important;
-            box-shadow: 0 0 10px rgba(25, 118, 210, 0.15);
+            background: var(--header-btn-hover) !important;
+            border-color: var(--header-btn-hover-border) !important;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
         }
 
         .header-dropdown-content {
@@ -1593,16 +1648,18 @@
             position: absolute;
             top: 100%;
             left: 0;
-            background: rgba(11, 18, 32, 0.96) !important;
-            backdrop-filter: blur(10px);
-            min-width: 190px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.95) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            min-width: 210px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
             z-index: 1000;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            margin-top: 6px;
-            border: 1px solid rgba(255,255,255,0.08) !important;
-            animation: dropdownFadeIn 0.18s ease-out;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 4px 0;
+            animation: dropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes dropdownFadeIn {
@@ -1611,25 +1668,26 @@
         }
 
         .header-dropdown-content button {
-            color: #e9f1ff !important;
-            padding: 10px 16px;
+            color: #f1f5f9 !important;
+            padding: 8px 16px;
+            margin: 2px 6px;
+            border-radius: 6px;
+            width: calc(100% - 12px);
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            width: 100%;
+            gap: 10px;
             text-align: left;
             background: transparent;
             border: none;
-            border-radius: 0;
             font-size: 13px;
             font-weight: 500;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.15s, color 0.15s;
             cursor: pointer;
         }
 
         .header-dropdown-content button:hover {
-            background-color: rgba(25, 118, 210, 0.2) !important;
+            background-color: var(--brand) !important;
             color: #fff !important;
         }
 
@@ -1686,22 +1744,22 @@
                 <!-- Options populated by JS -->
             </select>
             
-                        <div class="header-dropdown" id="boardDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Quadros â–¾</button>
+            <div class="header-dropdown" id="boardDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Quadros ▾</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuNewBoard">âž• Adicionar Quadro</button>
-                    <button type="button" id="menuRenameBoard">âœï¸ Renomear Quadro</button>
-                    <button type="button" id="menuCloneBoard">ðŸ’¾ Salvar Quadro como...</button>
-                    <button type="button" id="menuBoardTheme">ðŸŽ¨ Cor do Quadro</button>
-                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">ðŸ—‘ï¸ Excluir Quadro</button>
+                    <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Dados â–¾</button>
+                <button class="header-dropdown-btn" type="button">Dados ▾</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuExportJson">ðŸ“¥ Salvar Json</button>
-                    <button type="button" id="menuImportJson">ðŸ“¤ Importar Json</button>
+                    <button type="button" id="menuExportJson">📥 Salvar Json</button>
+                    <button type="button" id="menuImportJson">📤 Importar Json</button>
                 </div>
             </div>
         </div>
@@ -1835,11 +1893,11 @@
     </div>
 
         <div id="ctx-list" class="ctx">
-        <button data-action="list-del">ðŸ—‘ï¸ Excluir lista</button>
-        <button data-action="list-del-all">ðŸ—‘ï¸ Excluir TODOS desta Lista</button>
-        <button data-action="list-move-all">âž¡ï¸ Mover TODOS desta Lista</button>
+        <button data-action="list-del">🗑️ Excluir lista</button>
+        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
-        <button data-action="list-move-board">âž¡ï¸ Mover LISTA para outro quadro</button>
+        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro</button>
         <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
     </div>
     </div>
@@ -2814,7 +2872,8 @@
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
 
             // Função unificada para carregar tudo
-                        function loadAndRenderAll() {
+            var __isRendering = false;
+            function loadAndRenderAll() {
                 if (__isRendering) return;
                 __isRendering = true;
                 try {
@@ -2823,420 +2882,6 @@
                     __isRendering = false;
                 }
             }
-            function loadAndRenderAllInner() {
-                let boardData = [];
-                let agendaData = [];
-
-                if (currentBoardId === 'board-todos') {
-                    // Aggregate all boards except trash and board-todos itself
-                    let mergedKanbanLists = [];
-                    let mergedQuadLists = { Q1: [], Q2: [], Q3: [], Q4: [] };
-
-                    boardsMeta.forEach(b => {
-                        if (b.id === 'board-trash' || b.id === 'board-todos') return;
-                        let bData = [];
-                        try {
-                            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
-                            if (bStr) bData = JSON.parse(bStr);
-                        } catch (e) { console.error("Error load board", b.id, e); }
-
-                        bData.forEach(list => {
-                            if (list.type === 'kanban') {
-                                let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
-                                if (!targetList) {
-                                    targetList = { type: 'kanban', title: list.title, cards: [], boardId: b.id };
-                                    mergedKanbanLists.push(targetList);
-                                }
-                                const cardsWithBoardId = (list.cards || []).map(c => {
-                                    return { ...c, boardId: c.boardId || b.id };
-                                });
-                                targetList.cards = targetList.cards.concat(cardsWithBoardId);
-                            } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
-                                const cardsWithBoardId = (list.cards || []).map(c => {
-                                    return { ...c, boardId: c.boardId || b.id };
-                                });
-                                mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
-                            }
-                        });
-                    });
-
-                    // Add TODOS's own cards if they exist
-                    let todosOwnData = [];
-                    try {
-                        const todosOwnStr = localStorage.getItem(LS_BOARD_PREFIX + 'board-todos');
-                        if (todosOwnStr) todosOwnData = JSON.parse(todosOwnStr);
-                    } catch(e) {}
-                    todosOwnData.forEach(list => {
-                        if (list.type === 'kanban') {
-                            let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
-                            if (!targetList) {
-                                targetList = { type: 'kanban', title: list.title, cards: [], boardId: 'board-todos' };
-                                mergedKanbanLists.push(targetList);
-                            }
-                            const cardsWithBoardId = (list.cards || []).map(c => {
-                                return { ...c, boardId: c.boardId || 'board-todos' };
-                            });
-                            targetList.cards = targetList.cards.concat(cardsWithBoardId);
-                        } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
-                            const cardsWithBoardId = (list.cards || []).map(c => {
-                                return { ...c, boardId: c.boardId || 'board-todos' };
-                            });
-                            mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
-                        }
-                    });
-
-                    boardData = mergedKanbanLists;
-                    Object.keys(mergedQuadLists).forEach(q => {
-                        boardData.push({ type: 'quad', quad: q, cards: mergedQuadLists[q] });
-                    });
-                } else {
-                    try {
-                        const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
-                        if (bStr) boardData = JSON.parse(bStr);
-                    } catch (e) { console.error("Erro load board", e); }
-                }
-
-                try {
-                    const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
-                    if (aStr) agendaData = JSON.parse(aStr);
-                } catch (e) { console.error("Erro load agenda", e); }
-
-                // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
-                // (Isso previne perda de dados ao atualizar o código)
-                if (agendaData.length === 0 && boardData.some(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled')) {
-                    console.log("Migrando agenda do quadro para global...");
-                    agendaData = boardData.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
-                    boardData = boardData.filter(d => d.type === 'kanban' || d.type === 'quad');
-                    // Salva a migração
-                    localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
-                    localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
-                }
-
-                // Sincronizar boardId nos cartões se não tiver
-                if (currentBoardId !== 'board-todos') {
-                    boardData.forEach(list => {
-                        if (list.cards) {
-                            list.cards.forEach(c => {
-                                if (!c.boardId) c.boardId = currentBoardId;
-                            });
-                        }
-                    });
-                }
-                agendaData.forEach(list => {
-                    if (list.cards) {
-                        list.cards.forEach(c => {
-                            if (!c.boardId) c.boardId = currentBoardId || 'board-todos';
-                        });
-                    }
-                });
-
-                renderFromData(boardData, agendaData);
-            }
-
-            function renderFromData(boardData, agendaData) {
-                // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
-                // Na verdade, a função original renderFromData aceitava um array único.
-                // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
-                const allData = (boardData || []).concat(agendaData || []);
-
-                // === PRESERVAR SCROLL ===
-                const scrollMap = new Map();
-                scrollMap.set(boardEl, { left: boardEl.scrollLeft, top: boardEl.scrollTop });
-                const mainContent = document.getElementById('main-content');
-                if (mainContent) scrollMap.set(mainContent, { left: mainContent.scrollLeft, top: mainContent.scrollTop });
-                const slots = document.getElementById('slots');
-                if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
-                if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
-
-                allCards = [];
-                boardEl.innerHTML = '';
-                matrixEl.innerHTML = '';
-                slotsRoot.innerHTML = '';
-
-                ensureMatrix();
-                ensureSchedule(false);
-
-                var quadMap = {
-                    Q1: matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
-                    Q2: matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
-                    Q3: matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
-                    Q4: matrixEl.querySelector('.list[data-quad="Q4"] .cards')
-                };
-
-                function appendCardsToDOM(container, cardsData) {
-                    if (!container || !cardsData || !cardsData.length) return;
-                    var fragment = document.createDocumentFragment();
-                    cardsData.forEach(function (cd) {
-                        const cardEl = createCard(cd);
-                        fragment.appendChild(cardEl);
-                    });
-                    container.appendChild(fragment);
-                }
-
-                allData.forEach(function (entry) {
-                    if (entry.type === 'kanban') {
-                        var l = createList(entry.title || 'Lista');
-                        l.dataset.boardId = entry.boardId || currentBoardId;
-                        appendCardsToDOM(l.querySelector('.cards'), entry.cards);
-                    } else if (entry.type === 'quad' && quadMap[entry.quad]) {
-                        appendCardsToDOM(quadMap[entry.quad], entry.cards);
-                    } else if (entry.type === 'time' || entry.type === 'goal') {
-                        (entry.cards || []).forEach(cardData => {
-                            if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
-                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL';
-                            } else if (entry.time && cardData.when && !cardData.when.includes('T' + entry.time)) {
-                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time;
-                            }
-                            createCard(cardData);
-                        });
-                    } else if (entry.type === 'unscheduled') {
-                        (entry.cards || []).forEach(cardData => {
-                            createCard(cardData);
-                        });
-                    }
-                });
-
-                applyFilters();
-                updateSlotsHasItems();
-                updateTotalTimerDisplay();
-
-                if (globalTimerInterval) {
-                    clearInterval(globalTimerInterval);
-                    globalTimerInterval = null;
-                }
-                startGlobalTimer();
-
-                scrollMap.forEach((pos, element) => {
-                    if (element) {
-                        element.scrollLeft = pos.left;
-                        element.scrollTop = pos.top;
-                    }
-                });
-            }
-
-            function restore(histObj) {
-                // histObj tem { boardData, agendaData }
-                if (histObj && histObj.boardData) {
-                    renderFromData(histObj.boardData, histObj.agendaData);
-                    persist(); // Salva o estado restaurado
-                } else {
-                    // Fallback para formato antigo de historico se existir
-                    renderFromData(histObj, []);
-                }
-            }
-
-            // ===== BOARD MANAGEMENT CORE =====
-            function generateId() {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2);
-            }
-
-            function loadBoardsMetadata() {
-                try {
-                    const raw = localStorage.getItem(LS_BOARDS_META);
-                    boardsMeta = raw ? JSON.parse(raw) : [];
-                } catch (e) { boardsMeta = []; }
-            }
-
-            function saveBoardsMetadata(syncToCloud = true) {
-                localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
-                updateBoardSelectUI();
-
-                // Sync metadata to Firebase
-                if (syncToCloud && isFirebaseReady && auth && auth.currentUser) {
-                    db.ref('users/' + auth.currentUser.uid + '/meta').set(boardsMeta)
-                        .catch(e => console.error("Erro ao salvar metadata na nuvem", e));
-                }
-            }
-
-            function ensureTodosBoard() {
-                if (!boardsMeta.find(b => b.id === 'board-todos')) {
-                    boardsMeta.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
-                    saveBoardsMetadata(true);
-                }
-            }
-
-            function ensureTrashBoard() {
-                if (!boardsMeta.find(b => b.id === 'board-trash')) {
-                    boardsMeta.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
-                    localStorage.setItem(LS_BOARD_PREFIX + 'board-trash', JSON.stringify([{ type: 'kanban', title: 'Apagados', cards: [] }]));
-                    saveBoardsMetadata(true);
-                }
-            }
-
-            function migrateToMultiBoard() {
-                const legacyData = localStorage.getItem(LS_KEY);
-                const hasMetadata = localStorage.getItem(LS_BOARDS_META);
-
-                if (legacyData && !hasMetadata) {
-                    console.log("Migrando para multi-board...");
-                    const newId = generateId();
-                    const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
-                    boardsMeta = [mainBoard];
-                    ensureTodosBoard();
-                    ensureTrashBoard();
-
-                    // Tenta separar o que é agenda do que é quadro na migração inicial
-                    // (Simplificado: joga tudo no quadro primeiro, o loadAndRenderAll separa depois)
-                    localStorage.setItem(LS_BOARD_PREFIX + newId, legacyData);
-
-                    currentBoardId = newId;
-                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
-                    saveBoardsMetadata();
-                } else if (!hasMetadata) {
-                    createNewBoard('Meu Quadro');
-                    ensureTodosBoard();
-                    ensureTrashBoard();
-                } else {
-                    loadBoardsMetadata();
-                    ensureTodosBoard();
-                    ensureTrashBoard();
-                    currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
-                    if (!boardsMeta.find(b => b.id === currentBoardId)) {
-                        if (boardsMeta.length > 0) currentBoardId = boardsMeta[0].id;
-                        else createNewBoard('Meu Quadro');
-                    }
-                }
-            }
-
-            function createNewBoard(name) {
-                const id = generateId();
-                const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
-                boardsMeta.push(newBoard);
-                saveBoardsMetadata();
-                localStorage.setItem(LS_BOARD_PREFIX + id, JSON.stringify([]));
-                switchBoard(id);
-            }
-
-            function renameBoard() {
-                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
-                    alert("Você não pode alterar ou renomear este quadro especial.");
-                    return;
-                }
-                const board = boardsMeta.find(b => b.id === currentBoardId);
-                if (!board) return;
-                const newName = prompt("Novo nome para o quadro:", board.name);
-                if (newName && newName.trim()) {
-                    board.name = newName.trim();
-                    saveBoardsMetadata();
-                }
-            }
-
-            function deleteBoard() {
-                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
-                    alert("Você não pode excluir este quadro especial.");
-                    return;
-                }
-                if (boardsMeta.length <= 2) { // 2 because TODOS and Lixeira are permanent
-                    alert("Você não tem outros quadros para excluir.");
-                    return;
-                }
-                const board = boardsMeta.find(b => b.id === currentBoardId);
-                if (!board) return;
-
-                if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
-                    localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
-                    if (isFirebaseReady && auth && auth.currentUser) {
-                        db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
-                    }
-                    boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
-                    // Switch to first non-todos board if possible
-                    const nextBoard = boardsMeta.find(b => b.id !== 'board-trash') || boardsMeta[0];
-                    currentBoardId = nextBoard.id;
-                    saveBoardsMetadata();
-                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
-                    window.location.reload();
-                }
-            }
-
-            function cloneBoard() {
-                const board = boardsMeta.find(b => b.id === currentBoardId);
-                if (!board) return;
-                const newName = prompt("Nome para a cópia:", board.name + " (Cópia)");
-                if (!newName) return;
-
-                // Na cópia, pegamos APENAS os dados do quadro, não a agenda (que é global)
-                const { boardData } = serializeAndSeparate();
-                const newId = generateId();
-
-                const newBoard = { id: newId, name: newName, lastModified: Date.now(), color: board.color || DEFAULT_THEME_COLOR };
-                boardsMeta.push(newBoard);
-                saveBoardsMetadata();
-
-                localStorage.setItem(LS_BOARD_PREFIX + newId, JSON.stringify(boardData));
-                switchBoard(newId);
-            }
-
-            function switchBoard(id) {
-                if (id === currentBoardId && boardEl.children.length > 0) return;
-
-                saveImmediately();
-
-                console.log("Switching to board: " + id);
-                currentBoardId = id;
-                localStorage.setItem(LS_CURRENT_BOARD, id);
-
-                const board = boardsMeta.find(b => b.id === id);
-                if (board) setBoardTheme(board.color);
-
-                loadAndRenderAll();
-
-                // Reinicia historico de undo
-                hist = []; cursor = -1;
-                const { boardData, agendaData } = serializeAndSeparate();
-                pushHistory({ boardData, agendaData });
-
-                updateBoardSelectUI();
-
-                if (isFirebaseReady && auth && auth.currentUser) {
-                    subscribeToCurrentBoard(auth.currentUser.uid, id);
-                }
-            }
-
-            // ===== THEMES & CROSS-BOARD =====
-            // ... (THEMES code remains same) ...
-            const THEMES = {
-                '#1976d2': { name: 'Azul PadrÃ£o', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
-                '#e2e8f0': { name: 'Branco-Gelo', brand: '#e2e8f0', bg: '#0b0f19', panel: '#151e2c', card: '#1d273a', text: '#f1f5f9' },
-                '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
-                '#7b1fa2': { name: 'Roxo Profundo', brand: '#7b1fa2', bg: '#100614', panel: '#210e29', card: '#2c1236', text: '#f3e5f5' },
-                '#e65100': { name: 'Laranja Queimado', brand: '#e65100', bg: '#180d00', panel: '#2e1900', card: '#3d2200', text: '#fff3e0' },
-                '#c62828': { name: 'Vermelho Tijolo', brand: '#c62828', bg: '#140505', panel: '#2a0a0a', card: '#380d0d', text: '#ffebee' },
-                '#37474f': { name: 'Cinza Escuro', brand: '#37474f', bg: '#101416', panel: '#1c2327', card: '#263238', text: '#eceff1' },
-                '#00838f': { name: 'Ciano', brand: '#00838f', bg: '#001416', panel: '#00262b', card: '#003339', text: '#e0f7fa' },
-                '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' },
-                '#00796b': { name: 'Verde Água', brand: '#00796b', bg: '#001210', panel: '#00211f', card: '#002e2b', text: '#e0f2f1' },
-                '#8d6e63': { name: 'Marrom Slate', brand: '#8d6e63', bg: '#18110f', panel: '#281e1b', card: '#352924', text: '#efebe9' },
-                '#3f51b5': { name: 'Índigo', brand: '#3f51b5', bg: '#0a0b16', panel: '#13152c', card: '#1c1f40', text: '#e8eaf6' },
-                '#ffb300': { name: 'Amarelo Âmbar', brand: '#ffb300', bg: '#1c1400', panel: '#332500', card: '#463300', text: '#fff8e1' },
-                '#827717': { name: 'Verde Limão', brand: '#827717', bg: '#121200', panel: '#222204', card: '#313107', text: '#f9fbe7' },
-                '#d81b60': { name: 'Rosa Magenta', brand: '#d81b60', bg: '#1a000a', panel: '#320015', card: '#44001d', text: '#fce4ec' },
-                '#673ab7': { name: 'Roxo Lavanda', brand: '#673ab7', bg: '#0e0618', panel: '#1d0e32', card: '#281446', text: '#ede7f6' },
-                '#00c853': { name: 'Esmeralda', brand: '#00c853', bg: '#001a0a', panel: '#003314', card: '#00481c', text: '#e8f5e9' },
-                '#ff007f': { name: 'Cyberpunk Neon', brand: '#ff007f', bg: '#0a000d', panel: '#1b0022', card: '#270031', text: '#ffe5f2' },
-                '#00e676': { name: 'Menta Neon', brand: '#00e676', bg: '#001209', panel: '#002412', card: '#00361b', text: '#e8fdf5' },
-                '#00b0ff': { name: 'Oceano Profundo', brand: '#00b0ff', bg: '#000a12', panel: '#001524', card: '#00223b', text: '#e0f7ff' },
-                '#ec407a': { name: 'Rose Gold', brand: '#ec407a', bg: '#1a0a0f', panel: '#2e141c', card: '#3f1b26', text: '#fce4ec' },
-                '#f43f5e': { name: 'Pôr do Sol Violeta', brand: '#f43f5e', bg: '#18040d', panel: '#2d0a1b', card: '#3e0f26', text: '#ffeef2' },
-                '#607d8b': { name: 'Grafite', brand: '#607d8b', bg: '#111618', panel: '#1e262a', card: '#2a353c', text: '#eceff1' },
-                '#ff8f00': { name: 'Âmbar Dourado', brand: '#ff8f00', bg: '#1a0e00', panel: '#301a00', card: '#442400', text: '#fff8e1' },
-                '#880e4f': { name: 'Ameixa Escura', brand: '#880e4f', bg: '#12020a', panel: '#240414', card: '#33061d', text: '#fce4ec' }
-            };
-
-            function setBoardTheme(color) {
-                const r = document.querySelector(':root');
-                const safeColor = color || DEFAULT_THEME_COLOR;
-                const theme = THEMES[safeColor] || THEMES[DEFAULT_THEME_COLOR];
-
-                if (theme) {
-                    r.style.setProperty('--brand', theme.brand);
-                    r.style.setProperty('--bg', theme.bg);
-                    r.style.setProperty('--panel', theme.panel);
-                    r.style.setProperty('--card', theme.card);
-                    r.style.setProperty('--ink', theme.text);
-                } else {
-                    r.style.setProperty('--brand', safeColor);
-                    r.style.setProperty('--bg', '#0f1a2a');
-                    r.style.setProperty('--panel', '#0f223d');
                     r.style.setProperty('--card', '#112b4a');
                     r.style.setProperty('--ink', '#e9f1ff');
                 }
