@@ -86,20 +86,26 @@
         }
 
         header.app input,
-        header.app button {
+        header.app button,
+        header.app select {
             border: 1px solid var(--header-btn-border);
             border-radius: 8px;
             padding: 6px 10px;
             background: var(--header-btn-bg);
             color: var(--header-text);
             transition: background-color 0.2s, border-color 0.2s;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
         }
 
-        header.app button {
+        header.app button,
+        header.app select {
             cursor: pointer;
         }
 
-        header.app button:hover {
+        header.app button:hover,
+        header.app select:hover {
             background: var(--header-btn-hover);
             border-color: var(--header-btn-hover-border);
         }
@@ -108,6 +114,32 @@
             background: #ffd54f !important;
             color: #10243a !important;
             border-color: #ffd54f !important;
+        }
+
+        #boardSelect {
+            max-width: 200px;
+            font-weight: 600;
+        }
+
+        #boardSelect option {
+            background: var(--panel) !important;
+            color: var(--ink) !important;
+        }
+
+        #loginBtn {
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        #loginBtn.logged-in {
+            background: var(--header-btn-bg) !important;
+            color: var(--header-text) !important;
+            border-color: var(--header-btn-border) !important;
+        }
+
+        #loginBtn.logged-in:hover {
+            background: var(--header-btn-hover) !important;
+            border-color: var(--header-btn-hover-border) !important;
         }
 
         #sumTimersDisplay {
@@ -1700,8 +1732,7 @@
         <!-- BOARD CONTROLS -->
         <div class="board-controls"
             style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
-            <select id="boardSelect"
-                style="background:#0f223d; color:white; border:1px solid #1f4068; padding: 4px 8px; border-radius:4px; max-width: 200px; cursor: pointer;">
+            <select id="boardSelect" class="board-selector">
                 <!-- Options populated by JS -->
             </select>
             
@@ -1911,17 +1942,23 @@
                     isFirebaseReady = true;
                     console.log("Firebase initialized successfully.");
 
-                    auth.onAuthStateChanged(user => {
+                                        auth.onAuthStateChanged(user => {
                         currentUser = user;
                         const loginBtn = document.getElementById('loginBtn');
                         const userInfo = document.getElementById('userInfo');
 
                         if (user) {
                             loginBtn.textContent = 'Sair';
-                            userInfo.textContent = `Olá, ${user.displayName || user.email}`;
+                            loginBtn.classList.add('logged-in');
+                            loginBtn.style.background = '';
+                            loginBtn.style.color = '';
+                            userInfo.textContent = `OlÃ¡, ${user.displayName || user.email}`;
                             setupFirebaseSync(user);
                         } else {
                             loginBtn.textContent = 'Login Google';
+                            loginBtn.classList.remove('logged-in');
+                            loginBtn.style.background = '#4285F4';
+                            loginBtn.style.color = 'white';
                             userInfo.textContent = '';
                             if (currentBoardRef) currentBoardRef.off();
                             if (globalAgendaRef) globalAgendaRef.off();
@@ -2692,7 +2729,6 @@
                 for (const t in timeCardsMap) {
                     agendaData.push({ type: 'time', time: t, cards: timeCardsMap[t] });
                 }
-
                 // Unscheduled (A definir)
                 const unscheduledCards = globalCards.filter(c => c.dataset.when.endsWith('T')).map(cardToData);
                 if (unscheduledCards.length > 0) {
@@ -2713,8 +2749,23 @@
                     backupData.boards[b.id] = JSON.parse(localStorage.getItem(LS_BOARD_PREFIX + b.id) || '[]');
                 });
                 
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = `tea-planner-backup-${timestamp}.json`;
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                
+                // Get user name for backup filename (with fallback)
+                let userName = 'Usuario';
+                if (isFirebaseReady && auth && auth.currentUser) {
+                    userName = auth.currentUser.displayName || auth.currentUser.email || 'Usuario';
+                }
+                
+                // Clean user name for filename
+                const cleanName = userName.replace(/[^a-zA-Z0-9\s-_]/g, '').trim();
+                const filename = `${cleanName} ${year}${month}${day}-${hours}${minutes}.json`;
+                
                 const a = document.createElement('a');
                 a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
                 a.download = filename;
@@ -3339,9 +3390,7 @@
                 }, function () { });
             }
 
-            // (getBoardData removido pois não é mais usado da mesma forma, substituido por loadAndRenderAll)
             function getBoardData(boardId) {
-                // Mantido para suporte legacy se precisar
                 try {
                     const str = localStorage.getItem(LS_BOARD_PREFIX + boardId);
                     return str ? JSON.parse(str) : [];
@@ -3397,6 +3446,34 @@
 
                     if (isFirebaseReady && auth && auth.currentUser) {
                         db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
+                    }
+
+                    // Se estivermos no quadro TODOS, em vez de fazer o cartão sumir, nós o movemos fisicamente no DOM para a lista de destino correspondente
+                    if (currentBoardId === 'board-todos' && targetBoardId !== 'board-trash') {
+                        const lists = $$('.list[data-type="kanban"]');
+                        const targetListEl = lists.find(l => {
+                            const titleInp = l.querySelector('.title');
+                            return titleInp && titleInp.value.toLowerCase().trim() === targetListTitle.toLowerCase().trim() && l.dataset.boardId === targetBoardId;
+                        });
+                        if (targetListEl) {
+                            const cardsContainer = targetListEl.querySelector('.cards');
+                            if (cardsContainer) {
+                                cardElement.dataset.boardId = targetBoardId;
+                                cardElement.dataset.color = getBoardColor(targetBoardId) || '';
+                                cardElement.dataset.when = '';
+                                paintCard(cardElement);
+                                cardsContainer.appendChild(cardElement);
+                                persist();
+                                
+                                const btn = document.createElement('div');
+                                btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
+                                btn.style.position = 'fixed'; btn.style.bottom = '20px'; btn.style.left = '50%'; btn.style.transform = 'translateX(-50%)';
+                                btn.style.background = '#28a745'; btn.style.color = 'white'; btn.style.padding = '10px 20px'; btn.style.borderRadius = '5px'; btn.style.zIndex = '9999';
+                                document.body.appendChild(btn);
+                                setTimeout(() => btn.remove(), 3000);
+                                return;
+                            }
+                        }
                     }
 
                     removeCard(cardElement, true);
@@ -4115,6 +4192,10 @@
                     targetWhen = '';
                 }
 
+                // If dropping into a Kanban list, capture the target boardId
+                const listEl = listElement ? listElement.closest('.list') : null;
+                const targetBoardId = (listEl && listEl.dataset.type === 'kanban') ? listEl.dataset.boardId : null;
+
                 nodes.forEach(function (n) {
                     if (n._originalReference) {
                         n = n._originalReference;
@@ -4126,11 +4207,20 @@
                         n.dataset.labelColor = EISENHOWER_COLORS[quad];
                     }
 
+                    if (targetBoardId) {
+                        n.dataset.boardId = targetBoardId;
+                        n.dataset.color = getBoardColor(targetBoardId) || '';
+                    }
+
                     const cardInCache = allCards.find(card => card === n);
                     if (cardInCache) {
                         cardInCache.dataset.when = targetWhen;
                         if (isMatrix && quad) {
                             cardInCache.dataset.labelColor = EISENHOWER_COLORS[quad];
+                        }
+                        if (targetBoardId) {
+                            cardInCache.dataset.boardId = targetBoardId;
+                            cardInCache.dataset.color = getBoardColor(targetBoardId) || '';
                         }
                     } else {
                         n.dataset.when = targetWhen;
