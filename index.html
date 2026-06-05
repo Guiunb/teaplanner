@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
@@ -26,53 +26,6 @@
             --brand: #1976d2;
             --muted: #9fb3d2;
             --card: #112b4a
-        }
-
-        * {
-            box-sizing: border-box
-        }
-
-        html,
-        body {
-            height: 100%;
-            -webkit-tap-highlight-color: transparent;
-            overflow: hidden;
-        }
-
-        body {
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
-    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
-
-    <title>TEA PLANNER (Sync Final Fix)</title>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
-
-    <!-- Firebase SDKs (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <style>
-        :root {
-            --bg: #0f1a2a;
-            --panel: #0f223d;
-            --ink: #e9f1ff;
-            --brand: #1976d2;
-            --muted: #9fb3d2;
-            --card: #112b4a;
-            --header-text: #ffffff;
-            --header-btn-bg: rgba(255, 255, 255, 0.12);
-            --header-btn-border: rgba(255, 255, 255, 0.2);
-            --header-btn-hover: rgba(255, 255, 255, 0.22);
-            --header-btn-hover-border: rgba(255, 255, 255, 0.35);
         }
 
         * {
@@ -143,7 +96,7 @@
         }
 
         header.app button {
-            cursor: pointer
+            cursor: pointer;
         }
 
         header.app button:hover {
@@ -1745,7 +1698,7 @@
             </select>
             
             <div class="header-dropdown" id="boardDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Quadros ▾</button>
+                <button class="header-dropdown-btn" type="button">Quadros &#9662;</button>
                 <div class="header-dropdown-content">
                     <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
                     <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
@@ -1756,13 +1709,12 @@
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Dados ▾</button>
+                <button class="header-dropdown-btn" type="button">Dados &#9662;</button>
                 <div class="header-dropdown-content">
                     <button type="button" id="menuExportJson">📥 Salvar Json</button>
                     <button type="button" id="menuImportJson">📤 Importar Json</button>
                 </div>
             </div>
-        </div>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
             <!-- Ocultos para manter compatibilidade de IDs legados -->
             <button id="newBoardBtn" style="display:none"></button>
@@ -1892,14 +1844,13 @@
         <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
-        <div id="ctx-list" class="ctx">
+    <div id="ctx-list" class="ctx">
         <button data-action="list-del">🗑️ Excluir lista</button>
         <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
-        <button data-action="list-move-all">➡️ Mover TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
-        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro</button>
+        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro ▶</button>
         <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
-    </div>
     </div>
 
     <!-- Container do Modo Foco -->
@@ -2872,18 +2823,450 @@
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
 
             // Função unificada para carregar tudo
-            var __isRendering = false;
             function loadAndRenderAll() {
-                if (__isRendering) return;
-                __isRendering = true;
+                let boardData = [];
+                let agendaData = [];
+
+                if (currentBoardId === 'board-todos') {
+                    // Aggregate all boards except trash and board-todos itself
+                    let mergedKanbanLists = [];
+                    let mergedQuadLists = { Q1: [], Q2: [], Q3: [], Q4: [] };
+
+                    boardsMeta.forEach(b => {
+                        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+                        let bData = [];
+                        try {
+                            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+                            if (bStr) bData = JSON.parse(bStr);
+                        } catch (e) { console.error("Error load board", b.id, e); }
+
+                        bData.forEach(list => {
+                            if (list.type === 'kanban') {
+                                let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
+                                if (!targetList) {
+                                    targetList = { type: 'kanban', title: list.title, cards: [], boardId: b.id };
+                                    mergedKanbanLists.push(targetList);
+                                }
+                                const cardsWithBoardId = (list.cards || []).map(c => {
+                                    return { ...c, boardId: c.boardId || b.id };
+                                });
+                                targetList.cards = targetList.cards.concat(cardsWithBoardId);
+                            } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
+                                const cardsWithBoardId = (list.cards || []).map(c => {
+                                    return { ...c, boardId: c.boardId || b.id };
+                                });
+                                mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
+                            }
+                        });
+                    });
+
+                    // Add TODOS's own cards if they exist
+                    let todosOwnData = [];
+                    try {
+                        const todosOwnStr = localStorage.getItem(LS_BOARD_PREFIX + 'board-todos');
+                        if (todosOwnStr) todosOwnData = JSON.parse(todosOwnStr);
+                    } catch(e) {}
+                    todosOwnData.forEach(list => {
+                        if (list.type === 'kanban') {
+                            let targetList = mergedKanbanLists.find(l => l.title.toLowerCase().trim() === list.title.toLowerCase().trim());
+                            if (!targetList) {
+                                targetList = { type: 'kanban', title: list.title, cards: [], boardId: 'board-todos' };
+                                mergedKanbanLists.push(targetList);
+                            }
+                            const cardsWithBoardId = (list.cards || []).map(c => {
+                                return { ...c, boardId: c.boardId || 'board-todos' };
+                            });
+                            targetList.cards = targetList.cards.concat(cardsWithBoardId);
+                        } else if (list.type === 'quad' && mergedQuadLists[list.quad]) {
+                            const cardsWithBoardId = (list.cards || []).map(c => {
+                                return { ...c, boardId: c.boardId || 'board-todos' };
+                            });
+                            mergedQuadLists[list.quad] = mergedQuadLists[list.quad].concat(cardsWithBoardId);
+                        }
+                    });
+
+                    boardData = mergedKanbanLists;
+                    Object.keys(mergedQuadLists).forEach(q => {
+                        boardData.push({ type: 'quad', quad: q, cards: mergedQuadLists[q] });
+                    });
+                } else {
+                    try {
+                        const bStr = localStorage.getItem(LS_BOARD_PREFIX + currentBoardId);
+                        if (bStr) boardData = JSON.parse(bStr);
+                    } catch (e) { console.error("Erro load board", e); }
+                }
+
                 try {
-                    loadAndRenderAllInner();
-                } finally {
-                    __isRendering = false;
+                    const aStr = localStorage.getItem(LS_GLOBAL_AGENDA);
+                    if (aStr) agendaData = JSON.parse(aStr);
+                } catch (e) { console.error("Erro load agenda", e); }
+
+                // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
+                // (Isso previne perda de dados ao atualizar o código)
+                if (agendaData.length === 0 && boardData.some(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled')) {
+                    console.log("Migrando agenda do quadro para global...");
+                    agendaData = boardData.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
+                    boardData = boardData.filter(d => d.type === 'kanban' || d.type === 'quad');
+                    // Salva a migração
+                    localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
+                    localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
+                }
+
+                // Sincronizar boardId nos cartões se não tiver
+                if (currentBoardId !== 'board-todos') {
+                    boardData.forEach(list => {
+                        if (list.cards) {
+                            list.cards.forEach(c => {
+                                if (!c.boardId) c.boardId = currentBoardId;
+                            });
+                        }
+                    });
+                }
+                agendaData.forEach(list => {
+                    if (list.cards) {
+                        list.cards.forEach(c => {
+                            if (!c.boardId) c.boardId = currentBoardId || 'board-todos';
+                        });
+                    }
+                });
+
+                renderFromData(boardData, agendaData);
+            }
+
+            function renderFromData(boardData, agendaData) {
+                // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
+                // Na verdade, a função original renderFromData aceitava um array único.
+                // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
+                const allData = (boardData || []).concat(agendaData || []);
+
+                // === PRESERVAR SCROLL ===
+                const scrollMap = new Map();
+                scrollMap.set(boardEl, { left: boardEl.scrollLeft, top: boardEl.scrollTop });
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) scrollMap.set(mainContent, { left: mainContent.scrollLeft, top: mainContent.scrollTop });
+                const slots = document.getElementById('slots');
+                if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
+                if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
+
+                allCards = [];
+                boardEl.innerHTML = '';
+                matrixEl.innerHTML = '';
+                slotsRoot.innerHTML = '';
+
+                ensureMatrix();
+                ensureSchedule(false);
+
+                var quadMap = {
+                    Q1: matrixEl.querySelector('.list[data-quad="Q1"] .cards'),
+                    Q2: matrixEl.querySelector('.list[data-quad="Q2"] .cards'),
+                    Q3: matrixEl.querySelector('.list[data-quad="Q3"] .cards'),
+                    Q4: matrixEl.querySelector('.list[data-quad="Q4"] .cards')
+                };
+
+                function appendCardsToDOM(container, cardsData) {
+                    if (!container || !cardsData || !cardsData.length) return;
+                    var fragment = document.createDocumentFragment();
+                    cardsData.forEach(function (cd) {
+                        const cardEl = createCard(cd);
+                        fragment.appendChild(cardEl);
+                    });
+                    container.appendChild(fragment);
+                }
+
+                allData.forEach(function (entry) {
+                    if (entry.type === 'kanban') {
+                        var l = createList(entry.title || 'Lista');
+                        l.dataset.boardId = entry.boardId || currentBoardId;
+                        appendCardsToDOM(l.querySelector('.cards'), entry.cards);
+                    } else if (entry.type === 'quad' && quadMap[entry.quad]) {
+                        appendCardsToDOM(quadMap[entry.quad], entry.cards);
+                    } else if (entry.type === 'time' || entry.type === 'goal') {
+                        (entry.cards || []).forEach(cardData => {
+                            if (entry.goal && cardData.when && !cardData.when.endsWith('TGOAL')) {
+                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'TGOAL';
+                            } else if (entry.time && cardData.when && !cardData.when.includes('T' + entry.time)) {
+                                cardData.when = (cardData.when.split('T')[0] || getActiveDay()) + 'T' + entry.time;
+                            }
+                            createCard(cardData);
+                        });
+                    } else if (entry.type === 'unscheduled') {
+                        (entry.cards || []).forEach(cardData => {
+                            createCard(cardData);
+                        });
+                    }
+                });
+
+                applyFilters();
+                updateSlotsHasItems();
+                updateTotalTimerDisplay();
+
+                if (globalTimerInterval) {
+                    clearInterval(globalTimerInterval);
+                    globalTimerInterval = null;
+                }
+                startGlobalTimer();
+
+                scrollMap.forEach((pos, element) => {
+                    if (element) {
+                        element.scrollLeft = pos.left;
+                        element.scrollTop = pos.top;
+                    }
+                });
+            }
+
+            function restore(histObj) {
+                // histObj tem { boardData, agendaData }
+                if (histObj && histObj.boardData) {
+                    renderFromData(histObj.boardData, histObj.agendaData);
+                    persist(); // Salva o estado restaurado
+                } else {
+                    // Fallback para formato antigo de historico se existir
+                    renderFromData(histObj, []);
                 }
             }
+
+            // ===== BOARD MANAGEMENT CORE =====
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            function loadBoardsMetadata() {
+                try {
+                    const raw = localStorage.getItem(LS_BOARDS_META);
+                    boardsMeta = raw ? JSON.parse(raw) : [];
+                } catch (e) { boardsMeta = []; }
+            }
+
+            function saveBoardsMetadata(syncToCloud = true) {
+                localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
+                updateBoardSelectUI();
+
+                // Sync metadata to Firebase
+                if (syncToCloud && isFirebaseReady && auth && auth.currentUser) {
+                    db.ref('users/' + auth.currentUser.uid + '/meta').set(boardsMeta)
+                        .catch(e => console.error("Erro ao salvar metadata na nuvem", e));
+                }
+            }
+
+            function ensureTodosBoard() {
+                if (!boardsMeta.find(b => b.id === 'board-todos')) {
+                    boardsMeta.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
+                    saveBoardsMetadata(true);
+                }
+            }
+
+            function ensureTrashBoard() {
+                if (!boardsMeta.find(b => b.id === 'board-trash')) {
+                    boardsMeta.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
+                    localStorage.setItem(LS_BOARD_PREFIX + 'board-trash', JSON.stringify([{ type: 'kanban', title: 'Apagados', cards: [] }]));
+                    saveBoardsMetadata(true);
+                }
+            }
+
+            function migrateToMultiBoard() {
+                const legacyData = localStorage.getItem(LS_KEY);
+                const hasMetadata = localStorage.getItem(LS_BOARDS_META);
+
+                if (legacyData && !hasMetadata) {
+                    console.log("Migrando para multi-board...");
+                    const newId = generateId();
+                    const mainBoard = { id: newId, name: 'Quadro Principal', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
+                    boardsMeta = [mainBoard];
+                    ensureTodosBoard();
+                    ensureTrashBoard();
+
+                    // Tenta separar o que é agenda do que é quadro na migração inicial
+                    // (Simplificado: joga tudo no quadro primeiro, o loadAndRenderAll separa depois)
+                    localStorage.setItem(LS_BOARD_PREFIX + newId, legacyData);
+
+                    currentBoardId = newId;
+                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
+                    saveBoardsMetadata();
+                } else if (!hasMetadata) {
+                    createNewBoard('Meu Quadro');
+                    ensureTodosBoard();
+                    ensureTrashBoard();
+                } else {
+                    loadBoardsMetadata();
+                    ensureTodosBoard();
+                    ensureTrashBoard();
+                    currentBoardId = localStorage.getItem(LS_CURRENT_BOARD);
+                    if (!boardsMeta.find(b => b.id === currentBoardId)) {
+                        if (boardsMeta.length > 0) currentBoardId = boardsMeta[0].id;
+                        else createNewBoard('Meu Quadro');
+                    }
+                }
+            }
+
+            function createNewBoard(name) {
+                const id = generateId();
+                const newBoard = { id: id, name: name || 'Novo Quadro', lastModified: Date.now(), color: DEFAULT_THEME_COLOR };
+                boardsMeta.push(newBoard);
+                saveBoardsMetadata();
+                localStorage.setItem(LS_BOARD_PREFIX + id, JSON.stringify([]));
+                switchBoard(id);
+            }
+
+            function renameBoard() {
+                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
+                    alert("Você não pode alterar ou renomear este quadro especial.");
+                    return;
+                }
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+                const newName = prompt("Novo nome para o quadro:", board.name);
+                if (newName && newName.trim()) {
+                    board.name = newName.trim();
+                    saveBoardsMetadata();
+                }
+            }
+
+            function deleteBoard() {
+                if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
+                    alert("Você não pode excluir este quadro especial.");
+                    return;
+                }
+                if (boardsMeta.length <= 2) { // 2 because TODOS and Lixeira are permanent
+                    alert("Você não tem outros quadros para excluir.");
+                    return;
+                }
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+
+                if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
+                    localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
+                    if (isFirebaseReady && auth && auth.currentUser) {
+                        db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
+                    }
+                    boardsMeta = boardsMeta.filter(b => b.id !== currentBoardId);
+                    // Switch to first non-todos board if possible
+                    const nextBoard = boardsMeta.find(b => b.id !== 'board-trash') || boardsMeta[0];
+                    currentBoardId = nextBoard.id;
+                    saveBoardsMetadata();
+                    localStorage.setItem(LS_CURRENT_BOARD, currentBoardId);
+                    window.location.reload();
+                }
+            }
+
+            function cloneBoard() {
+                const board = boardsMeta.find(b => b.id === currentBoardId);
+                if (!board) return;
+                const newName = prompt("Nome para a cópia:", board.name + " (Cópia)");
+                if (!newName) return;
+
+                // Na cópia, pegamos APENAS os dados do quadro, não a agenda (que é global)
+                const { boardData } = serializeAndSeparate();
+                const newId = generateId();
+
+                const newBoard = { id: newId, name: newName, lastModified: Date.now(), color: board.color || DEFAULT_THEME_COLOR };
+                boardsMeta.push(newBoard);
+                saveBoardsMetadata();
+
+                localStorage.setItem(LS_BOARD_PREFIX + newId, JSON.stringify(boardData));
+                switchBoard(newId);
+            }
+
+            function switchBoard(id) {
+                if (id === currentBoardId && boardEl.children.length > 0) return;
+
+                saveImmediately();
+
+                console.log("Switching to board: " + id);
+                currentBoardId = id;
+                localStorage.setItem(LS_CURRENT_BOARD, id);
+
+                const board = boardsMeta.find(b => b.id === id);
+                if (board) setBoardTheme(board.color);
+
+                loadAndRenderAll();
+
+                // Reinicia historico de undo
+                hist = []; cursor = -1;
+                const { boardData, agendaData } = serializeAndSeparate();
+                pushHistory({ boardData, agendaData });
+
+                updateBoardSelectUI();
+
+                if (isFirebaseReady && auth && auth.currentUser) {
+                    subscribeToCurrentBoard(auth.currentUser.uid, id);
+                }
+            }
+
+            // ===== THEMES & CROSS-BOARD =====
+            // ... (THEMES code remains same) ...
+            const THEMES = {
+                '#1976d2': { name: 'Azul (Padrão)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
+                '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
+                '#7b1fa2': { name: 'Roxo Profundo', brand: '#7b1fa2', bg: '#100614', panel: '#210e29', card: '#2c1236', text: '#f3e5f5' },
+                '#e65100': { name: 'Laranja Queimado', brand: '#e65100', bg: '#180d00', panel: '#2e1900', card: '#3d2200', text: '#fff3e0' },
+                '#c62828': { name: 'Vermelho Tijolo', brand: '#c62828', bg: '#140505', panel: '#2a0a0a', card: '#380d0d', text: '#ffebee' },
+                '#37474f': { name: 'Cinza Escuro', brand: '#37474f', bg: '#101416', panel: '#1c2327', card: '#263238', text: '#eceff1' },
+                '#00838f': { name: 'Ciano', brand: '#00838f', bg: '#001416', panel: '#00262b', card: '#003339', text: '#e0f7fa' },
+                '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' },
+                '#00796b': { name: 'Verde Água', brand: '#00796b', bg: '#001210', panel: '#00211f', card: '#002e2b', text: '#e0f2f1' },
+                '#8d6e63': { name: 'Marrom Slate', brand: '#8d6e63', bg: '#18110f', panel: '#281e1b', card: '#352924', text: '#efebe9' },
+                '#3f51b5': { name: 'Índigo', brand: '#3f51b5', bg: '#0a0b16', panel: '#13152c', card: '#1c1f40', text: '#e8eaf6' },
+                '#ffb300': { name: 'Amarelo Âmbar', brand: '#ffb300', bg: '#1c1400', panel: '#332500', card: '#463300', text: '#fff8e1' },
+                '#827717': { name: 'Verde Limão', brand: '#827717', bg: '#121200', panel: '#222204', card: '#313107', text: '#f9fbe7' },
+                '#d81b60': { name: 'Rosa Magenta', brand: '#d81b60', bg: '#1a000a', panel: '#320015', card: '#44001d', text: '#fce4ec' },
+                '#673ab7': { name: 'Roxo Lavanda', brand: '#673ab7', bg: '#0e0618', panel: '#1d0e32', card: '#281446', text: '#ede7f6' },
+                '#00c853': { name: 'Esmeralda', brand: '#00c853', bg: '#001a0a', panel: '#003314', card: '#00481c', text: '#e8f5e9' },
+                '#ff007f': { name: 'Cyberpunk Neon', brand: '#ff007f', bg: '#0a000d', panel: '#1b0022', card: '#270031', text: '#ffe5f2' },
+                '#00e676': { name: 'Menta Neon', brand: '#00e676', bg: '#001209', panel: '#002412', card: '#00361b', text: '#e8fdf5' },
+                '#00b0ff': { name: 'Oceano Profundo', brand: '#00b0ff', bg: '#000a12', panel: '#001524', card: '#00223b', text: '#e0f7ff' },
+                '#ec407a': { name: 'Rose Gold', brand: '#ec407a', bg: '#1a0a0f', panel: '#2e141c', card: '#3f1b26', text: '#fce4ec' },
+                '#f43f5e': { name: 'Pôr do Sol Violeta', brand: '#f43f5e', bg: '#18040d', panel: '#2d0a1b', card: '#3e0f26', text: '#ffeef2' },
+                '#607d8b': { name: 'Grafite', brand: '#607d8b', bg: '#111618', panel: '#1e262a', card: '#2a353c', text: '#eceff1' },
+                '#ff8f00': { name: 'Âmbar Dourado', brand: '#ff8f00', bg: '#1a0e00', panel: '#301a00', card: '#442400', text: '#fff8e1' },
+                '#880e4f': { name: 'Ameixa Escura', brand: '#880e4f', bg: '#12020a', panel: '#240414', card: '#33061d', text: '#fce4ec' }
+            };
+
+            function getContrastYIQ(hexcolor){
+                if (!hexcolor || hexcolor.length < 3) return 'dark';
+                var hex = hexcolor.replace('#', '');
+                if (hex.length === 3) {
+                    hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+                }
+                var r = parseInt(hex.substr(0,2),16);
+                var g = parseInt(hex.substr(2,2),16);
+                var b = parseInt(hex.substr(4,2),16);
+                var yiq = ((r*299)+(g*587)+(b*114))/1000;
+                return (yiq >= 170) ? 'light' : 'dark';
+            }
+
+            function setBoardTheme(color) {
+                const r = document.querySelector(':root');
+                const safeColor = color || DEFAULT_THEME_COLOR;
+                const theme = THEMES[safeColor] || THEMES[DEFAULT_THEME_COLOR];
+
+                if (theme) {
+                    r.style.setProperty('--brand', theme.brand);
+                    r.style.setProperty('--bg', theme.bg);
+                    r.style.setProperty('--panel', theme.panel);
+                    r.style.setProperty('--card', theme.card);
+                    r.style.setProperty('--ink', theme.text);
+                } else {
+                    r.style.setProperty('--brand', safeColor);
+                    r.style.setProperty('--bg', '#0f1a2a');
+                    r.style.setProperty('--panel', '#0f223d');
                     r.style.setProperty('--card', '#112b4a');
                     r.style.setProperty('--ink', '#e9f1ff');
+                }
+
+                // Dynamic Header Adaptation based on contrast/brightness of the brand color
+                const brightness = getContrastYIQ(safeColor);
+                if (brightness === 'light') {
+                    r.style.setProperty('--header-text', '#0f172a');
+                    r.style.setProperty('--header-btn-bg', 'rgba(15, 23, 42, 0.08)');
+                    r.style.setProperty('--header-btn-border', 'rgba(15, 23, 42, 0.15)');
+                    r.style.setProperty('--header-btn-hover', 'rgba(15, 23, 42, 0.15)');
+                    r.style.setProperty('--header-btn-hover-border', 'rgba(15, 23, 42, 0.3)');
+                } else {
+                    r.style.setProperty('--header-text', '#ffffff');
+                    r.style.setProperty('--header-btn-bg', 'rgba(255, 255, 255, 0.12)');
+                    r.style.setProperty('--header-btn-border', 'rgba(255, 255, 255, 0.2)');
+                    r.style.setProperty('--header-btn-hover', 'rgba(255, 255, 255, 0.22)');
+                    r.style.setProperty('--header-btn-hover-border', 'rgba(255, 255, 255, 0.35)');
                 }
             }
 
@@ -2901,13 +3284,10 @@
                 if (!board) return;
 
                 showModal('Cor do Quadro', function () {
-                                        const grid = el('div');
+                    const grid = el('div');
                     grid.style.display = 'grid';
                     grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
                     grid.style.gap = '10px';
-                    grid.style.maxHeight = '65vh';
-                    grid.style.overflowY = 'auto';
-                    grid.style.paddingRight = '8px';
 
                     Object.values(THEMES).forEach(theme => {
                         const btn = el('button');
@@ -3012,19 +3392,12 @@
                 }
             }
 
-                        function updateBoardSelectUI() {
+            function updateBoardSelectUI() {
                 const select = document.getElementById('boardSelect');
                 if (!select) return;
 
                 select.innerHTML = '';
-                const sorted = [...boardsMeta].sort((a, b) => {
-                    if (a.id === 'board-todos') return -1;
-                    if (b.id === 'board-todos') return 1;
-                    if (a.id === 'board-trash') return 1;
-                    if (b.id === 'board-trash') return -1;
-                    return a.name.localeCompare(b.name, 'pt-BR');
-                });
-                sorted.forEach(b => {
+                boardsMeta.forEach(b => {
                     const opt = document.createElement('option');
                     opt.value = b.id;
                     opt.textContent = b.name;
@@ -3126,15 +3499,12 @@
                 }
             }
 
-                        function saveImmediately() {
+            function saveImmediately() {
                 if (__persistTick) {
                     clearTimeout(__persistTick);
                     __persistTick = null;
                 }
                 if (__muteHistory > 0) return;
-                if (!isInitialized) return;
-                if (!currentBoardId || currentBoardId === 'undefined') return;
-                if (__isRendering) return;
                 try {
                     const { boardData, agendaData } = serializeAndSeparate();
                     if (currentBoardId === 'board-todos') {
@@ -3327,17 +3697,6 @@
                     dateEl.style.display = '';
                 } else if (dateEl) {
                     dateEl.style.display = 'none';
-                }
-                                // Card Tooltips inside board-todos
-                if (currentBoardId === 'board-todos' && c.dataset.boardId) {
-                    const originBoard = boardsMeta.find(b => b.id === c.dataset.boardId);
-                    if (originBoard) {
-                        c.setAttribute('title', 'Quadro: ' + originBoard.name);
-                    } else {
-                        c.removeAttribute('title');
-                    }
-                } else {
-                    c.removeAttribute('title');
                 }
                 updateTimerDisplay(c);
             }
@@ -4034,9 +4393,6 @@
             var ctxMoveBoardSub = document.getElementById('ctx-move-board-sub');
             var listCtxTarget = null; var listCtx = document.getElementById('ctx-list'); var listMoveSub = document.getElementById('ctx-list-move-sub');
             var listMoveBoardSub = document.getElementById('ctx-list-move-board-sub');
-            var isInitialized = false;
-            var __isRendering = false;
-            var listMoveBoardSub = document.getElementById('ctx-list-move-board-sub');
 
             function hideCtx() {
                 ctx.style.display = 'none'; ctxTarget = null;
@@ -4329,77 +4685,7 @@
                 }, function() {});
             }
 
-                        function showListCtx(x, y, list) { listCtxTarget = list; buildListMoveSub(); buildListMoveBoardSub(); listMoveSub.style.display = 'none'; listMoveBoardSub.style.display = 'none'; listCtx.style.display = 'block'; var r = listCtx.getBoundingClientRect(); listCtx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px'; listCtx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px'; }
-            function buildListMoveBoardSub() {
-                listMoveBoardSub.innerHTML = '';
-                if (!listCtxTarget) return;
-                boardsMeta.forEach(function (board) {
-                    if (board.id === 'board-todos' || board.id === 'board-trash' || board.id === currentBoardId) return;
-                    var btn = document.createElement('button');
-                    btn.textContent = board.name;
-                    btn.style.width = '100%';
-                    btn.style.textAlign = 'left';
-                    btn.style.display = 'block';
-                    btn.style.background = 'transparent';
-                    btn.style.border = 'none';
-                    btn.style.color = 'white';
-                    btn.style.padding = '8px 12px';
-                    btn.style.cursor = 'pointer';
-                    btn.addEventListener('click', function () {
-                        moveListToBoard(listCtxTarget, board.id);
-                        listCtx.style.display = 'none';
-                    });
-                    listMoveBoardSub.appendChild(btn);
-                });
-            }
-            function moveListToBoard(listElement, targetBoardId) {
-                if (!listElement) return;
-                var listTitle = listElement.querySelector('.title').value;
-                var targetBoard = boardsMeta.find(b => b.id === targetBoardId);
-                var targetBoardName = targetBoard ? targetBoard.name : targetBoardId;
-
-                showConfirm(`Deseja mover a lista "${listTitle}" e todos os seus cartÃµes para o quadro "${targetBoardName}"?`, function() {
-                    var cardsData = $('.card', listElement).map(c => {
-                        var cardData = cardToData(c);
-                        cardData.boardId = targetBoardId;
-                        return cardData;
-                    });
-
-                    var targetData = [];
-                    var targetLocalStr = localStorage.getItem(LS_BOARD_PREFIX + targetBoardId);
-                    if (targetLocalStr) {
-                        try { targetData = JSON.parse(targetLocalStr); } catch (e) { targetData = []; }
-                    }
-
-                    var targetList = targetData.find(l => l.type === 'kanban' && l.title === listTitle);
-                    if (targetList) {
-                        if (!targetList.cards) targetList.cards = [];
-                        targetList.cards = targetList.cards.concat(cardsData);
-                    } else {
-                        targetData.push({
-                            type: 'kanban',
-                            title: listTitle,
-                            cards: cardsData,
-                            boardId: targetBoardId
-                        });
-                    }
-
-                    localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
-                    if (isFirebaseReady && auth && auth.currentUser) {
-                        db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
-                    }
-
-                    listElement.remove();
-                    persist();
-
-                    if (targetBoard) {
-                        targetBoard.lastModified = Date.now();
-                        saveBoardsMetadata();
-                    }
-
-                    showToast(`Lista "${listTitle}" movida para o quadro "${targetBoardName}"`);
-                });
-            }
+            function showListCtx(x, y, list) { listCtxTarget = list; buildListMoveSub(); listMoveSub.style.display = 'none'; listCtx.style.display = 'block'; var r = listCtx.getBoundingClientRect(); listCtx.style.left = Math.min(x, innerWidth - r.width - 8) + 'px'; listCtx.style.top = Math.min(y, innerHeight - r.height - 8) + 'px'; }
             function buildListMoveSub() {
                 listMoveSub.innerHTML = '';
                 if (!listCtxTarget) return;
@@ -4419,7 +4705,7 @@
                 if (goalSlot) addMoveButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveSub);
                 $$('.list[data-type="time"]', schedule).forEach(function (l) { addMoveButton(l, l.dataset.time, ctxMoveSub); });
             }
-                        listCtx.addEventListener('click', function (e) {
+            listCtx.addEventListener('click', function (e) {
                 var b = e.target.closest('button');
                 if (!b) return;
                 var action = b.dataset.action;
@@ -6313,198 +6599,6 @@ Regras Importantes:
                                 }
                                 break;
 
-                            case 'DELETE_LIST':
-                                if (action.listTitle) {
-                                    const listEl = $('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value.toLowerCase().trim() === action.listTitle.toLowerCase().trim());
-                                    if (listEl) {
-                                        listEl.remove();
-                                        persist();
-                                    }
-                                }
-                                break;
-
-                            case 'DELETE_CARD':
-                                if (action.cardText) {
-                                    const c = allCards.find(card => {
-                                        const txt = card.querySelector('.text');
-                                        return txt && txt.textContent.toLowerCase().trim().includes(action.cardText.toLowerCase().trim());
-                                    });
-                                    if (c) {
-                                        removeCard(c, true);
-                                    }
-                                }
-                                break;
-
-                            case 'DUPLICATE_CARD':
-                                if (action.cardText) {
-                                    const c = allCards.find(card => {
-                                        const txt = card.querySelector('.text');
-                                        return txt && txt.textContent.toLowerCase().trim().includes(action.cardText.toLowerCase().trim());
-                                    });
-                                    if (c) {
-                                        const dupData = cardToData(c);
-                                        const newCard = createCard(dupData);
-                                        c.parentNode.insertBefore(newCard, c.nextSibling);
-                                        persist();
-                                    }
-                                }
-                                break;
-
-                            case 'MOVE_CARD':
-                                if (action.cardText) {
-                                    const c = allCards.find(card => {
-                                        const txt = card.querySelector('.text');
-                                        return txt && txt.textContent.toLowerCase().trim().includes(action.cardText.toLowerCase().trim());
-                                    });
-                                    if (c) {
-                                        if (action.targetBoardId || action.targetBoardName) {
-                                            let board = null;
-                                            if (action.targetBoardId) {
-                                                board = boardsMeta.find(b => b.id === action.targetBoardId);
-                                            } else {
-                                                board = boardsMeta.find(b => b.name.toLowerCase().trim() === action.targetBoardName.toLowerCase().trim());
-                                            }
-                                            if (board) {
-                                                moveCardToBoard(c, board.id, action.targetListTitle || 'Inbox');
-                                            }
-                                        } else if (action.targetListTitle) {
-                                            const listEl = $('.list').find(l => {
-                                                const titleInput = l.querySelector('.title');
-                                                const title = titleInput ? titleInput.value : (l.dataset.quad || l.dataset.time || '');
-                                                return title.toLowerCase().trim() === action.targetListTitle.toLowerCase().trim();
-                                            });
-                                            if (listEl) {
-                                                const dest = listEl.querySelector('.cards');
-                                                if (dest) {
-                                                    dest.appendChild(c);
-                                                    persist();
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case 'MOVE_LIST':
-                                if (action.listTitle && (action.targetBoardId || action.targetBoardName)) {
-                                    const listEl = $('.list[data-type="kanban"]', boardEl).find(l => l.querySelector('.title').value.toLowerCase().trim() === action.listTitle.toLowerCase().trim());
-                                    let board = null;
-                                    if (action.targetBoardId) {
-                                        board = boardsMeta.find(b => b.id === action.targetBoardId);
-                                    } else {
-                                        board = boardsMeta.find(b => b.name.toLowerCase().trim() === action.targetBoardName.toLowerCase().trim());
-                                    }
-                                    if (listEl && board) {
-                                        var cardsData = $('.card', listEl).map(c => {
-                                            var cardData = cardToData(c);
-                                            cardData.boardId = board.id;
-                                            return cardData;
-                                        });
-
-                                        var targetData = [];
-                                        var targetLocalStr = localStorage.getItem(LS_BOARD_PREFIX + board.id);
-                                        if (targetLocalStr) {
-                                            try { targetData = JSON.parse(targetLocalStr); } catch (e) { targetData = []; }
-                                        }
-
-                                        var targetList = targetData.find(l => l.type === 'kanban' && l.title === action.listTitle);
-                                        if (targetList) {
-                                            if (!targetList.cards) targetList.cards = [];
-                                            targetList.cards = targetList.cards.concat(cardsData);
-                                        } else {
-                                            targetData.push({
-                                                type: 'kanban',
-                                                title: action.listTitle,
-                                                cards: cardsData,
-                                                boardId: board.id
-                                            });
-                                        }
-
-                                        localStorage.setItem(LS_BOARD_PREFIX + board.id, JSON.stringify(targetData));
-                                        if (isFirebaseReady && auth && auth.currentUser) {
-                                            db.ref('users/' + auth.currentUser.uid + '/boards/' + board.id).set(targetData);
-                                        }
-
-                                        listEl.remove();
-                                        persist();
-
-                                        board.lastModified = Date.now();
-                                        saveBoardsMetadata();
-
-                                        showToast(`Lista "${action.listTitle}" movida para o quadro "${board.name}"`);
-                                    }
-                                }
-                                break;
-
-                            case 'CHANGE_THEME':
-                                if (action.color || action.themeName) {
-                                    let color = action.color;
-                                    if (action.themeName) {
-                                        const themeKey = Object.keys(THEMES).find(key => THEMES[key].name.toLowerCase().trim().includes(action.themeName.toLowerCase().trim()));
-                                        if (themeKey) color = themeKey;
-                                    }
-                                    if (color && THEMES[color]) {
-                                        const board = boardsMeta.find(b => b.id === currentBoardId);
-                                        if (board) {
-                                            board.color = color;
-                                            board.lastModified = Date.now();
-                                            saveBoardsMetadata();
-                                            setBoardTheme(color);
-                                            persist();
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case 'START_TIMER':
-                                if (action.cardText) {
-                                    const c = allCards.find(card => {
-                                        const txt = card.querySelector('.text');
-                                        return txt && txt.textContent.toLowerCase().trim().includes(action.cardText.toLowerCase().trim());
-                                    });
-                                    if (c) {
-                                        if (!c.dataset.timerTotal || parseInt(c.dataset.timerTotal, 10) <= 0) {
-                                            c.dataset.timerTotal = action.minutes ? (action.minutes * 60) : 1800;
-                                            c.dataset.timerLeft = c.dataset.timerTotal;
-                                        }
-                                        startCardTimer(c);
-                                    }
-                                }
-                                break;
-
-                            case 'PAUSE_TIMER':
-                                if (action.cardText) {
-                                    const c = allCards.find(card => {
-                                        const txt = card.querySelector('.text');
-                                        return txt && txt.textContent.toLowerCase().trim().includes(action.cardText.toLowerCase().trim());
-                                    });
-                                    if (c) {
-                                        pauseCardTimer(c);
-                                    }
-                                } else {
-                                    allCards.forEach(c => {
-                                        if (c.dataset.timerState === 'running') {
-                                            pauseCardTimer(c);
-                                        }
-                                    });
-                                }
-                                break;
-
-                            case 'TOGGLE_PANEL':
-                                if (action.panel) {
-                                    const panel = action.panel.toLowerCase().trim();
-                                    if (panel === 'kanban' || panel === 'quadro') {
-                                        document.getElementById('toggleBoardBtn').click();
-                                    } else if (panel === 'matrix' || panel === 'matriz') {
-                                        document.getElementById('toggleMatrixBtn').click();
-                                    } else if (panel === 'agenda') {
-                                        document.getElementById('toggleAgendaBtn').click();
-                                    } else if (panel === 'weekly' || panel === 'semana') {
-                                        document.getElementById('toggleWeeklyBtn').click();
-                                    }
-                                }
-                                break;
-
                             case 'COPY_PASTE_AGENDA':
                                 if (action.fromDay && action.toDay) {
                                     copyAgendaFromTo(action.fromDay, action.toDay);
@@ -6558,127 +6652,13 @@ Regras Importantes:
                 initSpeechRecognition();
             }
 
-                        function showToast(message, type = 'success') {
-                const toast = document.createElement('div');
-                toast.textContent = message;
-                toast.style.position = 'fixed';
-                toast.style.bottom = '20px';
-                toast.style.left = '50%';
-                toast.style.transform = 'translateX(-50%)';
-                toast.style.background = type === 'error' ? '#ef5350' : '#28a745';
-                toast.style.color = 'white';
-                toast.style.padding = '10px 20px';
-                toast.style.borderRadius = '8px';
-                toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-                toast.style.zIndex = '99999';
-                toast.style.fontFamily = 'system-ui, sans-serif';
-                toast.style.fontSize = '14px';
-                toast.style.fontWeight = '500';
-                toast.style.pointerEvents = 'none';
-                toast.style.transition = 'opacity 0.3s, transform 0.3s';
-                document.body.appendChild(toast);
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transform = 'translateX(-50%) translateY(10px)';
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
-
-            function startCardTimer(c) {
-                var state = c.dataset.timerState || 'stopped';
-                var total = parseInt(c.dataset.timerTotal || '0', 10);
-                if (total === 0) return;
-                c.dataset.timerState = 'running';
-                var left = parseInt(c.dataset.timerLeft, 10);
-                if (state === 'finished' || isNaN(left) || left <= 0) left = total;
-                c.dataset.timerEnd = Date.now() + left * 1000;
-                c.style.animation = '';
-                startGlobalTimer();
-                updateTimerDisplay(c);
-                persist();
-            }
-
-            function pauseCardTimer(c) {
-                var state = c.dataset.timerState || 'stopped';
-                if (state !== 'running') return;
-                c.dataset.timerState = 'paused';
-                var now = Date.now();
-                var end = parseInt(c.dataset.timerEnd, 10);
-                c.dataset.timerLeft = Math.round((end - now) / 1000);
-                updateTimerDisplay(c);
-                persist();
-            }
-
-            function cleanupCorruptedMetadata() {
-                let updated = false;
-                if (Array.isArray(boardsMeta)) {
-                    boardsMeta.forEach(b => {
-                        const originalName = b.name;
-                        const lower = originalName.toLowerCase();
-                        if (lower.includes('todos')) b.name = 'TODOS ðŸ“‹';
-                        else if (lower.includes('bot conversa')) b.name = 'BOT CONVERSA ðŸ¤–';
-                        else if (lower.includes('cekm')) b.name = 'CEKM ðŸ¥‹';
-                        else if (lower.includes('quadro principal')) b.name = 'Quadro principal ðŸ› ï¸';
-                        else if (lower.includes('casa arrumar')) b.name = 'CASA ARRUMAR ðŸ ';
-                        else if (lower.includes('tea timmer') || lower.includes('tea timer')) b.name = 'TEA TIMMER â±ï¸';
-                        else if (lower.includes('tcdf')) b.name = 'TCDF ðŸ“š';
-                        else if (lower.includes('semana padrao') || lower.includes('semana padrÃ£o')) b.name = 'SEMANA PADRAO ðŸ“…';
-                        else if (lower.includes('lixeira')) b.name = 'Lixeira ðŸ—‘ï¸';
-
-                        if (b.name === originalName) {
-                            b.name = b.name.replace(/[?]+/g, '').trim();
-                        }
-                        if (b.name !== originalName) {
-                            updated = true;
-                            b.lastModified = Date.now();
-                        }
-                    });
-                }
-                boardsMeta.forEach(b => {
-                    const localKey = LS_BOARD_PREFIX + b.id;
-                    const dataStr = localStorage.getItem(localKey);
-                    if (dataStr) {
-                        try {
-                            let boardData = JSON.parse(dataStr);
-                            let boardUpdated = false;
-                            if (Array.isArray(boardData)) {
-                                boardData.forEach(list => {
-                                    if (list.title) {
-                                        const cleanTitle = list.title.replace(/[?]+/g, '').trim();
-                                        if (cleanTitle !== list.title) {
-                                            list.title = cleanTitle;
-                                            boardUpdated = true;
-                                        }
-                                    }
-                                });
-                            }
-                            if (boardUpdated) {
-                                localStorage.setItem(localKey, JSON.stringify(boardData));
-                                if (isFirebaseReady && auth && auth.currentUser) {
-                                    db.ref('users/' + auth.currentUser.uid + '/boards/' + b.id).set(boardData);
-                                }
-                                updated = true;
-                            }
-                        } catch (e) {
-                            console.error("Error migrating lists for board " + b.id, e);
-                        }
-                    }
-                });
-                if (updated) {
-                    saveBoardsMetadata(true);
-                    console.log("Database metadata successfully cleaned of encoding corruption.");
-                }
-            }
-
             function initApp() {
                 initResizers();
                 applyDragScroll();
                 loadState();
                 migrateToMultiBoard();
-                cleanupCorruptedMetadata();
                 initAiControls();
                 if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
-                isInitialized = true;
             }
 
             initApp();
