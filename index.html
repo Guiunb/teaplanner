@@ -6525,7 +6525,7 @@
 
                     // 1. Title Input
                     const titleRow = el('div');
-                    titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" placeholder="Adicionar título" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent : '').replace(/^??\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.15); background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; outline: none; transition: border-color 0.2s;" />`;
+                    titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" placeholder="Adicionar título" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent : '').replace(/^\?\?\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid rgba(255, 255, 255, 0.15); background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; outline: none; transition: border-color 0.2s;" />`;
                     const titleInput = titleRow.querySelector('#agendaTitle');
                     titleInput.addEventListener('focus', () => titleInput.style.borderBottomColor = 'var(--brand)');
                     titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = 'rgba(255, 255, 255, 0.15)');
