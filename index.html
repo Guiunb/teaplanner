@@ -1559,31 +1559,33 @@
             50% { transform: scaleY(2); }
         }
 
-        /* Styling for Header Dropdowns */
+                /* Styling for Header Dropdowns */
         .header-dropdown {
             position: relative;
             display: inline-block;
         }
 
         .header-dropdown-btn {
-            background: #0e58a5;
-            color: #fff;
-            border: none;
+            background: rgba(25, 118, 210, 0.12) !important;
+            color: #fff !important;
+            border: 1px solid rgba(25, 118, 210, 0.25) !important;
             border-radius: 8px;
-            padding: 6px 12px;
-            font-weight: bold;
+            padding: 6px 14px;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 13px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
             height: 28px;
             line-height: 1;
         }
 
         .header-dropdown-btn:hover {
-            background: #0c4d91;
+            background: rgba(25, 118, 210, 0.22) !important;
+            border-color: rgba(25, 118, 210, 0.45) !important;
+            box-shadow: 0 0 10px rgba(25, 118, 210, 0.15);
         }
 
         .header-dropdown-content {
@@ -1591,33 +1593,44 @@
             position: absolute;
             top: 100%;
             left: 0;
-            background: #0b1220;
-            min-width: 180px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+            background: rgba(11, 18, 32, 0.96) !important;
+            backdrop-filter: blur(10px);
+            min-width: 190px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
             z-index: 1000;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid #24314a;
-            margin-top: 5px;
+            margin-top: 6px;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            animation: dropdownFadeIn 0.18s ease-out;
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .header-dropdown-content button {
-            color: #fff;
-            padding: 10px 14px;
+            color: #e9f1ff !important;
+            padding: 10px 16px;
             text-decoration: none;
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             width: 100%;
             text-align: left;
             background: transparent;
             border: none;
             border-radius: 0;
             font-size: 13px;
-            transition: background-color 0.2s;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
             cursor: pointer;
         }
 
         .header-dropdown-content button:hover {
-            background-color: #1a2538;
+            background-color: rgba(25, 118, 210, 0.2) !important;
+            color: #fff !important;
         }
 
         .header-dropdown.active .header-dropdown-content {
@@ -1673,24 +1686,25 @@
                 <!-- Options populated by JS -->
             </select>
             
-            <div class="header-dropdown" id="boardDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Quadros ▾</button>
+                        <div class="header-dropdown" id="boardDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Quadros â–¾</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuNewBoard">Adicionar Quadro</button>
-                    <button type="button" id="menuRenameBoard">Renomear Quadro</button>
-                    <button type="button" id="menuCloneBoard">Salvar Quadro como...</button>
-                    <button type="button" id="menuBoardTheme">Cor do Quadro</button>
-                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">Excluir Quadro</button>
+                    <button type="button" id="menuNewBoard">âž• Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">âœï¸ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">ðŸ’¾ Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">ðŸŽ¨ Cor do Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">ðŸ—‘ï¸ Excluir Quadro</button>
                 </div>
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Dados ▾</button>
+                <button class="header-dropdown-btn" type="button">Dados â–¾</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuExportJson">Salvar Json</button>
-                    <button type="button" id="menuImportJson">Importar Json</button>
+                    <button type="button" id="menuExportJson">ðŸ“¥ Salvar Json</button>
+                    <button type="button" id="menuImportJson">ðŸ“¤ Importar Json</button>
                 </div>
             </div>
+        </div>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
             <!-- Ocultos para manter compatibilidade de IDs legados -->
             <button id="newBoardBtn" style="display:none"></button>
@@ -3181,7 +3195,8 @@
             // ===== THEMES & CROSS-BOARD =====
             // ... (THEMES code remains same) ...
             const THEMES = {
-                '#1976d2': { name: 'Azul (Padrão)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
+                '#1976d2': { name: 'Azul PadrÃ£o', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
+                '#e2e8f0': { name: 'Branco-Gelo', brand: '#e2e8f0', bg: '#0b0f19', panel: '#151e2c', card: '#1d273a', text: '#f1f5f9' },
                 '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
                 '#7b1fa2': { name: 'Roxo Profundo', brand: '#7b1fa2', bg: '#100614', panel: '#210e29', card: '#2c1236', text: '#f3e5f5' },
                 '#e65100': { name: 'Laranja Queimado', brand: '#e65100', bg: '#180d00', panel: '#2e1900', card: '#3d2200', text: '#fff3e0' },
@@ -3241,10 +3256,13 @@
                 if (!board) return;
 
                 showModal('Cor do Quadro', function () {
-                    const grid = el('div');
+                                        const grid = el('div');
                     grid.style.display = 'grid';
                     grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
                     grid.style.gap = '10px';
+                    grid.style.maxHeight = '65vh';
+                    grid.style.overflowY = 'auto';
+                    grid.style.paddingRight = '8px';
 
                     Object.values(THEMES).forEach(theme => {
                         const btn = el('button');
