@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 
 <head>
@@ -1954,7 +1954,7 @@
                             loginBtn.classList.add('logged-in');
                             loginBtn.style.background = '';
                             loginBtn.style.color = '';
-                            userInfo.textContent = `OlÃ¡, ${user.displayName || user.email}`;
+                            userInfo.textContent = `Olá, ${user.displayName || user.email}`;
                             setupFirebaseSync(user);
                         } else {
                             loginBtn.textContent = 'Login Google';
@@ -3436,14 +3436,13 @@
                 addCardHistory(cardElement, 'Movido para o quadro "' + boardName + '"');
 
                 const cardData = cardToData(cardElement);
-                // IMPORTANTE: Ao mover para outro quadro, remove a data (sai da agenda global)
-                // A menos que a gente quisesse manter, mas conceitualmente se vai pro kanban de lá, vira backlog.
                 cardData.when = '';
                 cardData.boardId = targetBoardId;
                 cardData.color = getBoardColor(targetBoardId) || '';
 
                 const targetData = getBoardData(targetBoardId);
                 let moved = false;
+                let actualListTitle = targetListTitle;
 
                 let targetList = targetData.find(l => l.type === 'kanban' && l.title === targetListTitle);
 
@@ -3460,31 +3459,25 @@
                     if (targetData.length > 0 && targetData[0].type === 'kanban') {
                         targetData[0].cards.push(cardData);
                         moved = true;
+                        actualListTitle = targetData[0].title;
                         if (targetBoardId !== 'board-trash') {
-                            alert(`Lista "${targetListTitle}" não encontrada. Movido para "${targetData[0].title}".`);
+                            alert(`Lista "${targetListTitle}" nÃ£o encontrada. Movido para "${targetData[0].title}".`);
                         }
                     } else {
                         targetData.unshift({ type: 'kanban', title: 'Inbox', cards: [cardData] });
                         moved = true;
+                        actualListTitle = 'Inbox';
                     }
                 }
 
                 if (moved) {
-                    localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
-
-                    const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
-                    if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
-
-                    if (isFirebaseReady && auth && auth.currentUser) {
-                        db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
-                    }
-
-                    // Se estivermos no quadro TODOS, em vez de fazer o cartão sumir, nós o movemos fisicamente no DOM para a lista de destino correspondente
-                    if (currentBoardId === 'board-todos' && targetBoardId !== 'board-trash') {
+                    let shouldKeepInDOM = (currentBoardId === 'board-todos' && targetBoardId !== 'board-trash');
+                    
+                    if (shouldKeepInDOM) {
                         const lists = $$('.list[data-type="kanban"]');
                         const targetListEl = lists.find(l => {
                             const titleInp = l.querySelector('.title');
-                            return titleInp && titleInp.value.toLowerCase().trim() === targetListTitle.toLowerCase().trim();
+                            return titleInp && titleInp.value.toLowerCase().trim() === actualListTitle.toLowerCase().trim();
                         });
                         if (targetListEl) {
                             const cardsContainer = targetListEl.querySelector('.cards');
@@ -3494,7 +3487,15 @@
                                 cardElement.dataset.when = '';
                                 paintCard(cardElement);
                                 cardsContainer.appendChild(cardElement);
-                                persist();
+                                
+                                saveImmediately();
+                                
+                                localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
+                                const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
+                                if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
+                                if (isFirebaseReady && auth && auth.currentUser) {
+                                    db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
+                                }
                                 
                                 const btn = document.createElement('div');
                                 btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
@@ -3508,8 +3509,14 @@
                     }
 
                     removeCard(cardElement, true);
-                    // Persist cuida de salvar a remoção no quadro atual E atualizar a agenda global se necessario
-                    persist();
+                    saveImmediately();
+
+                    localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
+                    const targetBoard = boardsMeta.find(b => b.id === targetBoardId);
+                    if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
+                    if (isFirebaseReady && auth && auth.currentUser) {
+                        db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData);
+                    }
 
                     const btn = document.createElement('div');
                     btn.textContent = `Card movido para quadro "${targetBoard ? targetBoard.name : 'Outro'}"`;
