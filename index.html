@@ -1221,6 +1221,14 @@
             justify-content: center;
         }
 
+        .weekly-controls button.weekly-today-btn {
+            border-radius: 8px;
+            width: auto;
+            height: auto;
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+
         .weekly-controls span {
             color: var(--ink);
             font-weight: bold;
@@ -2183,6 +2191,7 @@
 
             var currentBoardId = null;
             var boardsMeta = [];
+            var weeklyCurrentDate = new Date().toISOString().slice(0, 10);
             var DEFAULT_THEME_COLOR = '#1976d2';
 
             var __persistTick = null, __muteHistory = 0;
@@ -3037,6 +3046,7 @@
                 if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
                 if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
 
+                clearSelection();
                 allCards = [];
                 boardEl.innerHTML = '';
                 matrixEl.innerHTML = '';
@@ -3094,6 +3104,7 @@
                     globalTimerInterval = null;
                 }
                 startGlobalTimer();
+                updateListHeaderTooltips();
 
                 scrollMap.forEach((pos, element) => {
                     if (element) {
@@ -3119,14 +3130,35 @@
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
             }
 
+            function sortBoardsMeta() {
+                if (!boardsMeta || !Array.isArray(boardsMeta)) return;
+                const todosBoard = boardsMeta.find(b => b.id === 'board-todos');
+                const trashBoard = boardsMeta.find(b => b.id === 'board-trash');
+                const otherBoards = boardsMeta.filter(b => b.id !== 'board-todos' && b.id !== 'board-trash');
+                
+                otherBoards.sort((a, b) => {
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA.localeCompare(nameB, undefined, { sensitivity: 'base', numeric: true });
+                });
+                
+                const sorted = [];
+                if (todosBoard) sorted.push(todosBoard);
+                sorted.push(...otherBoards);
+                if (trashBoard) sorted.push(trashBoard);
+                boardsMeta = sorted;
+            }
+
             function loadBoardsMetadata() {
                 try {
                     const raw = localStorage.getItem(LS_BOARDS_META);
                     boardsMeta = raw ? JSON.parse(raw) : [];
+                    sortBoardsMeta();
                 } catch (e) { boardsMeta = []; }
             }
 
             function saveBoardsMetadata(syncToCloud = true) {
+                sortBoardsMeta();
                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                 updateBoardSelectUI();
 
@@ -3259,6 +3291,7 @@
                 if (id === currentBoardId && boardEl.children.length > 0) return;
 
                 saveImmediately();
+                clearSelection();
 
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
@@ -3676,9 +3709,12 @@
             function duplicateCards(cards) {
                 if (!cards || !cards.length) return;
                 
+                const validCards = cards.filter(c => c && c.parentElement);
+                if (!validCards.length) return;
+
                 // Group selected cards by their parent list (.cards container)
                 const groupedByParent = new Map();
-                cards.forEach(c => {
+                validCards.forEach(c => {
                     const parent = c.parentElement;
                     if (!groupedByParent.has(parent)) groupedByParent.set(parent, []);
                     groupedByParent.get(parent).push(c);
@@ -3941,6 +3977,16 @@
                         return;
                     }
                     handleCardDblClick(c);
+                });
+
+                c.addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!selected.has(c)) {
+                        clearSelection();
+                        addSelection(c);
+                    }
+                    showCtx(e.clientX, e.clientY, c);
                 });
 
                 if (!allCards.includes(c)) {
@@ -4430,6 +4476,45 @@
 
             function getActiveDay() { var i = document.getElementById('agendaDate'); return (i && i.value) ? i.value : new Date().toISOString().slice(0, 10); }
 
+            function updateListHeaderTooltips() {
+                const isTodosBoard = (currentBoardId === 'board-todos');
+                const lists = ('.board .list[data-type="kanban"]');
+                lists.forEach(list => {
+                    const header = list.querySelector('header');
+                    const titleInp = list.querySelector('.title');
+                    if (!header) return;
+                    
+                    if (!isTodosBoard) {
+                        header.removeAttribute('title');
+                        if (titleInp) titleInp.removeAttribute('title');
+                        return;
+                    }
+                    
+                    const cards = list.querySelectorAll('.card');
+                    const boardIds = new Set();
+                    cards.forEach(c => {
+                        if (c.dataset.boardId) {
+                            boardIds.add(c.dataset.boardId);
+                        }
+                    });
+                    
+                    if (boardIds.size === 0) {
+                        const defaultMsg = "Sem cartÃµes";
+                        header.title = defaultMsg;
+                        if (titleInp) titleInp.title = defaultMsg;
+                    } else {
+                        const boardNames = Array.from(boardIds).map(bId => {
+                            const board = boardsMeta.find(b => b.id === bId);
+                            return board ? board.name : "Quadro Desconhecido";
+                        });
+                        boardNames.sort();
+                        const tooltipText = "Quadros nesta lista: " + boardNames.join(', ');
+                        header.title = tooltipText;
+                        if (titleInp) titleInp.title = tooltipText;
+                    }
+                });
+            }
+
             function updateSlotsHasItems() {
                 const day = getActiveDay();
                 const dayPrefixGoal = day + 'TGOAL';
@@ -4496,6 +4581,7 @@
                     }
                 });
                 updateTotalTimerDisplay();
+                updateListHeaderTooltips();
                 renderWeeklyView();
             }
 
@@ -5356,6 +5442,16 @@
                             handleCardDblClick(originalCard);
                         });
 
+                        clone.addEventListener('contextmenu', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!selected.has(originalCard)) {
+                                clearSelection();
+                                addSelection(originalCard);
+                            }
+                            showCtx(e.clientX, e.clientY, originalCard);
+                        });
+
                         clone.addEventListener('dragstart', function (e) {
                             e.stopPropagation();
                             const block = selected.has(originalCard) ? Array.from(selected) : [originalCard];
@@ -5425,13 +5521,48 @@
             }
 
             function changeWeek(offset) {
-                const currentDate = new Date(agendaDateInput.value + 'T12:00:00');
+                const currentDate = new Date(weeklyCurrentDate + 'T12:00:00');
                 currentDate.setDate(currentDate.getDate() + (offset * 7));
-                agendaDateInput.value = currentDate.toISOString().slice(0, 10);
-                applyFilters();
+                weeklyCurrentDate = currentDate.toISOString().slice(0, 10);
+                renderWeeklyView();
             }
             document.getElementById('prevWeekBtn').addEventListener('click', () => changeWeek(-1));
             document.getElementById('nextWeekBtn').addEventListener('click', () => changeWeek(1));
+
+            // Dynamically inject Weekly View today button
+            const weekControls = document.querySelector('.weekly-controls');
+            if (weekControls && !document.getElementById('todayWeekBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'todayWeekBtn';
+                btn.className = 'weekly-today-btn';
+                btn.title = 'Ir para a Semana Atual';
+                btn.textContent = 'Hoje';
+                btn.addEventListener('click', () => {
+                    weeklyCurrentDate = new Date().toISOString().slice(0, 10);
+                    renderWeeklyView();
+                });
+                weekControls.appendChild(btn);
+            }
+
+            // Dynamically inject Agenda sidebar today button
+            const dateNav = document.querySelector('.schedule header .date-nav');
+            if (dateNav && !document.getElementById('todayDayBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'todayDayBtn';
+                btn.title = 'Ir para Hoje';
+                btn.style.fontWeight = 'bold';
+                btn.style.fontSize = '13px';
+                btn.style.padding = '4px 6px';
+                btn.textContent = 'Hoje';
+                btn.addEventListener('click', () => {
+                    const inputEl = document.getElementById('agendaDate');
+                    if (inputEl) {
+                        inputEl.value = new Date().toISOString().slice(0, 10);
+                        applyFilters();
+                    }
+                });
+                dateNav.appendChild(btn);
+            }
 
             // ===== INITIALIZATION =====
             const toggleAgendaBtn = document.getElementById('toggleAgendaBtn');
