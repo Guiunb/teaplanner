@@ -2036,6 +2036,7 @@
                         if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
+                            sortBoardsMeta();
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                             updateBoardSelectUI();
                             if (updated) {
@@ -3564,6 +3565,7 @@
                 const select = document.getElementById('boardSelect');
                 if (!select) return;
 
+                sortBoardsMeta();
                 select.innerHTML = '';
                 boardsMeta.forEach(b => {
                     const opt = document.createElement('option');
@@ -4478,7 +4480,7 @@
 
             function updateListHeaderTooltips() {
                 const isTodosBoard = (currentBoardId === 'board-todos');
-                const lists = ('.board .list[data-type="kanban"]');
+                const lists = $$('.board .list[data-type="kanban"]');
                 lists.forEach(list => {
                     const header = list.querySelector('header');
                     const titleInp = list.querySelector('.title');
@@ -5359,7 +5361,7 @@
                 if (!weeklyGrid || weeklyContainer.classList.contains('collapsed')) return;
                 weeklyGrid.innerHTML = '';
                 const currentDay = getActiveDay();
-                const weekDates = getWeekRange(currentDay);
+                const weekDates = getWeekRange(weeklyCurrentDate);
                 const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                 const startW = weekDates[0].split('-').reverse().slice(0, 2).join('/');
                 const endW = weekDates[6].split('-').reverse().slice(0, 2).join('/');
