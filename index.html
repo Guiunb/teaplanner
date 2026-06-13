@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- CORREÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O DE SEGURANÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡A E CONEXÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O -->
+    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
     <meta http-equiv="Content-Security-Policy"
         content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
 
     <title>TEA PLANNER (Sync Final Fix)</title>
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚ÂÃƒâ€ Ã¢â‚¬â„¢</text></svg>">
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
 
     <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -283,8 +283,8 @@
             /* Permite scroll horizontal */
             min-height: 150px;
             cursor: grab;
-            /* Cursor de mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ozinha */
-            /* CORREÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O VISUAL: Padding lateral para nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o cortar a primeira lista */
+            /* Cursor de mãozinha */
+            /* CORREÇÃO VISUAL: Padding lateral para não cortar a primeira lista */
             padding-left: 8px;
             padding-right: 8px;
         }
@@ -295,17 +295,17 @@
 
         .matrix {
             display: grid;
-            /* AJUSTE DE PROPORÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O: Primeira coluna (labels laterais) */
+            /* AJUSTE DE PROPORÇÃO: Primeira coluna (labels laterais) */
             grid-template-columns: 40px 1fr 1fr;
-            /* CORREÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O DE CORTE: Define altura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nima generosa para as linhas (250px) ao invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s de 1fr puro
-               Isso forÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a o scroll a aparecer se a tela for pequena, garantindo que "NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Importante" apareÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a. */
+            /* CORREÇÃO DE CORTE: Define altura mínima generosa para as linhas (250px) ao invés de 1fr puro
+               Isso força o scroll a aparecer se a tela for pequena, garantindo que "Não Importante" apareça. */
             grid-template-rows: 40px minmax(250px, auto) minmax(250px, auto);
             gap: 12px;
             align-items: stretch;
             padding-top: 16px;
             min-height: 300px;
             flex-grow: 1;
-            /* Remove height: 100% fixo para permitir que cresÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a e role */
+            /* Remove height: 100% fixo para permitir que cresça e role */
             height: auto;
         }
 
@@ -382,7 +382,7 @@
             min-width: 0;
         }
 
-        /* BotÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Minimalista de Adicionar CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o */
+        /* Botão Minimalista de Adicionar Cartão */
         .list header .add-btn-minimal {
             background: transparent;
             border: 1px solid transparent;
@@ -401,10 +401,10 @@
             color: #fff;
         }
 
-        /* Ajuste para ter dois botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  direita */
+        /* Ajuste para ter dois botões à direita */
         .list header .more {
             margin-left: 4px;
-            /* Pequeno espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o entre + e ... */
+            /* Pequeno espaço entre + e ... */
             background: transparent;
             border: 1px solid transparent;
             color: #9fc1ff;
@@ -458,7 +458,7 @@
             gap: 4px;
         }
 
-        /* ANIMAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ES DE TIMER */
+        /* ANIMAÇÕES DE TIMER */
         @keyframes pulse-orange {
             0% {
                 box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4);
@@ -587,7 +587,7 @@
             border-radius: 2px;
             overflow: hidden;
             display: none;
-            /* Escondido quando nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o hÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ timer */
+            /* Escondido quando não há timer */
             width: 100%;
         }
 
@@ -644,7 +644,7 @@
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
             display: none;
-            /* ESCONDIDO POR PADRÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O - MINIMALISTA */
+            /* ESCONDIDO POR PADRÃO - MINIMALISTA */
         }
 
         .add .row {
@@ -683,7 +683,7 @@
             writing-mode: vertical-rl;
             transform: rotate(180deg);
             padding: 4px 0;
-            /* Garante que o label vertical ocupe toda a altura da cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lula e centralize */
+            /* Garante que o label vertical ocupe toda a altura da célula e centralize */
             height: 100%;
             max-height: 100%;
             white-space: nowrap;
@@ -694,7 +694,7 @@
             font-weight: 700;
             color: #cfe0ff;
             flex-grow: 1;
-            /* Ocupa espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o para empurrar botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes */
+            /* Ocupa espaço para empurrar botões */
         }
 
         .list[data-type="quad"] {
@@ -748,7 +748,7 @@
             overflow: hidden;
         }
 
-        /* Garante que as listas (slots) na agenda ocupem toda a largura e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o fiquem presas em 5cm */
+        /* Garante que as listas (slots) na agenda ocupem toda a largura e não fiquem presas em 5cm */
         .schedule .list {
             width: auto !important;
             max-width: none !important;
@@ -868,17 +868,17 @@
             flex-grow: 1;
         }
 
-        /* Estilo para o slot de "HorÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio a definir" na agenda */
+        /* Estilo para o slot de "Horário a definir" na agenda */
         .unscheduled-slot {
             background: var(--panel);
             border-bottom: 2px solid var(--brand);
             display: none;
-            /* Escondido por padrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o */
+            /* Escondido por padrão */
         }
 
         .unscheduled-slot.has-items {
             display: flex !important;
-            /* ForÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a display flex */
+            /* Força display flex */
         }
 
         .unscheduled-slot>.head .unscheduled-label {
@@ -949,7 +949,7 @@
             border: 1px solid #24314a;
             border-radius: 8px;
             min-width: 240px;
-            /* CORREÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O DE MENU: Altura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡xima e Scroll */
+            /* CORREÇÃO DE MENU: Altura máxima e Scroll */
             max-height: 60vh;
             overflow-y: auto;
             overflow-x: hidden;
@@ -957,7 +957,7 @@
             display: none
         }
 
-        /* CORREÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O DE MENU: Vira para a esquerda se faltar espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o */
+        /* CORREÇÃO DE MENU: Vira para a esquerda se faltar espaço */
         .ctx-sub.flip-left {
             left: auto !important;
             right: 100% !important;
@@ -1196,7 +1196,7 @@
             display: none !important;
         }
 
-        /* Container de navegaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o da semana */
+        /* Container de navegação da semana */
         .weekly-controls {
             display: flex;
             justify-content: center;
@@ -1221,14 +1221,6 @@
             justify-content: center;
         }
 
-        .weekly-controls button.weekly-today-btn {
-            border-radius: 8px;
-            width: auto;
-            height: auto;
-            padding: 5px 10px;
-            font-size: 13px;
-        }
-
         .weekly-controls span {
             color: var(--ink);
             font-weight: bold;
@@ -1246,7 +1238,7 @@
 
         .weekly-grid .cards {
             gap: 8px;
-            /* Mais espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o entre cards */
+            /* Mais espaço entre cards */
         }
 
         .day-column {
@@ -1256,7 +1248,7 @@
             display: flex;
             flex-direction: column;
             min-width: 200px;
-            /* Garante largura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nima legÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­vel */
+            /* Garante largura mínima legível */
         }
 
         .day-column.today {
@@ -1291,23 +1283,23 @@
             min-height: 50px;
         }
 
-        /* CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Espelho (Vem da Agenda) */
+        /* Cartão Espelho (Vem da Agenda) */
         .card.mirror-card {
             /* border: 1px dashed #4285F4; Removendo estilo visual diferente para parecer nativo */
             /* background: #0f2f45; */
             opacity: 0.9;
-            /* Agora ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© clicÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡vel e arrastÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡vel */
+            /* Agora é clicável e arrastável */
             cursor: grab;
         }
 
-        /* Diferenciar visualmente apenas cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes agendados */
+        /* Diferenciar visualmente apenas cartões agendados */
         .card.mirror-card.is-scheduled {
             border: 1px dashed #4285F4;
             background: #0f2f45;
         }
 
         .card.mirror-card .text::before {
-            /* content: "ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ ";  Remove ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­cone automÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡tico, usar badge */
+            /* content: "🕒 ";  Remove ícone automático, usar badge */
         }
 
         /* ===== MODO FOCO (NOTINHA) ===== */
@@ -1434,7 +1426,7 @@
             border-radius: 4px;
         }
 
-        /* Esconder resizer quando os paineis estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o colapsados */
+        /* Esconder resizer quando os paineis estão colapsados */
         .workspace.agenda-collapsed .resizer-v { display: none; }
         .board-container.collapsed + .resizer-h { display: none; }
         .matrix-container.collapsed ~ .resizer-h { display: none; }
@@ -1718,165 +1710,161 @@
             background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
         }
+.analog-time-picker-backdrop {
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0, 0, 0, 0.7);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 15000;
+font-family: system-ui, -apple-system, sans-serif;
+}
+.analog-time-picker-modal {
+background: #192638;
+border: 1px solid #283e5a;
+border-radius: 16px;
+width: 310px;
+padding: 16px;
+display: flex;
+flex-direction: column;
+align-items: center;
+box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+user-select: none;
+}
+.analog-time-picker-title {
+color: #9fb3d2;
+font-size: 13px;
+margin-bottom: 12px;
+align-self: flex-start;
+font-weight: 500;
+}
+.analog-time-picker-display {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+margin-bottom: 16px;
+}
+.analog-time-picker-display input {
+width: 68px;
+height: 58px;
+background: #0f1c2c;
+border: 1px solid #243c5b;
+border-radius: 8px;
+color: #9fb3d2;
+font-size: 36px;
+font-weight: bold;
+text-align: center;
+outline: none;
+padding: 0;
+transition: all 0.2s;
+cursor: pointer;
+}
+.analog-time-picker-display input.active {
+background: var(--brand);
+color: #fff;
+border-color: var(--brand);
+}
+.analog-time-picker-display span {
+color: #fff;
+font-size: 28px;
+font-weight: bold;
+}
+.analog-time-picker-face-container {
+position: relative;
+width: 230px;
+height: 230px;
+background: #0b1726;
+border-radius: 50%;
+margin-bottom: 16px;
+touch-action: none;
+}
+.analog-time-picker-number {
+position: absolute;
+width: 28px;
+height: 28px;
+line-height: 28px;
+text-align: center;
+font-size: 13px;
+font-weight: bold;
+color: #9fb3d2;
+border-radius: 50%;
+pointer-events: none;
+z-index: 2;
+transition: color 0.1s;
+}
+.analog-time-picker-number.selected {
+color: #fff;
+}
+.analog-time-picker-svg {
+position: absolute;
+top: 0; left: 0;
+width: 230px;
+height: 230px;
+pointer-events: none;
+z-index: 1;
+}
+.analog-time-picker-keyboard-input-msg {
+color: #9fb3d2;
+font-size: 13px;
+margin: 40px 0;
+text-align: center;
+}
+.analog-time-picker-footer {
+display: flex;
+width: 100%;
+justify-content: space-between;
+align-items: center;
+margin-top: 10px;
+}
+.analog-time-picker-keyboard-btn {
+background: transparent;
+border: none;
+color: #9fb3d2;
+font-size: 20px;
+cursor: pointer;
+padding: 8px;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: background 0.2s;
+}
+.analog-time-picker-keyboard-btn:hover {
+background: rgba(255, 255, 255, 0.05);
+}
+.analog-time-picker-buttons {
+display: flex;
+gap: 10px;
+}
+.analog-time-picker-buttons button {
+background: transparent;
+border: none;
+color: #ffd54f;
+font-weight: bold;
+font-size: 14px;
+cursor: pointer;
+padding: 8px 12px;
+border-radius: 6px;
+text-transform: uppercase;
+transition: background 0.2s;
+}
+.analog-time-picker-buttons button:hover {
+background: rgba(255, 213, 79, 0.1);
+}
+/* CHECKLIST FILTERS STYLES */
+.filter-checkbox-list {
+display: flex;
+flex-direction: column;
+gap: 8px;
+max-height: 250px;
+overflow-y: auto;
+padding: 6px 2px;
+}
 
-        /* Hide resizer when Matrix is collapsed */
-        #main-content.matrix-collapsed #resizer-matrix {
-            display: none;
-        }
+#main-content.matrix-collapsed #resizer-matrix { display: none; }
 
-        /* ANALOG TIME PICKER STYLES */
-        .analog-time-picker-backdrop {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 15000;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .analog-time-picker-modal {
-            background: #192638;
-            border: 1px solid #283e5a;
-            border-radius: 16px;
-            width: 310px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-            user-select: none;
-        }
-        .analog-time-picker-title {
-            color: #9fb3d2;
-            font-size: 13px;
-            margin-bottom: 12px;
-            align-self: flex-start;
-            font-weight: 500;
-        }
-        .analog-time-picker-display {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 16px;
-        }
-        .analog-time-picker-display input {
-            width: 68px;
-            height: 58px;
-            background: #0f1c2c;
-            border: 1px solid #243c5b;
-            border-radius: 8px;
-            color: #9fb3d2;
-            font-size: 36px;
-            font-weight: bold;
-            text-align: center;
-            outline: none;
-            padding: 0;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .analog-time-picker-display input.active {
-            background: var(--brand);
-            color: #fff;
-            border-color: var(--brand);
-        }
-        .analog-time-picker-display span {
-            color: #fff;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .analog-time-picker-face-container {
-            position: relative;
-            width: 230px;
-            height: 230px;
-            background: #0b1726;
-            border-radius: 50%;
-            margin-bottom: 16px;
-            touch-action: none;
-        }
-        .analog-time-picker-number {
-            position: absolute;
-            width: 28px;
-            height: 28px;
-            line-height: 28px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-            color: #9fb3d2;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 2;
-            transition: color 0.1s;
-        }
-        .analog-time-picker-number.selected {
-            color: #fff;
-        }
-        .analog-time-picker-svg {
-            position: absolute;
-            top: 0; left: 0;
-            width: 230px;
-            height: 230px;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .analog-time-picker-keyboard-input-msg {
-            color: #9fb3d2;
-            font-size: 13px;
-            margin: 40px 0;
-            text-align: center;
-        }
-        .analog-time-picker-footer {
-            display: flex;
-            width: 100%;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-        }
-        .analog-time-picker-keyboard-btn {
-            background: transparent;
-            border: none;
-            color: #9fb3d2;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        .analog-time-picker-keyboard-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .analog-time-picker-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .analog-time-picker-buttons button {
-            background: transparent;
-            border: none;
-            color: #ffd54f;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            transition: background 0.2s;
-        }
-        .analog-time-picker-buttons button:hover {
-            background: rgba(255, 213, 79, 0.1);
-        }
-        /* CHECKLIST FILTERS STYLES */
-        .filter-checkbox-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 6px 2px;
-        }
     </style>
 </head>
 
@@ -1908,19 +1896,19 @@
             <div class="header-dropdown" id="boardDropdownContainer">
                 <button class="header-dropdown-btn" type="button">Quadros &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuNewBoard">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Adicionar Quadro</button>
-                    <button type="button" id="menuRenameBoard">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Renomear Quadro</button>
-                    <button type="button" id="menuCloneBoard">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒâ€šÃ‚Â¾ Salvar Quadro como...</button>
-                    <button type="button" id="menuBoardTheme">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¨ Cor do Quadro</button>
-                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Excluir Quadro</button>
+                    <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
                 <button class="header-dropdown-btn" type="button">Dados &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuExportJson">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¥ Salvar Json</button>
-                    <button type="button" id="menuImportJson">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¤ Importar Json</button>
+                    <button type="button" id="menuExportJson">📥 Salvar Json</button>
+                    <button type="button" id="menuImportJson">📤 Importar Json</button>
                 </div>
             </div>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
@@ -1932,41 +1920,41 @@
             <button id="deleteBoardBtn" style="display:none"></button>
         </div>
 
-        <button id="undo" title="Desfazer (Ctrl+Z)">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚Â²</button>
-        <button id="redo" title="Refazer (Ctrl+Shift+Z)">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚Â³</button>
-        <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºltipla">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â±ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Multi-seleÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o</button>
+        <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
+        <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
+        <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
         <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
-            title="Filtra cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
+            title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
         <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
         <label>De <input id="fFrom" type="date"></label>
-        <label>AtÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© <input id="fTo" type="date"></label>
+        <label>Até <input id="fTo" type="date"></label>
         <button id="clearFilters">Limpar filtros</button>
 
-        <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">ÃƒÆ’Ã‚Â¢Ãƒâ€¹Ã…â€œÃƒâ€šÃ‚Â°</button>
-        <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â Ãƒâ€¦Ã‚Â¾</button>
-        <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</button>
-        <button id="toggleWeeklyBtn" title="VisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Semanal">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Semana</button>
-        <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¯ Foco</button>
+        <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
+        <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
+        <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
+        <button id="toggleWeeklyBtn" title="Visão Semanal">📅 Semana</button>
+        <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <label class="toggle-switch" title="ConfiguraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡pida: Ao criar um cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o, abrir pop-ups de timer e cor.">
+        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
             <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-            <span class="toggle-switch-label">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</span>
+            <span class="toggle-switch-label">⚙️</span>
             <span class="toggle-switch-button">OFF</span>
         </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
             <div class="ai-prompt-bar">
-                <button class="ai-btn" id="aiConfigBtn" title="Configurar IA (Gemini, ChatGPT, Claude...)">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“</button>
+                <button class="ai-btn" id="aiConfigBtn" title="Configurar IA (Gemini, ChatGPT, Claude...)">🔑</button>
                 <div class="ai-soundwave" id="aiSoundwave">
                     <span></span><span></span><span></span><span></span>
                 </div>
                 <input type="text" class="ai-input" id="aiInput" placeholder="Fale ou digite um comando..." autocomplete="off">
-                <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</button>
-                <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â¡</button>
+                <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">🎙️</button>
+                <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">⚡</button>
             </div>
             <div class="ai-response-bubble" id="aiResponseBubble"></div>
         </div>
@@ -1980,9 +1968,9 @@
         <div id="main-content">
             <div class="weekly-container collapsed" id="weekly-container">
                 <div class="weekly-controls">
-                    <button id="prevWeekBtn" title="Semana Anterior">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â®</button>
+                    <button id="prevWeekBtn" title="Semana Anterior">❮</button>
                     <span id="weekRangeDisplay">Semana Atual</span>
-                    <button id="nextWeekBtn" title="PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³xima Semana">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â¯</button>
+                    <button id="nextWeekBtn" title="Próxima Semana">❯</button>
                 </div>
                 <div class="weekly-grid" id="weeklyGrid">
                     <!-- Colunas geradas via JS -->
@@ -2005,15 +1993,15 @@
                         <strong>AGENDA</strong>
                         <div class="copy-paste-buttons">
                             <button id="addUnscheduledBtn" title="Novo Evento (A definir)">+</button>
-                            <button id="copyDayBtn" title="Copiar dia atual">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹</button>
-                            <button id="pasteDayBtn" title="Colar dia copiado">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¥</button>
+                            <button id="copyDayBtn" title="Copiar dia atual">📋</button>
+                            <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
                         </div>
                     </div>
                     <div class="header-row">
                         <div class="date-nav">
                             <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
                             <input id="agendaDate" type="date" />
-                            <button id="nextDayBtn" title="PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo Dia">&gt;</button>
+                            <button id="nextDayBtn" title="Próximo Dia">&gt;</button>
                         </div>
                     </div>
                 </header>
@@ -2023,43 +2011,43 @@
     </section>
 
     <div id="ctx" class="ctx">
-        <button data-action="edit">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Editar CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o <span class="shortcut">F2</span></button>
-        <button data-action="select-mode">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â±ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Selecionar CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o</button>
+        <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+        <button data-action="select-mode">🖱️ Selecionar Cartão</button>
         <div class="sep"></div>
-        <button data-action="timer">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â±ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Timer <span class="shortcut">Alt+T</span></button>
-        <button data-action="color">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¨ Editar cor <span class="shortcut">Alt+C</span></button>
-        <button data-action="date">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Editar Data <span class="shortcut">Alt+D</span></button>
-        <button data-action="agenda">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Agendar / RecorrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªncia...</button>
-        <button data-action="alert">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Configurar Alerta...</button>
+        <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
+        <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
+        <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
+        <button data-action="agenda">📅 Agendar / Recorrência...</button>
+        <button data-action="alert">🔔 Configurar Alerta...</button>
         <div class="sep"></div>
         <div id="ctx-move-board" style="position:relative">
-            <button data-action="move-board">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Mover para Quadro ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</button>
+            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
             <div class="ctx-sub" id="ctx-move-board-sub"></div>
         </div>
         <div class="sep"></div>
-        <button data-action="prop">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¹ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Propriedades do CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o</button>
-        <button data-action="gemini-subtasks">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ Gerar subtarefas</button>
-        <button data-action="gemini-organize">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ Organizar na Matriz</button>
+        <button data-action="prop">ℹ️ Propriedades do Cartão</button>
+        <button data-action="gemini-subtasks">✨ Gerar subtarefas</button>
+        <button data-action="gemini-organize">✨ Organizar na Matriz</button>
         <div class="sep"></div>
-        <button data-action="dup">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Duplicar <span class="shortcut">Ctrl+D</span></button>
-        <button data-action="del">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Excluir <span class="shortcut">Del</span></button>
+        <button data-action="dup">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
+        <button data-action="del">🗑️ Excluir <span class="shortcut">Del</span></button>
         <div id="ctx-move" style="position:relative">
-            <button data-action="move">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Mover para ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</button>
+            <button data-action="move">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
         </div>
         <div id="ctx-move-all" style="position:relative">
-            <button data-action="move-all">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Mover TODOS desta Lista ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</button>
+            <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
             <div class="ctx-sub" id="ctx-moveall-sub"></div>
         </div>
-        <button data-action="del-all">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Excluir TODOS desta Lista</button>
+        <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
     <div id="ctx-list" class="ctx">
-        <button data-action="list-del">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Excluir lista</button>
-        <button data-action="list-del-all">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Excluir TODOS desta Lista</button>
-        <button data-action="list-move-all">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Mover TODOS desta Lista ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</button>
+        <button data-action="list-del">🗑️ Excluir lista</button>
+        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
-        <button data-action="list-move-board">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Mover LISTA para outro quadro ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</button>
+        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro ▶</button>
         <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
     </div>
 
@@ -2069,10 +2057,10 @@
             <div id="focusTargetText">Carregando tarefa...</div>
             <div class="focus-time" id="focusTargetTime">00:00</div>
             <div class="focus-controls">
-                <button id="focusMinusBtn" title="-1 minuto">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“</button>
-                <button id="focusToggleBtn" title="Pausar/Retomar">ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â</button>
-                <button id="focusPlusBtn" title="+1 minuto">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¾ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢</button>
-                <button id="focusCloseBtn" title="Sair do Modo Foco">ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“</button>
+                <button id="focusMinusBtn" title="-1 minuto">➖</button>
+                <button id="focusToggleBtn" title="Pausar/Retomar">⏸️</button>
+                <button id="focusPlusBtn" title="+1 minuto">➕</button>
+                <button id="focusCloseBtn" title="Sair do Modo Foco">✖</button>
             </div>
         </div>
     </div>
@@ -2102,7 +2090,7 @@
             let currentUser = null;
             let isRemoteUpdate = false;
             let currentBoardRef = null;
-            let globalAgendaRef = null; // Nova referÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªncia para agenda global
+            let globalAgendaRef = null; // Nova referência para agenda global
 
             // Inicializa Firebase
             try {
@@ -2123,7 +2111,7 @@
                             loginBtn.classList.add('logged-in');
                             loginBtn.style.background = '';
                             loginBtn.style.color = '';
-                            userInfo.textContent = `OlÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡, ${user.displayName || user.email}`;
+                            userInfo.textContent = `Olá, ${user.displayName || user.email}`;
                             setupFirebaseSync(user);
                         } else {
                             loginBtn.textContent = 'Login Google';
@@ -2174,12 +2162,12 @@
                             try {
                                 const localMeta = JSON.parse(localMetaStr);
                                 if (localMeta && localMeta.length > 0) {
-                                    console.log("Sync: Firebase meta nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o existe, enviando metadados locais...");
+                                    console.log("Sync: Firebase meta não existe, enviando metadados locais...");
                                     metaRef.set(localMeta);
                                     return;
                                 }
                             } catch (e) {
-                                console.error("Erro ao ler metadados locais na sincronizaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o:", e);
+                                console.error("Erro ao ler metadados locais na sincronização:", e);
                             }
                         }
                     }
@@ -2187,17 +2175,16 @@
                     if (val && Array.isArray(val)) {
                         let updated = false;
                         if (!val.some(b => b.id === 'board-todos')) {
-                            val.unshift({ id: 'board-todos', name: 'TODOS ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹', lastModified: Date.now(), color: '#1976d2' });
+                            val.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
                             updated = true;
                         }
                         if (!val.some(b => b.id === 'board-trash')) {
-                            val.push({ id: 'board-trash', name: 'Lixeira ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â', lastModified: Date.now(), color: '#5a1419' });
+                            val.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
                             updated = true;
                         }
                         if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
                             console.log("Sync: Nova lista de quadros recebida.");
                             boardsMeta = val;
-                            sortBoardsMeta();
                             localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                             updateBoardSelectUI();
                             if (updated) {
@@ -2231,7 +2218,7 @@
                     if (!snapshot.exists()) {
                         const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
                         if (localAgendaStr && localAgendaStr !== '[]' && localAgendaStr !== '') {
-                            console.log("Sync: Firebase agenda global nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o existe, enviando local...");
+                            console.log("Sync: Firebase agenda global não existe, enviando local...");
                             try {
                                 globalAgendaRef.set(JSON.parse(localAgendaStr));
                                 return;
@@ -2264,7 +2251,7 @@
                 if (currentBoardRef) currentBoardRef.off();
 
                 if (boardId === 'board-todos') {
-                    console.log('Sync: Escutando alteraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes em TODOS os quadros...');
+                    console.log('Sync: Escutando alterações em TODOS os quadros...');
                     currentBoardRef = db.ref('users/' + uid + '/boards');
                     currentBoardRef.on('value', (snapshot) => {
                         let val = snapshot.val();
@@ -2281,7 +2268,7 @@
                             }
                         });
 
-                        // Sempre carrega se houver alteraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o ou se for o primeiro render do board-todos
+                        // Sempre carrega se houver alteração ou se for o primeiro render do board-todos
                         if (changed || boardEl.children.length === 0) {
                             isRemoteUpdate = true;
                             loadAndRenderAll();
@@ -2291,7 +2278,7 @@
                     return;
                 }
 
-                console.log(`Sync: Escutando alteraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes no quadro ${boardId}...`);
+                console.log(`Sync: Escutando alterações no quadro ${boardId}...`);
                 currentBoardRef = db.ref('users/' + uid + '/boards/' + boardId);
 
                 currentBoardRef.on('value', (snapshot) => {
@@ -2300,7 +2287,7 @@
                     if (!snapshot.exists()) {
                         const localBoardStr = localStorage.getItem(LS_BOARD_PREFIX + boardId);
                         if (localBoardStr && localBoardStr !== '[]' && localBoardStr !== '') {
-                            console.log(`Sync: Firebase board ${boardId} nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o existe, enviando local...`);
+                            console.log(`Sync: Firebase board ${boardId} não existe, enviando local...`);
                             try {
                                 currentBoardRef.set(JSON.parse(localBoardStr));
                                 return;
@@ -2317,7 +2304,7 @@
 
                     if (valStr === currentLocalData) return;
 
-                    console.log('Sync: ConteÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºdo do quadro atualizado remotamente.');
+                    console.log('Sync: Conteúdo do quadro atualizado remotamente.');
                     isRemoteUpdate = true;
                     localStorage.setItem(LS_BOARD_PREFIX + boardId, valStr);
 
@@ -2353,13 +2340,12 @@
 
             var currentBoardId = null;
             var boardsMeta = [];
-            var weeklyCurrentDate = new Date().toISOString().slice(0, 10);
             var DEFAULT_THEME_COLOR = '#1976d2';
 
             var __persistTick = null, __muteHistory = 0;
             function withMute(fn) { __muteHistory++; try { return fn(); } finally { __muteHistory--; } }
 
-            // FUNÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O DE ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂUDIO (Beep) para o Timer
+            // FUNÇÃO DE ÁUDIO (Beep) para o Timer
             function playBeep() {
                 try {
                     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2374,7 +2360,7 @@
                     gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
                     oscillator.start(audioCtx.currentTime);
                     oscillator.stop(audioCtx.currentTime + 0.5);
-                } catch (e) { console.warn("ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âudio bloqueado", e); }
+                } catch (e) { console.warn("Áudio bloqueado", e); }
             }
 
             var boardEl = document.getElementById('board');
@@ -2388,7 +2374,7 @@
             var isSelectionMode = false;
             var lastMouseX = 0, lastMouseY = 0;
             var agendaClipboard = [];
-            var appClipboard = []; // Para Copiar/Colar cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes
+            var appClipboard = []; // Para Copiar/Colar cartões
 
             // ===== Gemini API Integration =====
             // DEFINIDAS AQUI EM CIMA PARA EVITAR ERRO DE REFERENCE ERROR
@@ -2422,7 +2408,7 @@
                     const hardcodedKey = ""; // <--- INSIRA SUA API KEY AQUI
                     const apiKey = localStorage.getItem('gemini-api-key') || hardcodedKey;
                     if (!apiKey) {
-                        alert("Chave API do Gemini nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o configurada. Por favor, clique na chave ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ na barra de prompt para configurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡-la.");
+                        alert("Chave API do Gemini não configurada. Por favor, clique na chave 🔑 na barra de prompt para configurá-la.");
                         throw new Error("No API Key");
                     }
 
@@ -2453,7 +2439,7 @@
                                 });
 
                                 if (response.status === 404) {
-                                    console.warn(`Modelo ${model} indisponÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­vel (404). Tentando prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo modelo da lista...`);
+                                    console.warn(`Modelo ${model} indisponível (404). Tentando próximo modelo da lista...`);
                                     is404 = true;
                                     break;
                                 }
@@ -2471,7 +2457,7 @@
                                 const result = await response.json();
                                 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
                                 if (text) return text;
-                                else throw new Error('Resposta da API invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida ou vazia.');
+                                else throw new Error('Resposta da API inválida ou vazia.');
                             } catch (error) {
                                 lastError = error;
                                 if (i === retries - 1) {
@@ -2488,11 +2474,11 @@
                         }
                     }
 
-                    throw lastError || new Error("Nenhum modelo da lista estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ disponÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­vel para esta chave API.");
+                    throw lastError || new Error("Nenhum modelo da lista está disponível para esta chave API.");
                 } else if (provider === 'openai') {
                     const apiKey = localStorage.getItem('openai-api-key') || '';
                     if (!apiKey) {
-                        alert("Chave API da OpenAI nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o configurada. Por favor, clique na chave ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ na barra de prompt para configurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡-la.");
+                        alert("Chave API da OpenAI não configurada. Por favor, clique na chave 🔑 na barra de prompt para configurá-la.");
                         throw new Error("No API Key");
                     }
 
@@ -2556,7 +2542,7 @@
                             const result = await response.json();
                             const text = result.choices?.[0]?.message?.content;
                             if (text) return text;
-                            else throw new Error('Resposta da API invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida ou vazia.');
+                            else throw new Error('Resposta da API inválida ou vazia.');
                         } catch (error) {
                             lastError = error;
                             if (i === retries - 1) {
@@ -2571,7 +2557,7 @@
                 } else if (provider === 'anthropic') {
                     const apiKey = localStorage.getItem('anthropic-api-key') || '';
                     if (!apiKey) {
-                        alert("Chave API da Anthropic nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o configurada. Por favor, clique na chave ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ na barra de prompt para configurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡-la.");
+                        alert("Chave API da Anthropic não configurada. Por favor, clique na chave 🔑 na barra de prompt para configurá-la.");
                         throw new Error("No API Key");
                     }
 
@@ -2640,7 +2626,7 @@
                             const result = await response.json();
                             const text = result.content?.[0]?.text;
                             if (text) return text;
-                            else throw new Error('Resposta da API invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lida ou vazia.');
+                            else throw new Error('Resposta da API inválida ou vazia.');
                         } catch (error) {
                             lastError = error;
                             if (i === retries - 1) {
@@ -2659,17 +2645,17 @@
 
             async function generateSubtasks(block) {
                 if (!block || !block.length) return;
-                showLoader('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ Gerando subtarefas com a IA...');
+                showLoader('✨ Gerando subtarefas com a IA...');
                 try {
                     for (const card of block) {
                         const originalText = card.querySelector('.text').textContent;
-                        const prompt = `Aja como um assistente de produtividade. Quebre a seguinte tarefa em 3 a 5 subtarefas menores e acionÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡veis. Responda com uma lista de subtarefas, uma por linha. NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o adicione nenhum outro texto, cabeÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§alhos, marcadores ou formataÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o. Tarefa: "${originalText}"`;
+                        const prompt = `Aja como um assistente de produtividade. Quebre a seguinte tarefa em 3 a 5 subtarefas menores e acionáveis. Responda com uma lista de subtarefas, uma por linha. Não adicione nenhum outro texto, cabeçalhos, marcadores ou formatação. Tarefa: "${originalText}"`;
                         const resultText = await callGemini(prompt);
                         const subtasks = resultText.split('\n').map(s => s.trim()).filter(Boolean);
                         if (subtasks.length > 0) {
                             let lastCard = card;
                             subtasks.forEach(taskText => {
-                                const newCard = createCard({ text: "ÃƒÆ’Ã‚Â£Ãƒâ€ Ã¢â‚¬â„¢Ãƒâ€šÃ‚Â» " + taskText, color: card.dataset.color, labelColor: card.dataset.labelColor || '', due: card.dataset.due, boardId: card.dataset.boardId });
+                                const newCard = createCard({ text: "・ " + taskText, color: card.dataset.color, labelColor: card.dataset.labelColor || '', due: card.dataset.due, boardId: card.dataset.boardId });
                                 if (!card.closest('#agenda-sidebar')) {
                                     lastCard.parentElement.insertBefore(newCard, lastCard.nextSibling);
                                     lastCard = newCard;
@@ -2681,7 +2667,7 @@
                     persist();
                     updateTotalTimerDisplay();
                 } catch (error) {
-                    // Erro jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ tratado no catch do callGemini se for falta de key
+                    // Erro já tratado no catch do callGemini se for falta de key
                 } finally {
                     hideLoader();
                 }
@@ -2689,12 +2675,12 @@
 
             async function organizeCardWithGemini(block) {
                 if (!block || !block.length || !matrixEl) return;
-                showLoader('ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¨ Analisando tarefa com IA...');
+                showLoader('✨ Analisando tarefa com IA...');
                 const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
                 try {
                     for (const card of block) {
                         const originalText = card.querySelector('.text').textContent;
-                        const prompt = `Aja como um especialista em produtividade usando a Matriz de Eisenhower. Analise a seguinte tarefa e decida em qual quadrante ela se encaixa: Q1 (Urgente e Importante), Q2 (NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Urgente e Importante), Q3 (Urgente e NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Importante), ou Q4 (NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Urgente e NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o Importante). Responda APENAS com "Q1", "Q2", "Q3", ou "Q4". Tarefa: "${originalText}"`;
+                        const prompt = `Aja como um especialista em produtividade usando a Matriz de Eisenhower. Analise a seguinte tarefa e decida em qual quadrante ela se encaixa: Q1 (Urgente e Importante), Q2 (Não Urgente e Importante), Q3 (Urgente e Não Importante), ou Q4 (Não Urgente e Não Importante). Responda APENAS com "Q1", "Q2", "Q3", ou "Q4". Tarefa: "${originalText}"`;
                         const resultQuad = (await callGemini(prompt)).trim().toUpperCase();
                         if (EISENHOWER_COLORS[resultQuad]) {
                             const dest = matrixEl.querySelector('.list[data-quad="' + resultQuad + '"] .cards');
@@ -2713,13 +2699,13 @@
                     persist();
                     updateTotalTimerDisplay();
                 } catch (error) {
-                    // Erro jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ tratado
+                    // Erro já tratado
                 } finally {
                     hideLoader();
                 }
             }
 
-            // EVENTO DE SINCRONIZAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O ENTRE ABAS (LOCAL)
+            // EVENTO DE SINCRONIZAÇÃO ENTRE ABAS (LOCAL)
             window.addEventListener('storage', function (e) {
                 if (e.key === LS_BOARD_PREFIX + currentBoardId || e.key === LS_GLOBAL_AGENDA) {
                     // Se mudou o quadro atual OU a agenda global
@@ -2751,11 +2737,11 @@
             const marqueeEl = document.getElementById('marquee');
 
             document.addEventListener('mousedown', (e) => {
-                // SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ inicia marquee se clicar no fundo (nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o em botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes, inputs ou cards)
+                // Só inicia marquee se clicar no fundo (não em botões, inputs ou cards)
                 if (e.target.closest('.card') || e.target.closest('button') || e.target.closest('input') || e.target.closest('.ctx') || e.target.closest('.modal')) return;
-                if (e.button !== 0) return; // SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o esquerdo
+                if (e.button !== 0) return; // Só botão esquerdo
 
-                // Se nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o segurar Ctrl/Shift, limpa seleÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o anterior
+                // Se não segurar Ctrl/Shift, limpa seleção anterior
                 if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
                     clearSelection();
                 }
@@ -2795,15 +2781,15 @@
             function selectCardsInBox(l, t, w, h) {
                 allCards.forEach(card => {
                     const r = card.getBoundingClientRect();
-                    // Verifica intersecÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
+                    // Verifica intersecção
                     const inBox = !(r.left > l + w || r.right < l || r.top > t + h || r.bottom < t);
                     
                     if (inBox) {
                         if (!selected.has(card)) addSelection(card);
                     } else if (!window._tempSelection?.has(card)) {
-                        // Se nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o estava selecionado antes do inÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­cio do marquee, remove
-                        // Mas aqui simplificamos: o marquee ADICIONA ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  seleÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o se segurar Ctrl, 
-                        // ou redefine se nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o segurar.
+                        // Se não estava selecionado antes do início do marquee, remove
+                        // Mas aqui simplificamos: o marquee ADICIONA à seleção se segurar Ctrl, 
+                        // ou redefine se não segurar.
                     }
                 });
             }
@@ -2859,7 +2845,7 @@
                 card.dataset.history = JSON.stringify(hist);
             }
 
-            // FUNÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O IMPORTANTE: Separa o que ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© do Quadro do que ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© da Agenda Global
+            // FUNÇÃO IMPORTANTE: Separa o que é do Quadro do que é da Agenda Global
             function syncAllCardsOrderFromDOM() {
                 const domCards = Array.from(document.querySelectorAll('.card:not(.mirror-card)'));
                 if (domCards.length === 0) return;
@@ -2868,6 +2854,7 @@
                 allCards = [...domCards, ...nonDomCards];
             }
 
+            // FUNCAO IMPORTANTE: Separa o que e do Quadro do que e da Agenda Global
             function serializeAndSeparate() {
                 syncAllCardsOrderFromDOM();
                 var boardData = [];
@@ -2891,7 +2878,7 @@
 
                 // 3. Agenda & Objetivos & Unscheduled (Sempre Global)
                 // Vamos procurar em allCards tudo que tem 'when' definido
-                // Isso pega tanto o que estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ nos slots visuais quanto o que pode ter se perdido
+                // Isso pega tanto o que está nos slots visuais quanto o que pode ter se perdido
                 const globalCards = allCards.filter(c => c.dataset.when && c.dataset.when.length > 0);
 
                 // Agrupar para salvar bonito, mas na real salvamos uma lista flat de "scheduled items" seria melhor.
@@ -2961,7 +2948,7 @@
                         const data = JSON.parse(e.target.result);
                         
                         if (data.version === '2.0' && data.boardsMeta && data.boards) {
-                            showConfirm('Isso substituirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ todos os seus quadros e agenda atuais. Deseja continuar?', function() {
+                            showConfirm('Isso substituirá todos os seus quadros e agenda atuais. Deseja continuar?', function() {
                                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(data.boardsMeta));
                                 localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(data.globalAgenda || []));
                                 Object.keys(data.boards).forEach(boardId => {
@@ -2974,7 +2961,7 @@
                                 }
                                 localStorage.setItem(LS_CURRENT_BOARD, newCurrentId);
                                 
-                                // Se o Firebase estiver pronto e o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio logado, salva na nuvem antes de recarregar
+                                // Se o Firebase estiver pronto e o usuário logado, salva na nuvem antes de recarregar
                                 if (isFirebaseReady && auth && auth.currentUser) {
                                     const uid = auth.currentUser.uid;
                                     const promises = [];
@@ -3020,10 +3007,10 @@
                                 }
                             });
                         } else {
-                            showConfirm('Detectado formato de backup de quadro ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico. Deseja mesclar com o quadro ativo?', function() {
+                            showConfirm('Detectado formato de backup de quadro único. Deseja mesclar com o quadro ativo?', function() {
                                 const dataToRestore = Array.isArray(data.data) ? data.data : data;
                                 if (!Array.isArray(dataToRestore)) {
-                                    throw new Error("Formato invÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido.");
+                                    throw new Error("Formato inválido.");
                                 }
                                 
                                 const boardData = dataToRestore.filter(d => d.type === 'kanban' || d.type === 'quad');
@@ -3037,7 +3024,7 @@
                                     localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(mergedAgenda));
                                 }
                                 
-                                // Se o Firebase estiver pronto e o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio logado, salva na nuvem antes de recarregar
+                                // Se o Firebase estiver pronto e o usuário logado, salva na nuvem antes de recarregar
                                 if (isFirebaseReady && auth && auth.currentUser) {
                                     const uid = auth.currentUser.uid;
                                     const promises = [];
@@ -3053,7 +3040,7 @@
                                             window.location.reload();
                                         })
                                         .catch(err => {
-                                            console.error("Erro ao sincronizar quadro ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico:", err);
+                                            console.error("Erro ao sincronizar quadro único:", err);
                                             alert('Quadro importado localmente, mas falhou ao enviar para a nuvem: ' + err.message);
                                             window.location.reload();
                                         });
@@ -3072,7 +3059,7 @@
 
             var HIST_LIMIT = 120; var hist = [], cursor = -1;
             function pushHistory(snap) {
-                // Snap agora ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© um objeto { boardData, agendaData }
+                // Snap agora é um objeto { boardData, agendaData }
                 hist = hist.slice(0, cursor + 1); hist.push(snap);
                 if (hist.length > HIST_LIMIT) { hist.shift(); } cursor = hist.length - 1; updateUndoUi();
             }
@@ -3091,7 +3078,7 @@
             function doUndo() { if (!canUndo()) return; withMute(function () { cursor--; restore(hist[cursor]); }); updateUndoUi(); }
             function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; restore(hist[cursor]); }); updateUndoUi(); }
 
-            // FunÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o unificada para carregar tudo
+            // Função unificada para carregar tudo
             function loadAndRenderAll() {
                 let boardData = [];
                 let agendaData = [];
@@ -3170,18 +3157,18 @@
                     if (aStr) agendaData = JSON.parse(aStr);
                 } catch (e) { console.error("Erro load agenda", e); }
 
-                // Se for a primeira vez e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o tiver agenda global, tenta migrar dados da agenda que estavam no board
-                // (Isso previne perda de dados ao atualizar o cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³digo)
+                // Se for a primeira vez e não tiver agenda global, tenta migrar dados da agenda que estavam no board
+                // (Isso previne perda de dados ao atualizar o código)
                 if (agendaData.length === 0 && boardData.some(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled')) {
                     console.log("Migrando agenda do quadro para global...");
                     agendaData = boardData.filter(d => d.type === 'time' || d.type === 'goal' || d.type === 'unscheduled');
                     boardData = boardData.filter(d => d.type === 'kanban' || d.type === 'quad');
-                    // Salva a migraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o
+                    // Salva a migração
                     localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, JSON.stringify(boardData));
                     localStorage.setItem(LS_GLOBAL_AGENDA, JSON.stringify(agendaData));
                 }
 
-                // Sincronizar boardId nos cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes se nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o tiver
+                // Sincronizar boardId nos cartões se não tiver
                 if (currentBoardId !== 'board-todos') {
                     boardData.forEach(list => {
                         if (list.cards) {
@@ -3203,9 +3190,9 @@
             }
 
             function renderFromData(boardData, agendaData) {
-                // Junta os dois para renderizar, mas a lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gica interna sabe que vieram de lugares diferentes
-                // Na verdade, a funÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o original renderFromData aceitava um array ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºnico.
-                // Vamos concatenar para reusar a lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gica de renderizaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o, pois visualmente ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© tudo card.
+                // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
+                // Na verdade, a função original renderFromData aceitava um array único.
+                // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
                 const allData = (boardData || []).concat(agendaData || []);
 
                 // === PRESERVAR SCROLL ===
@@ -3217,7 +3204,6 @@
                 if (slots) scrollMap.set(slots, { left: slots.scrollLeft, top: slots.scrollTop });
                 if (matrixEl) scrollMap.set(matrixEl, { left: matrixEl.scrollLeft, top: matrixEl.scrollTop });
 
-                clearSelection();
                 allCards = [];
                 boardEl.innerHTML = '';
                 matrixEl.innerHTML = '';
@@ -3275,7 +3261,6 @@
                     globalTimerInterval = null;
                 }
                 startGlobalTimer();
-                updateListHeaderTooltips();
 
                 scrollMap.forEach((pos, element) => {
                     if (element) {
@@ -3301,35 +3286,14 @@
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
             }
 
-            function sortBoardsMeta() {
-                if (!boardsMeta || !Array.isArray(boardsMeta)) return;
-                const todosBoard = boardsMeta.find(b => b.id === 'board-todos');
-                const trashBoard = boardsMeta.find(b => b.id === 'board-trash');
-                const otherBoards = boardsMeta.filter(b => b.id !== 'board-todos' && b.id !== 'board-trash');
-                
-                otherBoards.sort((a, b) => {
-                    const nameA = a.name || '';
-                    const nameB = b.name || '';
-                    return nameA.localeCompare(nameB, undefined, { sensitivity: 'base', numeric: true });
-                });
-                
-                const sorted = [];
-                if (todosBoard) sorted.push(todosBoard);
-                sorted.push(...otherBoards);
-                if (trashBoard) sorted.push(trashBoard);
-                boardsMeta = sorted;
-            }
-
             function loadBoardsMetadata() {
                 try {
                     const raw = localStorage.getItem(LS_BOARDS_META);
                     boardsMeta = raw ? JSON.parse(raw) : [];
-                    sortBoardsMeta();
                 } catch (e) { boardsMeta = []; }
             }
 
             function saveBoardsMetadata(syncToCloud = true) {
-                sortBoardsMeta();
                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                 updateBoardSelectUI();
 
@@ -3342,14 +3306,14 @@
 
             function ensureTodosBoard() {
                 if (!boardsMeta.find(b => b.id === 'board-todos')) {
-                    boardsMeta.unshift({ id: 'board-todos', name: 'TODOS ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹', lastModified: Date.now(), color: '#1976d2' });
+                    boardsMeta.unshift({ id: 'board-todos', name: 'TODOS 📋', lastModified: Date.now(), color: '#1976d2' });
                     saveBoardsMetadata(true);
                 }
             }
 
             function ensureTrashBoard() {
                 if (!boardsMeta.find(b => b.id === 'board-trash')) {
-                    boardsMeta.push({ id: 'board-trash', name: 'Lixeira ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â', lastModified: Date.now(), color: '#5a1419' });
+                    boardsMeta.push({ id: 'board-trash', name: 'Lixeira 🗑️', lastModified: Date.now(), color: '#5a1419' });
                     localStorage.setItem(LS_BOARD_PREFIX + 'board-trash', JSON.stringify([{ type: 'kanban', title: 'Apagados', cards: [] }]));
                     saveBoardsMetadata(true);
                 }
@@ -3367,7 +3331,7 @@
                     ensureTodosBoard();
                     ensureTrashBoard();
 
-                    // Tenta separar o que ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© agenda do que ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© quadro na migraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o inicial
+                    // Tenta separar o que é agenda do que é quadro na migração inicial
                     // (Simplificado: joga tudo no quadro primeiro, o loadAndRenderAll separa depois)
                     localStorage.setItem(LS_BOARD_PREFIX + newId, legacyData);
 
@@ -3401,7 +3365,7 @@
 
             function renameBoard() {
                 if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
-                    alert("VocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode alterar ou renomear este quadro especial.");
+                    alert("Você não pode alterar ou renomear este quadro especial.");
                     return;
                 }
                 const board = boardsMeta.find(b => b.id === currentBoardId);
@@ -3415,17 +3379,17 @@
 
             function deleteBoard() {
                 if (currentBoardId === 'board-todos' || currentBoardId === 'board-trash') {
-                    alert("VocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode excluir este quadro especial.");
+                    alert("Você não pode excluir este quadro especial.");
                     return;
                 }
                 if (boardsMeta.length <= 2) { // 2 because TODOS and Lixeira are permanent
-                    alert("VocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o tem outros quadros para excluir.");
+                    alert("Você não tem outros quadros para excluir.");
                     return;
                 }
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
 
-                if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pode ser desfeito.`)) {
+                if (confirm(`Tem certeza que deseja excluir o quadro "${board.name}"? Isso não pode ser desfeito.`)) {
                     localStorage.removeItem(LS_BOARD_PREFIX + currentBoardId);
                     if (isFirebaseReady && auth && auth.currentUser) {
                         db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).remove();
@@ -3443,10 +3407,10 @@
             function cloneBoard() {
                 const board = boardsMeta.find(b => b.id === currentBoardId);
                 if (!board) return;
-                const newName = prompt("Nome para a cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³pia:", board.name + " (CÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³pia)");
+                const newName = prompt("Nome para a cópia:", board.name + " (Cópia)");
                 if (!newName) return;
 
-                // Na cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³pia, pegamos APENAS os dados do quadro, nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o a agenda (que ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© global)
+                // Na cópia, pegamos APENAS os dados do quadro, não a agenda (que é global)
                 const { boardData } = serializeAndSeparate();
                 const newId = generateId();
 
@@ -3462,7 +3426,6 @@
                 if (id === currentBoardId && boardEl.children.length > 0) return;
 
                 saveImmediately();
-                clearSelection();
 
                 console.log("Switching to board: " + id);
                 currentBoardId = id;
@@ -3488,7 +3451,7 @@
             // ===== THEMES & CROSS-BOARD =====
             // ... (THEMES code remains same) ...
             const THEMES = {
-                '#1976d2': { name: 'Azul (PadrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
+                '#1976d2': { name: 'Azul (Padrão)', brand: '#1976d2', bg: '#0f1a2a', panel: '#0f223d', card: '#112b4a', text: '#e9f1ff' },
                 '#2e7d32': { name: 'Verde Floresta', brand: '#2e7d32', bg: '#0b160b', panel: '#142517', card: '#1a321e', text: '#e8f5e9' },
                 '#7b1fa2': { name: 'Roxo Profundo', brand: '#7b1fa2', bg: '#100614', panel: '#210e29', card: '#2c1236', text: '#f3e5f5' },
                 '#e65100': { name: 'Laranja Queimado', brand: '#e65100', bg: '#180d00', panel: '#2e1900', card: '#3d2200', text: '#fff3e0' },
@@ -3496,11 +3459,11 @@
                 '#37474f': { name: 'Cinza Escuro', brand: '#37474f', bg: '#101416', panel: '#1c2327', card: '#263238', text: '#eceff1' },
                 '#00838f': { name: 'Ciano', brand: '#00838f', bg: '#001416', panel: '#00262b', card: '#003339', text: '#e0f7fa' },
                 '#ad1457': { name: 'Rosa Choque', brand: '#ad1457', bg: '#160209', panel: '#2b0512', card: '#380617', text: '#fce4ec' },
-                '#00796b': { name: 'Verde ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âgua', brand: '#00796b', bg: '#001210', panel: '#00211f', card: '#002e2b', text: '#e0f2f1' },
+                '#00796b': { name: 'Verde Água', brand: '#00796b', bg: '#001210', panel: '#00211f', card: '#002e2b', text: '#e0f2f1' },
                 '#8d6e63': { name: 'Marrom Slate', brand: '#8d6e63', bg: '#18110f', panel: '#281e1b', card: '#352924', text: '#efebe9' },
-                '#3f51b5': { name: 'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Ândigo', brand: '#3f51b5', bg: '#0a0b16', panel: '#13152c', card: '#1c1f40', text: '#e8eaf6' },
-                '#ffb300': { name: 'Amarelo ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡mbar', brand: '#ffb300', bg: '#1c1400', panel: '#332500', card: '#463300', text: '#fff8e1' },
-                '#827717': { name: 'Verde LimÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o', brand: '#827717', bg: '#121200', panel: '#222204', card: '#313107', text: '#f9fbe7' },
+                '#3f51b5': { name: 'Índigo', brand: '#3f51b5', bg: '#0a0b16', panel: '#13152c', card: '#1c1f40', text: '#e8eaf6' },
+                '#ffb300': { name: 'Amarelo Âmbar', brand: '#ffb300', bg: '#1c1400', panel: '#332500', card: '#463300', text: '#fff8e1' },
+                '#827717': { name: 'Verde Limão', brand: '#827717', bg: '#121200', panel: '#222204', card: '#313107', text: '#f9fbe7' },
                 '#d81b60': { name: 'Rosa Magenta', brand: '#d81b60', bg: '#1a000a', panel: '#320015', card: '#44001d', text: '#fce4ec' },
                 '#673ab7': { name: 'Roxo Lavanda', brand: '#673ab7', bg: '#0e0618', panel: '#1d0e32', card: '#281446', text: '#ede7f6' },
                 '#00c853': { name: 'Esmeralda', brand: '#00c853', bg: '#001a0a', panel: '#003314', card: '#00481c', text: '#e8f5e9' },
@@ -3508,9 +3471,9 @@
                 '#00e676': { name: 'Menta Neon', brand: '#00e676', bg: '#001209', panel: '#002412', card: '#00361b', text: '#e8fdf5' },
                 '#00b0ff': { name: 'Oceano Profundo', brand: '#00b0ff', bg: '#000a12', panel: '#001524', card: '#00223b', text: '#e0f7ff' },
                 '#ec407a': { name: 'Rose Gold', brand: '#ec407a', bg: '#1a0a0f', panel: '#2e141c', card: '#3f1b26', text: '#fce4ec' },
-                '#f43f5e': { name: 'PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´r do Sol Violeta', brand: '#f43f5e', bg: '#18040d', panel: '#2d0a1b', card: '#3e0f26', text: '#ffeef2' },
+                '#f43f5e': { name: 'Pôr do Sol Violeta', brand: '#f43f5e', bg: '#18040d', panel: '#2d0a1b', card: '#3e0f26', text: '#ffeef2' },
                 '#607d8b': { name: 'Grafite', brand: '#607d8b', bg: '#111618', panel: '#1e262a', card: '#2a353c', text: '#eceff1' },
-                '#ff8f00': { name: 'ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡mbar Dourado', brand: '#ff8f00', bg: '#1a0e00', panel: '#301a00', card: '#442400', text: '#fff8e1' },
+                '#ff8f00': { name: 'Âmbar Dourado', brand: '#ff8f00', bg: '#1a0e00', panel: '#301a00', card: '#442400', text: '#fff8e1' },
                 '#880e4f': { name: 'Ameixa Escura', brand: '#880e4f', bg: '#12020a', panel: '#240414', card: '#33061d', text: '#fce4ec' }
             };
 
@@ -3559,7 +3522,7 @@
                     r.style.setProperty('--brand-rgb', '25, 118, 210');
                 }
 
-                // CÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lculo do contraste YIQ para o cabeÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§alho e painÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©is temÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ticos
+                // Cálculo do contraste YIQ para o cabeçalho e painéis temáticos
                 const contrast = getContrastYIQ(brandColor);
                 if (contrast === 'light') {
                     r.style.setProperty('--header-text', '#122b4a');
@@ -3665,7 +3628,7 @@
                         moved = true;
                         actualListTitle = targetData[0].title;
                         if (targetBoardId !== 'board-trash') {
-                            alert(`Lista "${targetListTitle}" nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrada. Movido para "${targetData[0].title}".`);
+                            alert(`Lista "${targetListTitle}" nÃ£o encontrada. Movido para "${targetData[0].title}".`);
                         }
                     } else {
                         targetData.unshift({ type: 'kanban', title: 'Inbox', cards: [cardData] });
@@ -3735,7 +3698,6 @@
                 const select = document.getElementById('boardSelect');
                 if (!select) return;
 
-                sortBoardsMeta();
                 select.innerHTML = '';
                 boardsMeta.forEach(b => {
                     const opt = document.createElement('option');
@@ -3881,12 +3843,9 @@
             function duplicateCards(cards) {
                 if (!cards || !cards.length) return;
                 
-                const validCards = cards.filter(c => c && c.parentElement);
-                if (!validCards.length) return;
-
                 // Group selected cards by their parent list (.cards container)
                 const groupedByParent = new Map();
-                validCards.forEach(c => {
+                cards.forEach(c => {
                     const parent = c.parentElement;
                     if (!groupedByParent.has(parent)) groupedByParent.set(parent, []);
                     groupedByParent.get(parent).push(c);
@@ -3930,7 +3889,7 @@
 
                     var mins = Math.floor(seconds / 60);
                     var secs = seconds % 60;
-                    disp.textContent = `ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â±ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â ${to2(mins)}:${to2(secs)}`;
+                    disp.textContent = `⏱️ ${to2(mins)}:${to2(secs)}`;
 
                     // Atualiza Barra de Progresso
                     if (progressBar) {
@@ -3956,7 +3915,7 @@
                     }
                     else {
                         var totalMins = Math.round(totalSeconds / 60);
-                        disp.textContent = `ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â³ ${totalMins} min`;
+                        disp.textContent = `⏳ ${totalMins} min`;
                         disp.style.color = ''; disp.style.background = 'rgba(0,0,0,.2)';
                         if (progressBar) progressBar.style.width = '0%';
                     }
@@ -3965,7 +3924,7 @@
                 }
             }
 
-            // --- REINSERIDO CÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDIGO FALTANTE DA FUNÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O TOGGLE ---
+            // --- REINSERIDO CÓDIGO FALTANTE DA FUNÇÃO TOGGLE ---
             function toggleCardCompletion(e) {
                 e.stopPropagation();
                 const card = e.target.closest('.card');
@@ -3996,7 +3955,7 @@
                     c.style.setProperty('--board-color', '#20486f');
                 }
 
-                // Atualizar tooltip indicando a qual quadro o cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o pertence
+                // Atualizar tooltip indicando a qual quadro o cartão pertence
                 const board = boardsMeta.find(b => b.id === c.dataset.boardId);
                 if (board) {
                     c.title = "Quadro: " + board.name;
@@ -4041,9 +4000,9 @@
                     }
                     try {
                         const [y, m, d] = c.dataset.due.split('-');
-                        dateEl.textContent = `ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ${d}/${m}`;
+                        dateEl.textContent = `📅 ${d}/${m}`;
                     } catch (e) {
-                        dateEl.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ' + c.dataset.due;
+                        dateEl.textContent = '📅 ' + c.dataset.due;
                     }
                     dateEl.style.display = '';
                 } else if (dateEl) {
@@ -4074,7 +4033,7 @@
                 
                 var chkWrap = el('span', 'card-checkbox-wrapper');
                 var dot = el('span', 'dot');
-                var dotCheck = el('span', 'dot-check'); dotCheck.textContent = 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ';
+                var dotCheck = el('span', 'dot-check'); dotCheck.textContent = '✓';
                 dot.appendChild(dotCheck);
                 chkWrap.appendChild(dot);
                 
@@ -4083,7 +4042,7 @@
                 header.appendChild(chkWrap);
                 header.appendChild(timerDisp);
 
-                var kb = el('button', 'kebab'); kb.type = 'button'; kb.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹Ãƒâ€šÃ‚Â®';
+                var kb = el('button', 'kebab'); kb.type = 'button'; kb.textContent = '⋮';
                 kb.addEventListener('click', function (ev) {
                     ev.stopPropagation();
                     clearSelection();
@@ -4151,16 +4110,6 @@
                     handleCardDblClick(c);
                 });
 
-                c.addEventListener('contextmenu', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (!selected.has(c)) {
-                        clearSelection();
-                        addSelection(c);
-                    }
-                    showCtx(e.clientX, e.clientY, c);
-                });
-
                 if (!allCards.includes(c)) {
                     allCards.push(c);
                 }
@@ -4212,7 +4161,7 @@
                         }
                     } else if (textIsNowEmpty) {
                         if (!textWasEmpty) {
-                            showConfirm('Excluir cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o vazio?', function () {
+                            showConfirm('Excluir cartão vazio?', function () {
                                 removeCard(targetCard, true);
                                 if (card._originalReference) renderWeeklyView();
                             });
@@ -4435,7 +4384,7 @@
                 let targetWhen = '';
 
                 const EISENHOWER_COLORS = {
-                    Q1: '#2e7d32', // Green (FaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a)
+                    Q1: '#2e7d32', // Green (Faça)
                     Q2: '#1976d2', // Blue (Agende)
                     Q3: '#ffb300', // Yellow (Delegue)
                     Q4: '#c62828'  // Red (Elimine)
@@ -4506,7 +4455,7 @@
                 t.value = title || 'Nova lista';
                 var addBtn = el('button', 'add-btn-minimal');
                 addBtn.textContent = '+';
-                addBtn.title = 'Novo CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o';
+                addBtn.title = 'Novo Cartão';
                 addBtn.onclick = function (e) {
                     e.stopPropagation();
                     var card = createCard({ text: '' });
@@ -4515,7 +4464,7 @@
                     startInlineEdit(card, true);
                 };
                 var more = el('button', 'more');
-                more.type = 'button'; more.textContent = 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹Ãƒâ€šÃ‚Â¯';
+                more.type = 'button'; more.textContent = '⋯';
                 more.addEventListener('click', function (ev) { ev.stopPropagation(); var r = more.getBoundingClientRect(); showListCtx(r.right, r.bottom, list); });
                 h.appendChild(t); h.appendChild(addBtn); h.appendChild(more);
                 list.appendChild(h);
@@ -4535,12 +4484,12 @@
                 matrixEl.innerHTML = '';
                 var corner = el('div', 'axis corner'); corner.style.gridArea = '1 / 1'; matrixEl.appendChild(corner);
                 var axX1 = el('div', 'axis'); axX1.textContent = 'URGENTE'; axX1.style.gridArea = '1 / 2'; matrixEl.appendChild(axX1);
-                var axX2 = el('div', 'axis'); axX2.textContent = 'NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O URGENTE'; axX2.style.gridArea = '1 / 3'; matrixEl.appendChild(axX2);
+                var axX2 = el('div', 'axis'); axX2.textContent = 'NÃO URGENTE'; axX2.style.gridArea = '1 / 3'; matrixEl.appendChild(axX2);
                 var axY1 = el('div', 'axis axis-y'); axY1.textContent = 'IMPORTANTE'; axY1.style.gridArea = '2 / 1'; matrixEl.appendChild(axY1);
-                var axY2 = el('div', 'axis axis-y'); axY2.textContent = 'NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢O IMPORTANTE'; axY2.style.gridArea = '3 / 1'; matrixEl.appendChild(axY2);
+                var axY2 = el('div', 'axis axis-y'); axY2.textContent = 'NÃO IMPORTANTE'; axY2.style.gridArea = '3 / 1'; matrixEl.appendChild(axY2);
 
                 var specs = [
-                    { quad: 'Q1', label: 'FAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡A AGORA', area: '2 / 2' },
+                    { quad: 'Q1', label: 'FAÇA AGORA', area: '2 / 2' },
                     { quad: 'Q2', label: 'AGENDE', area: '2 / 3' },
                     { quad: 'Q3', label: 'DELEGUE', area: '3 / 2' },
                     { quad: 'Q4', label: 'ELIMINE', area: '3 / 3' }
@@ -4552,7 +4501,7 @@
                     var t = el('div', 'quad-label'); t.textContent = sp.label;
                     var addBtn = el('button', 'add-btn-minimal');
                     addBtn.textContent = '+';
-                    addBtn.title = 'Novo CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o';
+                    addBtn.title = 'Novo Cartão';
                     addBtn.onclick = function (e) {
                         e.stopPropagation();
                         var card = createCard({ text: '' });
@@ -4576,7 +4525,7 @@
                 var goalSlot = el('section', 'list goal-slot');
                 goalSlot.dataset.type = 'goal';
                 var goalHead = el('div', 'head');
-                var goalLabel = el('span', 'goal-label'); goalLabel.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¯ OBJETIVO DO DIA';
+                var goalLabel = el('span', 'goal-label'); goalLabel.textContent = '🎯 OBJETIVO DO DIA';
                 var goalAdd = el('button', 'add-btn-minimal');
                 goalAdd.textContent = '+';
                 goalAdd.onclick = function (e) {
@@ -4596,7 +4545,7 @@
                 unscheduledSlot.dataset.type = 'unscheduled';
                 unscheduledSlot.id = 'unscheduled-bucket';
                 var uHead = el('div', 'head');
-                var uLabel = el('span', 'unscheduled-label'); uLabel.textContent = 'ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â HORÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂRIO A DEFINIR';
+                var uLabel = el('span', 'unscheduled-label'); uLabel.textContent = '⚠️ HORÁRIO A DEFINIR';
                 var uAdd = el('button', 'add-btn-minimal');
                 uAdd.textContent = '+';
                 uAdd.onclick = function (e) {
@@ -4647,45 +4596,6 @@
             }
 
             function getActiveDay() { var i = document.getElementById('agendaDate'); return (i && i.value) ? i.value : new Date().toISOString().slice(0, 10); }
-
-            function updateListHeaderTooltips() {
-                const isTodosBoard = (currentBoardId === 'board-todos');
-                const lists = $$('.board .list[data-type="kanban"]');
-                lists.forEach(list => {
-                    const header = list.querySelector('header');
-                    const titleInp = list.querySelector('.title');
-                    if (!header) return;
-                    
-                    if (!isTodosBoard) {
-                        header.removeAttribute('title');
-                        if (titleInp) titleInp.removeAttribute('title');
-                        return;
-                    }
-                    
-                    const cards = list.querySelectorAll('.card');
-                    const boardIds = new Set();
-                    cards.forEach(c => {
-                        if (c.dataset.boardId) {
-                            boardIds.add(c.dataset.boardId);
-                        }
-                    });
-                    
-                    if (boardIds.size === 0) {
-                        const defaultMsg = "Sem cartÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes";
-                        header.title = defaultMsg;
-                        if (titleInp) titleInp.title = defaultMsg;
-                    } else {
-                        const boardNames = Array.from(boardIds).map(bId => {
-                            const board = boardsMeta.find(b => b.id === bId);
-                            return board ? board.name : "Quadro Desconhecido";
-                        });
-                        boardNames.sort();
-                        const tooltipText = "Quadros nesta lista: " + boardNames.join(', ');
-                        header.title = tooltipText;
-                        if (titleInp) titleInp.title = tooltipText;
-                    }
-                });
-            }
 
             function updateSlotsHasItems() {
                 const day = getActiveDay();
@@ -4753,7 +4663,6 @@
                     }
                 });
                 updateTotalTimerDisplay();
-                updateListHeaderTooltips();
                 renderWeeklyView();
             }
 
@@ -4826,13 +4735,13 @@
 
             // Fechar menus ao clicar fora ou desistir
             document.addEventListener('mousedown', function (e) {
-                // Se clicar fora do menu de contexto do cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o for no botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o de acionamento (kebab)
+                // Se clicar fora do menu de contexto do cartão e não for no botão de acionamento (kebab)
                 if (ctx && ctx.style.display === 'block') {
                     if (!ctx.contains(e.target) && !e.target.closest('.kebab')) {
                         hideCtx();
                     }
                 }
-                // Se clicar fora do menu de contexto da lista e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o for no botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o de acionamento (more)
+                // Se clicar fora do menu de contexto da lista e não for no botão de acionamento (more)
                 if (listCtx && listCtx.style.display === 'block') {
                     if (!listCtx.contains(e.target) && !e.target.closest('.more')) {
                         listCtx.style.display = 'none';
@@ -4870,7 +4779,7 @@
                     btn.style.display = 'flex';
                     btn.style.alignItems = 'center';
                     btn.style.justifyContent = 'space-between';
-                    btn.innerHTML = `${b.name} <span style="font-size:10px">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶</span>`;
+                    btn.innerHTML = `${b.name} <span style="font-size:10px">▶</span>`;
 
                     // Create the sub-submenu, but we will append it to #ctx
                     const nestedSub = document.createElement('div');
@@ -4899,7 +4808,7 @@
                                     kanbanLists.forEach(l => {
                                         const lBtn = document.createElement('button'); 
                                         lBtn.type = 'button';
-                                        lBtn.textContent = l.title || 'Sem tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­tulo';
+                                        lBtn.textContent = l.title || 'Sem título';
                                         lBtn.onclick = function (ev) { 
                                             ev.stopPropagation(); 
                                             moveCardToBoard(ctxTarget, b.id, l.title); 
@@ -4973,7 +4882,7 @@
                     addMoveAllButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || l.dataset.quad || l.dataset.time || ('Lista ' + (i + 1)), ctxMoveAllSub, fromList);
                 });
                 const goalSlot = slotsRoot.querySelector('.goal-slot');
-                if (goalSlot && goalSlot !== fromList) addMoveAllButton(goalSlot, 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¯ OBJETIVO DO DIA', ctxMoveAllSub, fromList);
+                if (goalSlot && goalSlot !== fromList) addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveAllSub, fromList);
             }
 
             function addMoveAllButton(targetListElement, name, submenuContainer, sourceListElement) {
@@ -5056,21 +4965,18 @@
                 else if (action === 'del') { block.forEach(function (n) { removeCard(n); }); }
                 else if (action === 'color') { openColorDialog(block); }
                 else if (action === 'date') { openDateDialog(block); }
-                else if (action === 'agenda') { if (block.length) openAgendaDialog(block[0]); }
-                else if (action === 'alert') { if (block.length) openAlertDialog(block[0], function(res) { 
-                       block[0].dataset.alertEnabled = res.alertEnabled ? 'true' : 'false'; block[0].dataset.alertValue = 
-                       res.alertValue; block[0].dataset.alertUnit = res.alertUnit; block[0].dataset.alertFired = 'false'; 
-                       paintCard(block[0]); persist(); }); }
                 else if (action === 'timer') { openTimerDialog(block); }
+                else if (action === 'agenda') { openAgendaDialog(block[0]); }
+                else if (action === 'alert') { openAlertDialog(block[0]); }
                 else if (action === 'gemini-subtasks') { generateSubtasks(block); }
                 else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
                 else if (action === 'select-mode') { if (!isSelectionMode) toggleSelectionMode(); addSelection(ctxTarget); }
-                else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
+                else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
             });
 
             function showPropertiesDialog(card) {
                 if (!card) return;
-                showModal('Propriedades do CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o', function() {
+                showModal('Propriedades do Cartão', function() {
                     const wrap = el('div');
                     wrap.style.textAlign = 'left';
                     wrap.style.fontSize = '14px';
@@ -5082,7 +4988,7 @@
                     if (hist.length === 0) {
                         const fallBackStr = el('div');
                         fallBackStr.style.color = '#ccc';
-                        fallBackStr.textContent = 'Sem registros de histÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³rico. (CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o legado)';
+                        fallBackStr.textContent = 'Sem registros de histórico. (Cartão legado)';
                         wrap.appendChild(fallBackStr);
                     } else {
                         const ul = el('ul');
@@ -5093,7 +4999,7 @@
                         hist.forEach(h => {
                             const li = el('li');
                             const dateStr = new Date(h.time).toLocaleString();
-                            li.innerHTML = `<strong>${h.action}</strong> <br><span style="font-size:12px;color:#9fb3d2">ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ ${dateStr}</span>`;
+                            li.innerHTML = `<strong>${h.action}</strong> <br><span style="font-size:12px;color:#9fb3d2">📅 ${dateStr}</span>`;
                             li.style.marginBottom = '8px';
                             ul.appendChild(li);
                         });
@@ -5113,15 +5019,15 @@
                     addMoveAllButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || l.dataset.quad || l.dataset.time || ('Lista ' + (i + 1)), listMoveSub, listCtxTarget);
                 });
                 const goalSlot = slotsRoot.querySelector('.goal-slot');
-                if (goalSlot && goalSlot !== listCtxTarget) addMoveAllButton(goalSlot, 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¯ OBJETIVO DO DIA', listMoveSub, listCtxTarget);
+                if (goalSlot && goalSlot !== listCtxTarget) addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', listMoveSub, listCtxTarget);
             }
             function buildMoveSubmenu() {
                 ctxMoveSub.innerHTML = '';
                 $$('.list[data-type="kanban"]', boardEl).forEach(function (l, i) { addMoveButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || ('Lista ' + (i + 1)), ctxMoveSub); });
-                const matrixLabels = { 'Q1': 'Q1 - FAÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡A AGORA', 'Q2': 'Q2 - AGENDE', 'Q3': 'Q3 - DELEGUE', 'Q4': 'Q4 - ELIMINE' };
+                const matrixLabels = { 'Q1': 'Q1 - FAÇA AGORA', 'Q2': 'Q2 - AGENDE', 'Q3': 'Q3 - DELEGUE', 'Q4': 'Q4 - ELIMINE' };
                 $$('.list[data-type="quad"]', matrixEl).forEach(function (l) { addMoveButton(l, matrixLabels[l.dataset.quad] || l.dataset.quad, ctxMoveSub); });
                 const goalSlot = slotsRoot.querySelector('.goal-slot');
-                if (goalSlot) addMoveButton(goalSlot, 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Â¯ OBJETIVO DO DIA', ctxMoveSub);
+                if (goalSlot) addMoveButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveSub);
                 $$('.list[data-type="time"]', schedule).forEach(function (l) { addMoveButton(l, l.dataset.time, ctxMoveSub); });
             }
             listCtx.addEventListener('click', function (e) {
@@ -5145,7 +5051,7 @@
                     });
                 }
                 if (action === 'list-del-all' && listCtxTarget) {
-                    showConfirm('Deseja excluir TODOS os cartÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµes desta lista?', function () {
+                    showConfirm('Deseja excluir TODOS os cartÃµes desta lista?', function () {
                         var cs = listCtxTarget.querySelector('.cards');
                         if (cs) {
                             cs.innerHTML = '';
@@ -5160,7 +5066,7 @@
             var MATRIX_COLORS = { Q1: '#104239', Q2: '#0e3155', Q3: '#5a4014', Q4: '#5a1419' };
             var customColorLabels = JSON.parse(localStorage.getItem(LS_LABELS_KEY)) || {
                 '#5dade2': 'Azul claro (Krav Maga)', '#f9e79f': 'Amarelo claro (GDF)', '#f5b041': 'Laranja (Pessoal)',
-                '#1abc9c': 'Verde-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡gua', '#8e44ad': 'LilÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡s', '#1f3a93': 'Azul escuro', '#2c3e50': 'Grafite', '#48c9b0': 'Turquesa'
+                '#1abc9c': 'Verde-água', '#8e44ad': 'Lilás', '#1f3a93': 'Azul escuro', '#2c3e50': 'Grafite', '#48c9b0': 'Turquesa'
             };
             function saveCustomLabels() { localStorage.setItem(LS_LABELS_KEY, JSON.stringify(customColorLabels)); }
             var EXTRA_COLORS = [];
@@ -5169,16 +5075,16 @@
                     { id: 'krav', name: customColorLabels['#5dade2'] || 'Azul claro (Krav Maga)', hex: '#5dade2' },
                     { id: 'gdf', name: customColorLabels['#f9e79f'] || 'Amarelo claro (GDF)', hex: '#f9e79f' },
                     { id: 'pessoal', name: customColorLabels['#f5b041'] || 'Laranja (Pessoal)', hex: '#f5b041' },
-                    { id: 'teal', name: customColorLabels['#1abc9c'] || 'Verde-ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡gua', hex: '#1abc9c' },
-                    { id: 'lilas', name: customColorLabels['#8e44ad'] || 'LilÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡s', hex: '#8e44ad' },
+                    { id: 'teal', name: customColorLabels['#1abc9c'] || 'Verde-água', hex: '#1abc9c' },
+                    { id: 'lilas', name: customColorLabels['#8e44ad'] || 'Lilás', hex: '#8e44ad' },
                     { id: 'navy', name: customColorLabels['#1f3a93'] || 'Azul escuro', hex: '#1f3a93' },
                     { id: 'grafite', name: customColorLabels['#2c3e50'] || 'Grafite', hex: '#2c3e50' },
                     { id: 'turquesa', name: customColorLabels['#48c9b0'] || 'Turquesa', hex: '#48c9b0' }
                 ];
                 return [
-                    { id: 'q1', name: 'Verde (FaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a agora)', hex: '#2e7d32', noEdit: true },
+                    { id: 'q1', name: 'Verde (Faça agora)', hex: '#2e7d32', noEdit: true },
                     { id: 'q2', name: 'Azul (Agende)', hex: '#1976d2', noEdit: true },
-                    { id: 'q3', name: 'ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡mbar (Delegue)', hex: '#ffb300', noEdit: true },
+                    { id: 'q3', name: 'Âmbar (Delegue)', hex: '#ffb300', noEdit: true },
                     { id: 'q4', name: 'Vermelho (Elimine)', hex: '#c62828', noEdit: true }
                 ].concat(EXTRA_COLORS);
             }
@@ -5204,7 +5110,7 @@
                 return { wrap: wrap, okButton: ok, cancelButton: cancel, body: body };
             }
 
-            function showConfirm(message, onYes) { showModal('ConfirmaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o', function () { var d = el('div'); d.textContent = message; return d; }, function (body, wrap) { if (typeof onYes === 'function') onYes(); }); }
+            function showConfirm(message, onYes) { showModal('Confirmação', function () { var d = el('div'); d.textContent = message; return d; }, function (body, wrap) { if (typeof onYes === 'function') onYes(); }); }
 
             function openColorDialog(cards) {
                 if (!cards.length) return;
@@ -5231,7 +5137,7 @@
                     gridPre.style.gap = '8px';
                     
                     const eisenhowerList = [
-                        { name: 'FaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a (Verde)', hex: '#2e7d32' },
+                        { name: 'Faça (Verde)', hex: '#2e7d32' },
                         { name: 'Agende (Azul)', hex: '#1976d2' },
                         { name: 'Delegue (Amarelo)', hex: '#ffb300' },
                         { name: 'Elimine (Vermelho)', hex: '#c62828' }
@@ -5390,7 +5296,7 @@
                     addArea.appendChild(row);
                     wrap.appendChild(addArea);
 
-                    // Area de gestÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o (excluir etiquetas)
+                    // Area de gestão (excluir etiquetas)
                     var manageArea = el('div');
                     manageArea.style.display = 'none';
                     manageArea.style.flexDirection = 'column';
@@ -5415,7 +5321,7 @@
 
                             var delBtn = el('button');
                             delBtn.type = 'button';
-                            delBtn.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â';
+                            delBtn.textContent = '🗑️';
                             delBtn.style.background = 'transparent';
                             delBtn.style.border = 'none';
                             delBtn.style.cursor = 'pointer';
@@ -5452,7 +5358,7 @@
                     return wrap;
                 }, function (body, wrap) {
                     if (body._isManaging) {
-                        return; // Se estiver no modo gestÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o, o OK apenas fecha o modal apÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³s salvar
+                        return; // Se estiver no modo gestão, o OK apenas fecha o modal após salvar
                     }
                     var v = (body._chosen === undefined) ? (cards[0].dataset.labelColor || '') : body._chosen;
                     cards.forEach(function (c) { 
@@ -5463,7 +5369,7 @@
                 });
 
                 const manageBtn = el('button'); 
-                manageBtn.textContent = 'Gerir Etiquetas ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â·ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â'; 
+                manageBtn.textContent = 'Gerir Etiquetas 🏷️'; 
                 manageBtn.className = 'manage-labels-btn';
                 
                 let isManaging = false;
@@ -5472,8 +5378,8 @@
                     isManaging = !isManaging;
                     modalElements.body._isManaging = isManaging;
                     modalElements.body._toggleManage(isManaging);
-                    manageBtn.textContent = isManaging ? 'Voltar ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  SeleÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o' : 'Gerir Etiquetas ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â·ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â';
-                    modalElements.okButton.textContent = isManaging ? 'ConcluÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­do' : 'OK';
+                    manageBtn.textContent = isManaging ? 'Voltar à Seleção' : 'Gerir Etiquetas 🏷️';
+                    modalElements.okButton.textContent = isManaging ? 'Concluído' : 'OK';
                 };
                 modalElements.wrap.querySelector('.row').prepend(manageBtn);
             }
@@ -5536,8 +5442,8 @@
                 if (!weeklyGrid || weeklyContainer.classList.contains('collapsed')) return;
                 weeklyGrid.innerHTML = '';
                 const currentDay = getActiveDay();
-                const weekDates = getWeekRange(weeklyCurrentDate);
-                const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡b'];
+                const weekDates = getWeekRange(currentDay);
+                const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                 const startW = weekDates[0].split('-').reverse().slice(0, 2).join('/');
                 const endW = weekDates[6].split('-').reverse().slice(0, 2).join('/');
                 document.getElementById('weekRangeDisplay').textContent = `${startW} - ${endW}`;
@@ -5554,7 +5460,7 @@
                     
                     const addBtn = el('button', 'weekly-add-btn');
                     addBtn.type = 'button';
-                    addBtn.title = 'Adicionar cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o';
+                    addBtn.title = 'Adicionar cartão';
                     addBtn.textContent = '+';
                     addBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -5617,16 +5523,6 @@
                                 e.stopPropagation(); return;
                             }
                             handleCardDblClick(originalCard);
-                        });
-
-                        clone.addEventListener('contextmenu', function (e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!selected.has(originalCard)) {
-                                clearSelection();
-                                addSelection(originalCard);
-                            }
-                            showCtx(e.clientX, e.clientY, originalCard);
                         });
 
                         clone.addEventListener('dragstart', function (e) {
@@ -5698,48 +5594,13 @@
             }
 
             function changeWeek(offset) {
-                const currentDate = new Date(weeklyCurrentDate + 'T12:00:00');
+                const currentDate = new Date(agendaDateInput.value + 'T12:00:00');
                 currentDate.setDate(currentDate.getDate() + (offset * 7));
-                weeklyCurrentDate = currentDate.toISOString().slice(0, 10);
-                renderWeeklyView();
+                agendaDateInput.value = currentDate.toISOString().slice(0, 10);
+                applyFilters();
             }
             document.getElementById('prevWeekBtn').addEventListener('click', () => changeWeek(-1));
             document.getElementById('nextWeekBtn').addEventListener('click', () => changeWeek(1));
-
-            // Dynamically inject Weekly View today button
-            const weekControls = document.querySelector('.weekly-controls');
-            if (weekControls && !document.getElementById('todayWeekBtn')) {
-                const btn = document.createElement('button');
-                btn.id = 'todayWeekBtn';
-                btn.className = 'weekly-today-btn';
-                btn.title = 'Ir para a Semana Atual';
-                btn.textContent = 'Hoje';
-                btn.addEventListener('click', () => {
-                    weeklyCurrentDate = new Date().toISOString().slice(0, 10);
-                    renderWeeklyView();
-                });
-                weekControls.appendChild(btn);
-            }
-
-            // Dynamically inject Agenda sidebar today button
-            const dateNav = document.querySelector('.schedule header .date-nav');
-            if (dateNav && !document.getElementById('todayDayBtn')) {
-                const btn = document.createElement('button');
-                btn.id = 'todayDayBtn';
-                btn.title = 'Ir para Hoje';
-                btn.style.fontWeight = 'bold';
-                btn.style.fontSize = '13px';
-                btn.style.padding = '4px 6px';
-                btn.textContent = 'Hoje';
-                btn.addEventListener('click', () => {
-                    const inputEl = document.getElementById('agendaDate');
-                    if (inputEl) {
-                        inputEl.value = new Date().toISOString().slice(0, 10);
-                        applyFilters();
-                    }
-                });
-                dateNav.appendChild(btn);
-            }
 
             // ===== INITIALIZATION =====
             const toggleAgendaBtn = document.getElementById('toggleAgendaBtn');
@@ -5876,10 +5737,10 @@
             document.getElementById('copyDayBtn').addEventListener('click', function () {
                 const day = getActiveDay();
                 agendaClipboard = allCards.filter(c => (c.dataset.when || '').startsWith(day + 'T')).map(c => ({ ...cardToData(c), timeOrGoal: (c.dataset.when || '').substring(11) }));
-                const btn = document.getElementById('copyDayBtn'); btn.textContent = 'Copiado!'; setTimeout(() => { btn.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹'; }, 1000);
+                const btn = document.getElementById('copyDayBtn'); btn.textContent = 'Copiado!'; setTimeout(() => { btn.textContent = '📋'; }, 1000);
             });
             document.getElementById('pasteDayBtn').addEventListener('click', function () {
-                if (agendaClipboard.length === 0) { const btn = document.getElementById('pasteDayBtn'); btn.textContent = 'Vazio!'; setTimeout(() => { btn.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒâ€šÃ‚Â¥'; }, 1000); return; }
+                if (agendaClipboard.length === 0) { const btn = document.getElementById('pasteDayBtn'); btn.textContent = 'Vazio!'; setTimeout(() => { btn.textContent = '📥'; }, 1000); return; }
                 const day = getActiveDay();
                 agendaClipboard.forEach(cardData => {
                     const newData = { ...cardData }; newData.when = day + 'T' + newData.timeOrGoal;
@@ -5961,7 +5822,7 @@
                     return;
                 }
                 if ((activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.closest('.modal')) || (isEditingCard)) {
-                    if (isEditingCard && (e.key === 'Delete' || e.key === 'Backspace') && activeEl.textContent.trim() === '') { e.preventDefault(); const cardToDelete = [activeEl.closest('.card')]; showConfirm('Excluir cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o vazio?', function () { cardToDelete.forEach(n => removeCard(n)); clearSelection(); }); }
+                    if (isEditingCard && (e.key === 'Delete' || e.key === 'Backspace') && activeEl.textContent.trim() === '') { e.preventDefault(); const cardToDelete = [activeEl.closest('.card')]; showConfirm('Excluir cartão vazio?', function () { cardToDelete.forEach(n => removeCard(n)); clearSelection(); }); }
                     return;
                 }
                 if (!currentSelection.length && !ctxTarget && (e.key === 'Delete' || e.key === 'Backspace')) return;
@@ -5972,7 +5833,7 @@
                     else if (e.key.toLowerCase() === 'p') { 
                         e.preventDefault();
                         const activeProps = document.querySelector('.modal-wrap');
-                        if (activeProps && activeProps.querySelector('h3') && activeProps.querySelector('h3').textContent === 'Propriedades do CartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o') {
+                        if (activeProps && activeProps.querySelector('h3') && activeProps.querySelector('h3').textContent === 'Propriedades do Cartão') {
                             activeProps.remove();
                         } else {
                             showPropertiesDialog(currentSelection[0]);
@@ -5981,7 +5842,7 @@
                     return;
                 }
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateCards(currentSelection); return; }
-                if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o(s)?', function () { currentSelection.forEach(function (n) { removeCard(n); }); clearSelection(); }); return; }
+                if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartão(s)?', function () { currentSelection.forEach(function (n) { removeCard(n); }); clearSelection(); }); return; }
                 if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey)) {
                     let moved = false;
                     let targetCard = currentSelection[0];
@@ -6260,17 +6121,17 @@
                         const disp = runningCard.querySelector('.timer-display');
                         
                         document.getElementById('focusTargetText').textContent = text;
-                        document.getElementById('focusTargetTime').textContent = disp ? disp.textContent.replace('ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â±ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â ', '').replace(' min', '').replace('ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â³ ', '') : '...';
+                        document.getElementById('focusTargetTime').textContent = disp ? disp.textContent.replace('⏱️ ', '').replace(' min', '').replace('⏳ ', '') : '...';
                         
                         const toggleBtn = document.getElementById('focusToggleBtn');
-                        toggleBtn.textContent = state === 'running' ? 'ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚ÂÃƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â' : 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â';
+                        toggleBtn.textContent = state === 'running' ? '⏸️' : '▶️';
                         return;
                     }
                 }
                 document.body.classList.remove('focus-mode');
             }
 
-            // LÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gica dos botÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes do foco
+            // Lógica dos botões do foco
             document.getElementById('focusToggleBtn').onclick = () => {
                 const runningCard = document.querySelector('.card.timer-running, .card.timer-finished, .card.timer-paused');
                 if (runningCard) {
@@ -6401,12 +6262,12 @@
                         const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
 
                         if (type === 'sidebar') {
-                            // Calcula a nova largura (sidebar estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ na direita, entÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o mouse pra esquerda = aumenta width)
+                            // Calcula a nova largura (sidebar está na direita, então mouse pra esquerda = aumenta width)
                             let newWidth = startWidth - (clientX - startX);
                             // Limites de tamanho
                             if (newWidth < 200) newWidth = 200;
                             
-                            // Limita o crescimento para manter a proporÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o dos cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes
+                            // Limita o crescimento para manter a proporção dos cartões
                             let maxWidth = Math.min(400, window.innerWidth * 0.8);
                             if (newWidth > maxWidth) newWidth = maxWidth;
                             
@@ -6414,13 +6275,13 @@
                         } else if (type === 'matrix') {
                             // Calcula a nova altura para o board (resizer entre board e matrix)
                             let newHeight = startHeight + (clientY - startY);
-                            if (newHeight < 100) newHeight = 100; // Altura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nima do board
-                            if (newHeight > window.innerHeight * 0.7) newHeight = window.innerHeight * 0.7; // Altura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡xima
+                            if (newHeight < 100) newHeight = 100; // Altura mínima do board
+                            if (newHeight > window.innerHeight * 0.7) newHeight = window.innerHeight * 0.7; // Altura máxima
                             boardContainer.style.height = newHeight + 'px';
                             boardContainer.style.flex = 'none'; // Ensure flex-grow doesn't override height
                         } else if (type === 'weekly') {
                             let newHeight = startHeight + (clientY - startY);
-                            if (newHeight < 150) newHeight = 150; // Altura mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nima do weekly view
+                            if (newHeight < 150) newHeight = 150; // Altura mínima do weekly view
                             if (newHeight > window.innerHeight * 0.8) newHeight = window.innerHeight * 0.8;
                             weeklyContainer.style.height = newHeight + 'px';
                             weeklyContainer.style.flex = 'none';
@@ -6465,7 +6326,7 @@
             let isRecording = false;
 
             function configureApiKeyDialog() {
-                showModal('Configurar InteligÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªncia Artificial', function() {
+                showModal('Configurar Inteligência Artificial', function() {
                     const div = el('div');
                     div.style.padding = '8px 0';
                     div.style.minWidth = '320px';
@@ -6477,7 +6338,7 @@
                             <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Provedor de IA</label>
                             <select id="dialogAiProvider" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                                 <option value="gemini">Google Gemini</option>
-                                <option value="openai">OpenAI (ChatGPT / CompatÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­vel)</option>
+                                <option value="openai">OpenAI (ChatGPT / Compatível)</option>
                                 <option value="anthropic">Anthropic (Claude)</option>
                             </select>
                         </div>
@@ -6527,7 +6388,7 @@
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">URL Base da API (Opcional)</label>
-                                <input type="text" id="dialogOpenaiCustomUrlInput" placeholder="PadrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o: https://api.openai.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogOpenaiCustomUrlInput" placeholder="Padrão: https://api.openai.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                                 <span style="font-size: 11px; color: #88a3c7; display: block; margin-top: 4px; line-height: 1.3;">Para usar OpenRouter, LM Studio, Ollama ou proxies de CORS.</span>
                             </div>
                         </div>
@@ -6553,13 +6414,13 @@
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">URL Base da API (Opcional)</label>
-                                <input type="text" id="dialogAnthropicCustomUrlInput" placeholder="PadrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o: https://api.anthropic.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
+                                <input type="text" id="dialogAnthropicCustomUrlInput" placeholder="Padrão: https://api.anthropic.com/v1" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-family: inherit;">
                                 <span style="font-size: 11px; color: #88a3c7; display: block; margin-top: 4px; line-height: 1.3;">Requer um proxy de CORS para uso direto do navegador.</span>
                             </div>
                         </div>
 
                         <div style="margin-top: 15px; font-size: 11px; color: #ffa726; line-height: 1.4; border-top: 1px solid #24314a; padding-top: 10px;">
-                            <span>ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Suas credenciais sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o salvas <strong>localmente</strong> no seu navegador (localStorage) com seguranÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a.</span>
+                            <span>⚠️ Suas credenciais são salvas <strong>localmente</strong> no seu navegador (localStorage) com segurança.</span>
                         </div>
                     `;
 
@@ -6667,7 +6528,7 @@
                     if (anthropicUrl) localStorage.setItem('anthropic-custom-url', anthropicUrl);
                     else localStorage.removeItem('anthropic-custom-url');
 
-                    alert("ConfiguraÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes de IA salvas com sucesso!");
+                    alert("Configurações de IA salvas com sucesso!");
                 });
             }
 
@@ -6690,7 +6551,7 @@
                     const micBtn = document.getElementById('aiMicBtn');
                     if (micBtn) {
                         micBtn.classList.add('recording');
-                        micBtn.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂºÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“';
+                        micBtn.textContent = '🛑';
                     }
                     const sw = document.getElementById('aiSoundwave');
                     if (sw) sw.classList.add('active');
@@ -6702,7 +6563,7 @@
                     const micBtn = document.getElementById('aiMicBtn');
                     if (micBtn) {
                         micBtn.classList.remove('recording');
-                        micBtn.textContent = 'ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â';
+                        micBtn.textContent = '🎙️';
                     }
                     const sw = document.getElementById('aiSoundwave');
                     if (sw) sw.classList.remove('active');
@@ -6710,7 +6571,7 @@
 
                 recognition.onerror = function(event) {
                     console.error("Speech recognition error", event.error);
-                    showAiResponseBubble("Erro na gravaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o de voz: " + event.error, false, true);
+                    showAiResponseBubble("Erro na gravação de voz: " + event.error, false, true);
                 };
 
                 recognition.onresult = function(event) {
@@ -6725,7 +6586,7 @@
 
             function toggleVoiceRecord() {
                 if (!recognition) {
-                    alert("O reconhecimento de voz nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© suportado pelo seu navegador.");
+                    alert("O reconhecimento de voz não é suportado pelo seu navegador.");
                     return;
                 }
                 if (isRecording) {
@@ -6781,23 +6642,23 @@
                 const existingBoards = boardsMeta.map(b => b.name);
                 const activeBoardLists = $$('.list[data-type="kanban"]', boardEl).map(l => l.querySelector('.title').value);
 
-                const sysPrompt = `VocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© a inteligÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªncia artificial de controle do TEA Planner, um aplicativo de produtividade que mistura Kanban, Matriz de Eisenhower (Q1, Q2, Q3, Q4) e Agenda com compromissos diÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rios.
+                const sysPrompt = `Você é a inteligência artificial de controle do TEA Planner, um aplicativo de produtividade que mistura Kanban, Matriz de Eisenhower (Q1, Q2, Q3, Q4) e Agenda com compromissos diários.
 
-Seu objetivo ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© analisar o comando em linguagem natural do usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio (em portuguÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªs) e retornar um JSON contendo uma lista de aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes estruturadas para o aplicativo executar.
+Seu objetivo é analisar o comando em linguagem natural do usuário (em português) e retornar um JSON contendo uma lista de ações estruturadas para o aplicativo executar.
 
-A data de hoje no sistema ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©: ${getActiveDay()}.
-O quadro ativo atualmente ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©: "${activeBoardName}".
-Os quadros existentes no sistema sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o: ${JSON.stringify(existingBoards)}.
-As listas no quadro ativo atualmente sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o: ${JSON.stringify(activeBoardLists)}.
+A data de hoje no sistema é: ${getActiveDay()}.
+O quadro ativo atualmente é: "${activeBoardName}".
+Os quadros existentes no sistema são: ${JSON.stringify(existingBoards)}.
+As listas no quadro ativo atualmente são: ${JSON.stringify(activeBoardLists)}.
 
-VocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª deve analisar o comando e responder estritamente com um JSON no seguinte formato, sem formataÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o markdown (como blocos de cÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³digo \`\`\`json), sem textos adicionais antes ou depois.
+Você deve analisar o comando e responder estritamente com um JSON no seguinte formato, sem formatação markdown (como blocos de código \`\`\`json), sem textos adicionais antes ou depois.
 
 Formato de Resposta Esperado:
 {
-  "explanation": "Uma frase amigÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡vel explicando o que vocÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âª entendeu e vai fazer.",
-  "question": "Se o comando for ambÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­guo ou necessitar de esclarecimento (por exemplo, criar uma lista mas existem mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºltiplos quadros e o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o especificou qual, ou criar uma lista de compras mas nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o disse o nome da lista), faÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a a pergunta aqui. Se 'question' estiver preenchido, o array 'actions' DEVE estar vazio.",
+  "explanation": "Uma frase amigável explicando o que você entendeu e vai fazer.",
+  "question": "Se o comando for ambíguo ou necessitar de esclarecimento (por exemplo, criar uma lista mas existem múltiplos quadros e o usuário não especificou qual, ou criar uma lista de compras mas não disse o nome da lista), faça a pergunta aqui. Se 'question' estiver preenchido, o array 'actions' DEVE estar vazio.",
   "actions": [
-    // Array de aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes a serem executadas em ordem. Pode ser vazio.
+    // Array de ações a serem executadas em ordem. Pode ser vazio.
     {
       "type": "SWITCH_BOARD",
       "boardName": "Nome exato do quadro para o qual mudar"
@@ -6811,12 +6672,12 @@ Formato de Resposta Esperado:
       "type": "CREATE_CARDS",
       "boardName": "Nome do quadro", // Opcional (assume o atual se omitido)
       "listTitle": "Nome da Lista",  // Opcional se for para Matriz ou Agenda
-      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ preencha se for para a Matriz de Eisenhower)
-      "time": "HH:MM", // Opcional (sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ preencha se for para a Agenda, ex: "10:00")
+      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (só preencha se for para a Matriz de Eisenhower)
+      "time": "HH:MM", // Opcional (só preencha se for para a Agenda, ex: "10:00")
       "goal": true | false, // Opcional (se for o Objetivo do Dia na agenda)
       "cards": [
         {
-          "text": "Texto do cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o",
+          "text": "Texto do cartão",
           "color": "#hex_opcional",
           "due": "YYYY-MM-DD" // Opcional (prazo final, formato YYYY-MM-DD)
         }
@@ -6824,10 +6685,10 @@ Formato de Resposta Esperado:
     },
     {
       "type": "COMPLETE_CARDS",
-      "timeRange": "morning" | "afternoon" | "evening" | "night" | "all", // Opcional (para completar compromissos do perÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­odo da manhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£/tarde/noite/tudo)
-      "time": "HH:MM", // Opcional (completar compromisso de um horÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio especÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­fico)
-      "listTitle": "Nome da Lista", // Opcional (completar todos os cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes desta lista no kanban)
-      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (completar todos os cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes deste quadrante)
+      "timeRange": "morning" | "afternoon" | "evening" | "night" | "all", // Opcional (para completar compromissos do período da manhã/tarde/noite/tudo)
+      "time": "HH:MM", // Opcional (completar compromisso de um horário específico)
+      "listTitle": "Nome da Lista", // Opcional (completar todos os cartões desta lista no kanban)
+      "quadrant": "Q1" | "Q2" | "Q3" | "Q4", // Opcional (completar todos os cartões deste quadrante)
       "all": true | false // Opcional
     },
     {
@@ -6839,18 +6700,18 @@ Formato de Resposta Esperado:
 }
 
 Regras Importantes:
-1. Sempre responda em formato JSON vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡lido e parseÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡vel pelo JSON.parse(). NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o retorne explicaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes fora do JSON.
-2. Identifique datas relativas baseadas no dia de hoje: "hoje" ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ${getActiveDay()}, "amanhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£" ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© o dia seguinte, "ontem" ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© o dia anterior, etc.
-3. Se o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio quiser criar cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes na agenda, use "time" ou "goal". Exemplo: "Consulta mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©dica 10h" -> type: CREATE_CARDS com time: "10:00".
-4. Se o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio quiser criar uma lista e cartÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes (ex: "lista de feira com batata e brocolis"), e houver mÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºltiplos quadros no sistema, mas ele nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o disser em qual quadro: pergunte em qual quadro ele deseja criar preenchendo o campo "question".
-5. Se houver apenas 1 quadro cadastrado no sistema alÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©m da Lixeira, crie a lista diretamente nele sem perguntar.
-6. Se o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio disser para copiar a agenda de ontem para hoje, retorne uma aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o do tipo COPY_PASTE_AGENDA com fromDay = ontem e toDay = hoje.
-7. Se o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio disser "marcar como feito as atividades da manhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£", retorne complete_cards com timeRange = "morning". A manhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ corresponde a qualquer horÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio de 06:00 a 11:30.
-8. Mantenha os nomes de quadros e listas consistentes com os jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ existentes, se houver similaridade semÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ntica (ex: "pessoal" e "Pessoal").
+1. Sempre responda em formato JSON válido e parseável pelo JSON.parse(). Não retorne explicações fora do JSON.
+2. Identifique datas relativas baseadas no dia de hoje: "hoje" é ${getActiveDay()}, "amanhã" é o dia seguinte, "ontem" é o dia anterior, etc.
+3. Se o usuário quiser criar cartões na agenda, use "time" ou "goal". Exemplo: "Consulta médica 10h" -> type: CREATE_CARDS com time: "10:00".
+4. Se o usuário quiser criar uma lista e cartões (ex: "lista de feira com batata e brocolis"), e houver múltiplos quadros no sistema, mas ele não disser em qual quadro: pergunte em qual quadro ele deseja criar preenchendo o campo "question".
+5. Se houver apenas 1 quadro cadastrado no sistema além da Lixeira, crie a lista diretamente nele sem perguntar.
+6. Se o usuário disser para copiar a agenda de ontem para hoje, retorne uma ação do tipo COPY_PASTE_AGENDA com fromDay = ontem e toDay = hoje.
+7. Se o usuário disser "marcar como feito as atividades da manhã", retorne complete_cards com timeRange = "morning". A manhã corresponde a qualquer horário de 06:00 a 11:30.
+8. Mantenha os nomes de quadros e listas consistentes com os já existentes, se houver similaridade semântica (ex: "pessoal" e "Pessoal").
 `;
 
                 const contents = [
-                    { role: 'user', parts: [{ text: sysPrompt + "\n\nAgora processe o seguinte diÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logo com o usuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio:\n" }] }
+                    { role: 'user', parts: [{ text: sysPrompt + "\n\nAgora processe o seguinte diálogo com o usuário:\n" }] }
                 ];
                 
                 aiConversationHistory.forEach(turn => {
@@ -6869,7 +6730,7 @@ Regras Importantes:
                         responseJson = JSON.parse(cleanedText);
                     } catch (parseErr) {
                         console.error("Gemini did not return valid JSON. Raw response: ", responseText);
-                        showAiResponseBubble("Desculpe, nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o consegui entender o comando estruturado. Por favor tente reescrever.", false, true);
+                        showAiResponseBubble("Desculpe, não consegui entender o comando estruturado. Por favor tente reescrever.", false, true);
                         aiConversationHistory.pop();
                         return;
                     }
@@ -6887,7 +6748,7 @@ Regras Importantes:
                     }
                 } catch (apiErr) {
                     console.error("Gemini API call failed: ", apiErr);
-                    const errorMsg = apiErr.message || "Erro desconhecido. Verifique sua chave API e conexÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o.";
+                    const errorMsg = apiErr.message || "Erro desconhecido. Verifique sua chave API e conexão.";
                     showAiResponseBubble(`Erro da API: ${errorMsg}`, false, true);
                     aiConversationHistory.pop();
                 }
@@ -7249,7 +7110,7 @@ Regras Importantes:
                                 break;
                         }
                     } catch (err) {
-                        console.error("Erro executando aÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o da IA:", action, err);
+                        console.error("Erro executando ação da IA:", action, err);
                     }
                 });
             }
@@ -7295,10 +7156,6 @@ Regras Importantes:
                 initSpeechRecognition();
             }
 
-
-// ==========================================
-// RESTORED PREMIUM FUNCTIONS (ALERTS, TOASTS)
-// ==========================================
 let alertCheckInterval = null;
 function startAlertCheck() {
 if (alertCheckInterval) return;
@@ -7375,11 +7232,11 @@ toast.innerHTML = `
 <strong style="color:#ffb300; font-size:12px; letter-spacing: 0.5px;">? ALERTA DE 
        COMPROMISSO</strong>
 <button style="background:transparent; border:none; color:#9fb3d2; font-size:16px; 
-       cursor:pointer;" onclick="this.closest('.toast-container').remove()">ÃƒÂ¯Ã‚Â¿Ã‚Â½</button>
+       cursor:pointer;" onclick="this.closest('.toast-container').remove()">�</button>
 </div>
 <div style="font-size:14px; font-weight:500; margin-top:2px;">${taskTitle || 'Tarefa sem 
-       tÃƒÂ¯Ã‚Â¿Ã‚Â½tulo'}</div>
-<div style="font-size:12px; color:#9fb3d2; margin-top:2px;">ÃƒÂ¯Ã‚Â¿Ã‚Â½s ${taskTime}</div>
+       t�tulo'}</div>
+<div style="font-size:12px; color:#9fb3d2; margin-top:2px;">�s ${taskTime}</div>
 `;
 toast.className = 'toast-container';
 document.body.appendChild(toast);
@@ -7390,10 +7247,6 @@ toast.style.transform = 'translateY(-20px)';
 setTimeout(() => toast.remove(), 500);
 }, 8000);
 }
-
-// ==========================================
-// RESTORED PREMIUM FUNCTIONS (RECURRENCE & TIME PICKER)
-// ==========================================
 function generateRecurrences(parentCard) {
 const parentId = parentCard.dataset.cardId;
 if (!parentId) return;
@@ -7496,7 +7349,7 @@ timerLeft: parentCard.dataset.timerLeft || '',
 timerState: 'stopped',
 timerEnd: '',
 completed: 'false',
-history: JSON.stringify([{ action: 'Criado por recorrÃƒÂ¯Ã‚Â¿Ã‚Â½ncia personalizada', time: 
+history: JSON.stringify([{ action: 'Criado por recorr�ncia personalizada', time: 
        Date.now() }]),
 boardId: parentCard.dataset.boardId || '',
 description: parentCard.dataset.description || '',
@@ -7523,7 +7376,7 @@ try { recRule = JSON.parse(currentRule); } catch (e) {}
 recRule = { ...recRule, ...currentRule };
 }
 }
-const modalElements = showModal('RecorrÃƒÂ¯Ã‚Â¿Ã‚Â½ncia', function () {
+const modalElements = showModal('Recorr�ncia', function () {
 const r = el('div');
 r.style.display = 'flex';
 r.style.flexDirection = 'column';
@@ -7548,7 +7401,7 @@ intervalRow.innerHTML = `
 <option value="weekly" ${recRule.freq === 'weekly' ? 'selected' : 
        ''}>semana(s)</option>
 <option value="monthly" ${recRule.freq === 'monthly' ? 'selected' : 
-       ''}>mÃƒÂ¯Ã‚Â¿Ã‚Â½s(es)</option>
+       ''}>m�s(es)</option>
 <option value="yearly" ${recRule.freq === 'yearly' ? 'selected' : 
        ''}>ano(s)</option>
 </select>
@@ -7556,20 +7409,20 @@ intervalRow.innerHTML = `
 const recIntervalInp = intervalRow.querySelector('#recInterval');
 const recFreqSelect = intervalRow.querySelector('#recFreq');
 r.appendChild(intervalRow);
-// 2. Repetir ÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â s/aos Row (Weekdays selector)
+// 2. Repetir �Ã s/aos Row (Weekdays selector)
 const weekdaysRow = el('div');
 weekdaysRow.style.display = recRule.freq === 'weekly' ? 'flex' : 'none';
 weekdaysRow.style.flexDirection = 'column';
 weekdaysRow.style.gap = '8px';
 weekdaysRow.innerHTML = `<span style="font-size: 13px; color: #9fb3d2;">Repetir 
-       ÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â s/aos</span>`;
+       �Ã s/aos</span>`;
 const daysGrid = el('div');
 daysGrid.style.display = 'flex';
 daysGrid.style.gap = '8px';
 daysGrid.style.justifyContent = 'space-between';
 const weekdayNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-const weekdayTitles = ['Domingo', 'Segunda', 'TerÃƒÂ¯Ã‚Â¿Ã‚Â½a', 'Quarta', 'Quinta', 'Sexta', 
-       'SÃƒÂ¯Ã‚Â¿Ã‚Â½bado'];
+const weekdayTitles = ['Domingo', 'Segunda', 'Ter�a', 'Quarta', 'Quinta', 'Sexta', 
+       'S�bado'];
 const chosenDays = new Set(recRule.days || []);
 weekdayNames.forEach((name, idx) => {
 const dayBtn = el('button');
@@ -7639,7 +7492,7 @@ dateLabel.innerHTML = `
        color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
 `;
 endSection.appendChild(dateLabel);
-// Radio 3: ApÃƒÂ¯Ã‚Â¿Ã‚Â½s
+// Radio 3: Ap�s
 const countLabel = el('label');
 countLabel.style.display = 'flex';
 countLabel.style.alignItems = 'center';
@@ -7648,11 +7501,11 @@ countLabel.style.fontSize = '14px';
 countLabel.style.cursor = 'pointer';
 countLabel.innerHTML = `
 <input type="radio" id="recEndAfterCount" name="recEndType" value="count" 
-       ${recRule.endType === 'count' ? 'checked' : ''} /> ApÃƒÂ¯Ã‚Â¿Ã‚Â½s
+       ${recRule.endType === 'count' ? 'checked' : ''} /> Ap�s
 <input type="number" id="recEndCount" name="recEndCount" value="${recRule.endCount || 
        1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
        #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
-<span>ocorrÃƒÂ¯Ã‚Â¿Ã‚Â½ncias</span>
+<span>ocorr�ncias</span>
 `;
 endSection.appendChild(countLabel);
 r.appendChild(endSection);
@@ -7662,8 +7515,8 @@ const freq = body.querySelector('#recFreq').value;
 const interval = parseInt(body.querySelector('#recInterval').value, 10) || 1;
 const days = freq === 'weekly' ? 
        Array.from(body.querySelectorAll('.weekday-btn.selected')).map(btn => {
-const idx = ['Domingo', 'Segunda', 'TerÃƒÂ¯Ã‚Â¿Ã‚Â½a', 'Quarta', 'Quinta', 'Sexta', 
-       'SÃƒÂ¯Ã‚Â¿Ã‚Â½bado'].indexOf(btn.title);
+const idx = ['Domingo', 'Segunda', 'Ter�a', 'Quarta', 'Quinta', 'Sexta', 
+       'S�bado'].indexOf(btn.title);
 return idx !== -1 ? idx : 0;
 }) : [];
 const endTypeRadio = body.querySelector('input[name="recEndType"]:checked');
@@ -7680,7 +7533,7 @@ endCount: endCount
 };
 onSave(newRule);
 });
-modalElements.okButton.textContent = 'ConcluÃƒÂ¯Ã‚Â¿Ã‚Â½do';
+modalElements.okButton.textContent = 'Conclu�do';
 modalElements.cancelButton.onclick = function () {
 document.body.removeChild(modalElements.wrap);
 if (onCancel) onCancel();
@@ -7688,7 +7541,7 @@ if (onCancel) onCancel();
 }
 function openAlertDialog(cardOrData, onSave, onCancel) {
 const predefinedOptions = [
-{ text: 'No horÃƒÂ¯Ã‚Â¿Ã‚Â½rio do evento', val: 0, unit: 'minutos' },
+{ text: 'No hor�rio do evento', val: 0, unit: 'minutos' },
 { text: '5 minutos antes', val: 5, unit: 'minutos' },
 { text: '15 minutos antes', val: 15, unit: 'minutos' },
 { text: '30 minutos antes', val: 30, unit: 'minutos' },
@@ -7737,7 +7590,7 @@ optionsContainer.style.display = 'none';
 });
 // Predefined options list
 const predefinedOptions = [
-{ text: 'No horÃƒÂ¯Ã‚Â¿Ã‚Â½rio do evento', val: 0, unit: 'minutos' },
+{ text: 'No hor�rio do evento', val: 0, unit: 'minutos' },
 { text: '5 minutos antes', val: 5, unit: 'minutos' },
 { text: '15 minutos antes', val: 15, unit: 'minutos' },
 { text: '30 minutos antes', val: 30, unit: 'minutos' },
@@ -7822,7 +7675,7 @@ alertTypeSection.innerHTML = `
        margin-bottom: 6px;">Tipo de alerta</span>
 <div style="display: flex; align-items: center; justify-content: space-between; 
        padding: 10px 12px; background: var(--bg); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;">
-<span style="font-size: 14px;">NotificaÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÂ¯Ã‚Â¿Ã‚Â½o (Pop-up e Som)</span>
+<span style="font-size: 14px;">Notifica��o (Pop-up e Som)</span>
 <span style="color: #1976d2; font-weight: bold;">?</span>
 </div>
 `;
@@ -7852,7 +7705,7 @@ alertValue: val,
 alertUnit: unit
 });
 });
-modalElements.okButton.textContent = 'ConcluÃƒÂ¯Ã‚Â¿Ã‚Â½do';
+modalElements.okButton.textContent = 'Conclu�do';
 modalElements.cancelButton.onclick = function () {
 document.body.removeChild(modalElements.wrap);
 if (onCancel) onCancel();
@@ -7896,7 +7749,7 @@ let tempAlertValue = parseInt(currentAlertValue, 10);
 if (isNaN(tempAlertValue)) tempAlertValue = 15;
 let tempAlertUnit = currentAlertUnit;
 let tempRecurrenceValue = currentRecurrence;
-var modalElements = showModal('Agendar / RecorrÃƒÂ¯Ã‚Â¿Ã‚Â½ncia', function () {
+var modalElements = showModal('Agendar / Recorr�ncia', function () {
 var r = el('div');
 r.style.display = 'flex';
 r.style.flexDirection = 'column';
@@ -7908,7 +7761,7 @@ r.style.fontFamily = 'inherit';
 // 1. Title Input
 const titleRow = el('div');
 titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" 
-       placeholder="Adicionar tÃƒÂ¯Ã‚Â¿Ã‚Â½tulo" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent 
+       placeholder="Adicionar t�tulo" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent 
        : '').replace(/^\?\?\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid rgba(255, 
        255, 255, 0.15); background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; 
        outline: none; transition: border-color 0.2s;" />`;
@@ -8010,7 +7863,7 @@ durRecRow.style.gap = '10px';
 durRecRow.style.alignItems = 'center';
 durRecRow.style.flexWrap = 'wrap';
 const durationLabel = el('span');
-durationLabel.textContent = 'DuraÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÂ¯Ã‚Â¿Ã‚Â½o:';
+durationLabel.textContent = 'Dura��o:';
 durationLabel.style.fontSize = '13px';
 durationLabel.style.color = '#9fb3d2';
 if (isAllDay) durationLabel.style.display = 'none';
@@ -8083,7 +7936,7 @@ recurrenceSelect.style.borderRadius = '6px';
 recurrenceSelect.style.fontSize = '14px';
 recurrenceSelect.style.cursor = 'pointer';
 const recOptions = [
-{ val: 'none', text: 'NÃƒÂ¯Ã‚Â¿Ã‚Â½o se repete' },
+{ val: 'none', text: 'N�o se repete' },
 { val: 'daily', text: 'Todos os dias' },
 { val: 'weekdays', text: 'Dias da semana (segunda a sexta)' },
 { val: 'weekly', text: 'Semanalmente' },
@@ -8167,7 +8020,7 @@ const summaryEl = alertRow.querySelector('#agendaAlertSummary');
 if (summaryEl) {
 if (tempAlertEnabled) {
 if (tempAlertValue === 0) {
-summaryEl.textContent = 'No horÃƒÂ¯Ã‚Â¿Ã‚Â½rio do evento';
+summaryEl.textContent = 'No hor�rio do evento';
 } else {
 summaryEl.textContent = `${tempAlertValue} ${tempAlertUnit} antes`;
 }
@@ -8181,7 +8034,7 @@ alertRow.innerHTML = `
 <span style="font-size: 18px;">??</span>
 <div style="display: flex; flex-direction: column; text-align: left;">
 <span style="font-size: 13px; font-weight: bold; color: #fff;">Alerta / 
-       NotificaÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÂ¯Ã‚Â¿Ã‚Â½o</span>
+       Notifica��o</span>
 <span id="agendaAlertSummary" style="font-size: 12px; color: 
        #9fb3d2;">Desativado</span>
 </div>
@@ -8205,7 +8058,7 @@ setTimeout(updateAlertRowSummary, 0);
 // 5. Description Textarea
 const descRow = el('div');
 descRow.innerHTML = `<textarea id="agendaDescription" name="agendaDescription" 
-       placeholder="Adicionar descriÃƒÂ¯Ã‚Â¿Ã‚Â½ÃƒÂ¯Ã‚Â¿Ã‚Â½o..." style="width: 100%; min-height: 80px; border: 1px solid rgba(255, 255, 
+       placeholder="Adicionar descri��o..." style="width: 100%; min-height: 80px; border: 1px solid rgba(255, 255, 
        255, 0.15); background: var(--bg); color: #fff; border-radius: 6px; padding: 8px; font-size: 14px; resize: 
        vertical; outline: none; font-family: inherit;"></textarea>`;
 const descTextarea = descRow.querySelector('#agendaDescription');
@@ -8302,7 +8155,7 @@ let inputMode = 'analog'; // 'analog' or 'keyboard'
 const backdrop = el('div', 'analog-time-picker-backdrop');
 const modal = el('div', 'analog-time-picker-modal');
 const title = el('div', 'analog-time-picker-title');
-title.textContent = 'Selecionar horÃƒÂ¯Ã‚Â¿Ã‚Â½rio';
+title.textContent = 'Selecionar hor�rio';
 modal.appendChild(title);
 // Digital display
 const displayRow = el('div', 'analog-time-picker-display');
@@ -8334,7 +8187,7 @@ const faceContainer = el('div', 'analog-time-picker-face-container');
 modal.appendChild(faceContainer);
 // Keyboard input help message (hidden by default)
 const keyboardMsg = el('div', 'analog-time-picker-keyboard-input-msg');
-keyboardMsg.textContent = 'Digite o horÃƒÂ¯Ã‚Â¿Ã‚Â½rio desejado nos campos acima.';
+keyboardMsg.textContent = 'Digite o hor�rio desejado nos campos acima.';
 keyboardMsg.style.display = 'none';
 modal.appendChild(keyboardMsg);
 // SVG for needle drawing
@@ -8449,7 +8302,7 @@ faceContainer.appendChild(numEl);
 updateNeedle(currentMinute);
 }
 }
-// InTerÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§active selection handler from click/touch coordinates
+// InTerÃ§active selection handler from click/touch coordinates
 function handlePointer(clientX, clientY, isEnd = false) {
 const rect = faceContainer.getBoundingClientRect();
 const x = clientX - rect.left - 115;
@@ -8523,7 +8376,7 @@ const footer = el('div', 'analog-time-picker-footer');
 const keyboardBtn = el('button', 'analog-time-picker-keyboard-btn');
 keyboardBtn.type = 'button';
 keyboardBtn.innerHTML = '??'; // Keyboard icon
-keyboardBtn.title = 'Digitar horÃƒÂ¯Ã‚Â¿Ã‚Â½rio';
+keyboardBtn.title = 'Digitar hor�rio';
 footer.appendChild(keyboardBtn);
 const buttonsDiv = el('div', 'analog-time-picker-buttons');
 const cancelBtn = el('button');
@@ -8546,7 +8399,7 @@ if (inputMode === 'analog') {
 // Switch to keyboard mode
 inputMode = 'keyboard';
 keyboardBtn.innerHTML = '??'; // Clock icon
-keyboardBtn.title = 'Usar relÃƒÂ¯Ã‚Â¿Ã‚Â½gio';
+keyboardBtn.title = 'Usar rel�gio';
 faceContainer.style.display = 'none';
 keyboardMsg.style.display = 'block';
 hourInput.readOnly = false;
@@ -8559,7 +8412,7 @@ hourInput.select();
 // Switch to analog mode
 inputMode = 'analog';
 keyboardBtn.innerHTML = '??';
-keyboardBtn.title = 'Digitar horÃƒÂ¯Ã‚Â¿Ã‚Â½rio';
+keyboardBtn.title = 'Digitar hor�rio';
 faceContainer.style.display = 'block';
 keyboardMsg.style.display = 'none';
 // Parse values currently in inputs, clamp if invalid
@@ -8643,14 +8496,15 @@ okBtn.click();
 });
 }
 
+
             function initApp() {
                 initResizers();
                 applyDragScroll();
                 loadState();
                 migrateToMultiBoard();
                 initAiControls();
-                startAlertCheck();
                 if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
+                startAlertCheck();
             }
 
             initApp();
