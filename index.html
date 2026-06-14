@@ -7229,14 +7229,11 @@ toast.style.fontFamily = 'system-ui, -apple-system, sans-serif';
 toast.style.animation = 'slideInRight 0.3s ease-out';
 toast.innerHTML = `
 <div style="display:flex; justify-content:space-between; align-items:center;">
-<strong style="color:#ffb300; font-size:12px; letter-spacing: 0.5px;">? ALERTA DE 
-       COMPROMISSO</strong>
-<button style="background:transparent; border:none; color:#9fb3d2; font-size:16px; 
-       cursor:pointer;" onclick="this.closest('.toast-container').remove()">�</button>
+<strong style="color:#ffb300; font-size:12px; letter-spacing: 0.5px;">&#128276; ALERTA DE COMPROMISSO</strong>
+<button style="background:transparent; border:none; color:#9fb3d2; font-size:16px; cursor:pointer;" onclick="this.closest('.toast-container').remove()">&#10006;</button>
 </div>
-<div style="font-size:14px; font-weight:500; margin-top:2px;">${taskTitle || 'Tarefa sem 
-       t�tulo'}</div>
-<div style="font-size:12px; color:#9fb3d2; margin-top:2px;">�s ${taskTime}</div>
+<div style="font-size:14px; font-weight:500; margin-top:2px;">${taskTitle || 'Tarefa sem t\u00edtulo'}</div>
+<div style="font-size:12px; color:#9fb3d2; margin-top:2px;">\u00e0s ${taskTime}</div>
 `;
 toast.className = 'toast-container';
 document.body.appendChild(toast);
@@ -7768,8 +7765,7 @@ titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle"
 const titleInput = titleRow.querySelector('#agendaTitle');
 titleInput.addEventListener('focus', () => titleInput.style.borderBottomColor = 
        'var(--brand)');
-titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = 'rgba(255, 
-       255, 255, 0.15)');
+titleInput.addEventListener('blur', () => titleInput.style.borderBottomColor = 'rgba(255, 255, 255, 0.15)');
 r.appendChild(titleRow);
 // 2. Date & Time Row
 const dateTimeRow = el('div');
@@ -8012,8 +8008,7 @@ alertRow.style.borderRadius = '8px';
 alertRow.style.cursor = 'pointer';
 alertRow.style.marginTop = '6px';
 alertRow.style.transition = 'background 0.2s';
-alertRow.onmouseover = () => alertRow.style.background = 'color-mix(in srgb, var(--brand) 
-       10%, var(--panel))';
+alertRow.onmouseover = () => alertRow.style.background = 'color-mix(in srgb, var(--brand) 10%, var(--panel))';
 alertRow.onmouseout = () => alertRow.style.background = 'var(--bg)';
 function updateAlertRowSummary() {
 const summaryEl = alertRow.querySelector('#agendaAlertSummary');
@@ -8065,8 +8060,7 @@ const descTextarea = descRow.querySelector('#agendaDescription');
 descTextarea.value = currentDescription;
 descTextarea.addEventListener('focus', () => descTextarea.style.borderColor = 
        'var(--brand)');
-descTextarea.addEventListener('blur', () => descTextarea.style.borderColor = 'rgba(255, 
-       255, 255, 0.15)');
+descTextarea.addEventListener('blur', () => descTextarea.style.borderColor = 'rgba(255, 255, 255, 0.15)');
 r.appendChild(descRow);
 return r;
 }, function (body, wrap) {
