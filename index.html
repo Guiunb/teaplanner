@@ -4530,7 +4530,7 @@ padding: 6px 2px;
             function nearestAfter(container, y) { var els = [].slice.call(container.querySelectorAll('.card:not(.dragging)')); var best = { offset: -Infinity, element: null }; els.forEach(function (child) { var r = child.getBoundingClientRect(); var o = y - (r.top + r.height / 2); if (o < 0 && o > best.offset) best = { offset: o, element: child }; }); return best.element; }
 
             function wireDropZone(container) {
-                var isSlot = container.classList.contains('slot') || container.classList.contains('goal-slot');
+                var isSlot = container.classList.contains('slot') || container.classList.contains('goal-slot') || container.classList.contains('unscheduled-slot');
                 var cardsContainer = isSlot ? container.querySelector('.cards') : container;
 
                 function handleDrop(e) {
@@ -6122,7 +6122,8 @@ padding: 6px 2px;
                                     let lastCardInSelection = currentSelection[currentSelection.length - 1];
                                     let nextCard = lastCardInSelection.nextElementSibling;
                                     if (nextCard) {
-                                        currentSelection.forEach(card => parentCards.insertBefore(card, nextCard));
+                                        let afterNextCard = nextCard.nextElementSibling;
+                                        currentSelection.forEach(card => parentCards.insertBefore(card, afterNextCard));
                                         moved = true;
                                     } else {
                                         currentSelection.forEach(c => shiftCardTime(c, 30));
@@ -6175,7 +6176,8 @@ padding: 6px 2px;
                                 nextCard = nextCard.nextElementSibling;
                             }
                             if (nextCard) {
-                                currentSelection.forEach(card => parentCards.insertBefore(card, nextCard));
+                                let afterNextCard = nextCard.nextElementSibling;
+                                currentSelection.forEach(card => parentCards.insertBefore(card, afterNextCard));
                                 moved = true;
                             } else {
                                 // Transition Down to the quadrant below: Q1 -> Q3, Q2 -> Q4
@@ -6247,7 +6249,8 @@ padding: 6px 2px;
                                 nextCard = nextCard.nextElementSibling;
                             }
                             if (nextCard) {
-                                currentSelection.forEach(card => parentCards.insertBefore(card, nextCard));
+                                let afterNextCard = nextCard.nextElementSibling;
+                                currentSelection.forEach(card => parentCards.insertBefore(card, afterNextCard));
                                 moved = true;
                             } else {
                                 currentSelection.forEach(card => parentCards.appendChild(card));
