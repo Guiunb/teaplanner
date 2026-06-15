@@ -28,6 +28,44 @@
             --card: #112b4a
         }
 
+        .alert-option-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #0d1e36;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            font-size: 14px;
+        }
+        .alert-option-item:hover {
+            background: #152c4e;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .alert-option-item.selected {
+            background: rgba(25, 118, 210, 0.15);
+            border-color: #1976d2;
+        }
+        .alert-option-item .check-mark {
+            display: none;
+            color: #1976d2;
+            font-weight: bold;
+        }
+        .alert-option-item.selected .check-mark {
+            display: inline;
+        }
+
+        #main-content.matrix-collapsed #board-container {
+            height: 100% !important;
+            flex: 1 1 auto !important;
+        }
+        #main-content.board-collapsed #matrix-container {
+            height: 100% !important;
+            flex: 1 1 auto !important;
+        }
+
         * {
             box-sizing: border-box
         }
@@ -1131,6 +1169,19 @@
             #main-content {
                 overflow: visible;
                 height: auto;
+            }
+
+            .resizer {
+                display: none !important;
+            }
+
+            .board-container,
+            .matrix-container,
+            .weekly-container {
+                height: auto !important;
+                min-height: unset !important;
+                flex: none !important;
+                overflow: visible !important;
             }
 
             #agenda-sidebar {
@@ -2822,7 +2873,11 @@ padding: 6px 2px;
 
             function cardToData(c) {
                 var t = c.querySelector('.text');
+                if (!c.dataset.id) {
+                    c.dataset.id = generateId();
+                }
                 return {
+                    id: c.dataset.id,
                     text: (t ? t.textContent : '').trim(),
                     color: c.dataset.color || '',
                     labelColor: c.dataset.labelColor || '',
@@ -2834,7 +2889,16 @@ padding: 6px 2px;
                     timerEnd: c.dataset.timerEnd || '',
                     completed: c.dataset.completed || 'false',
                     history: c.dataset.history || '[]',
-                    boardId: c.dataset.boardId || ''
+                    boardId: c.dataset.boardId || '',
+                    recurrence: c.dataset.recurrence || 'none',
+                    recurrenceParent: c.dataset.recurrenceParent || '',
+                    recurrenceExceptions: c.dataset.recurrenceExceptions || '',
+                    description: c.dataset.description || '',
+                    duration: c.dataset.duration || '',
+                    alertEnabled: c.dataset.alertEnabled || 'false',
+                    alertValue: c.dataset.alertValue || '15',
+                    alertUnit: c.dataset.alertUnit || 'minutos',
+                    alertFired: c.dataset.alertFired || 'false'
                 };
             }
 
@@ -3190,6 +3254,7 @@ padding: 6px 2px;
             }
 
             function renderFromData(boardData, agendaData) {
+                saveSelectionState();
                 // Junta os dois para renderizar, mas a lógica interna sabe que vieram de lugares diferentes
                 // Na verdade, a função original renderFromData aceitava um array único.
                 // Vamos concatenar para reusar a lógica de renderização, pois visualmente é tudo card.
@@ -3268,6 +3333,7 @@ padding: 6px 2px;
                         element.scrollTop = pos.top;
                     }
                 });
+                restoreSelectionState();
             }
 
             function restore(histObj) {
@@ -3854,24 +3920,31 @@ padding: 6px 2px;
                 groupedByParent.forEach((cardList, parent) => {
                     // Find the last selected card in this parent to insert after
                     const lastOriginalCard = cardList[cardList.length - 1];
-                    let insertReference = lastOriginalCard.nextSibling;
+                    let insertReference = lastOriginalCard ? lastOriginalCard.nextSibling : null;
 
                     cardList.forEach(c => {
                         var newData = cardToData(c);
-                        if (!c.closest('#agenda-sidebar')) {
+                        if (!c.closest('#agenda-sidebar') && !c.dataset.when) {
                             newData.when = '';
                         }
+                        // Ensure duplicated card gets a fresh unique ID
+                        newData.id = generateId();
                         var newCard = createCard(newData);
                         // Insert after the current reference, then update reference to the newly inserted card
                         // so they are grouped together.
-                        parent.insertBefore(newCard, insertReference);
-                        insertReference = newCard.nextSibling;
+                        if (parent) {
+                            parent.insertBefore(newCard, insertReference);
+                            insertReference = newCard.nextSibling;
+                        }
                     });
                 });
 
                 persist();
                 updateSlotsHasItems();
                 updateTotalTimerDisplay();
+                if (typeof renderWeeklyView === 'function') {
+                    renderWeeklyView();
+                }
             }
 
             function updateTimerDisplay(card) {
@@ -4018,6 +4091,7 @@ padding: 6px 2px;
                 }
                 var c = el('div', 'card'); c.draggable = true;
                 
+                c.dataset.id = _d.id || generateId();
                 const cardBoardId = _d.boardId || currentBoardId || 'board-todos';
                 c.dataset.boardId = cardBoardId;
                 c.dataset.color = _d.color || getBoardColor(cardBoardId) || '';
@@ -4027,6 +4101,15 @@ padding: 6px 2px;
                 c.dataset.timerEnd = _d.timerEnd || '';
                 c.dataset.completed = _d.completed || 'false';
                 c.dataset.history = _d.history || '[]';
+                c.dataset.recurrence = _d.recurrence || 'none';
+                c.dataset.recurrenceParent = _d.recurrenceParent || '';
+                c.dataset.recurrenceExceptions = _d.recurrenceExceptions || '';
+                c.dataset.description = _d.description || '';
+                c.dataset.duration = _d.duration || '';
+                c.dataset.alertEnabled = _d.alertEnabled || 'false';
+                c.dataset.alertValue = _d.alertValue || '15';
+                c.dataset.alertUnit = _d.alertUnit || 'minutos';
+                c.dataset.alertFired = _d.alertFired || 'false';
 
                 // Create Card Header
                 var header = el('div', 'card-header');
@@ -4118,6 +4201,109 @@ padding: 6px 2px;
             }
 
             function removeCard(c, bypassTrash = false) {
+                const isChild = !!c.dataset.recurrenceParent;
+                const isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
+                
+                if ((isChild || isParent) && !c._deletionHandled) {
+                    promptDeleteRecurringCard(c, function(decision) {
+                        c._deletionHandled = true;
+                        if (decision === 'instance') {
+                            if (isChild) {
+                                const parentId = c.dataset.recurrenceParent;
+                                const parentCard = allCards.find(card => card.dataset.id === parentId || card.dataset.cardId === parentId);
+                                if (parentCard) {
+                                    const childDate = (c.dataset.when || '').split('T')[0];
+                                    if (childDate) {
+                                        let exceptions = parentCard.dataset.recurrenceExceptions || '';
+                                        let exceptionList = exceptions ? exceptions.split(',') : [];
+                                        if (!exceptionList.includes(childDate)) {
+                                            exceptionList.push(childDate);
+                                        }
+                                        parentCard.dataset.recurrenceExceptions = exceptionList.join(',');
+                                        generateRecurrences(parentCard);
+                                    }
+                                }
+                            } else {
+                                const parentDateStr = (c.dataset.when || '').split('T')[0];
+                                const parentTimeSuffix = c.dataset.when.includes('T') ? c.dataset.when.split('T')[1] : '';
+                                const rule = parseRecurrenceRule(c.dataset.recurrence);
+                                if (rule && parentDateStr) {
+                                    const nextDate = getNextRecurrenceDate(parentDateStr, rule);
+                                    if (nextDate) {
+                                        c.dataset.when = nextDate + 'T' + parentTimeSuffix;
+                                        generateRecurrences(c);
+                                    }
+                                }
+                            }
+                            executeActualCardRemoval(c, bypassTrash);
+                        } else if (decision === 'all') {
+                            const parentId = isChild ? c.dataset.recurrenceParent : (c.dataset.id || c.dataset.cardId);
+                            const parentCard = allCards.find(card => card.dataset.id === parentId || card.dataset.cardId === parentId);
+                            
+                            const children = allCards.filter(card => card.dataset.recurrenceParent === parentId);
+                            children.forEach(child => {
+                                child._deletionHandled = true;
+                                executeActualCardRemoval(child, bypassTrash);
+                            });
+                            
+                            if (parentCard) {
+                                parentCard._deletionHandled = true;
+                                executeActualCardRemoval(parentCard, bypassTrash);
+                            }
+                        } else if (decision === 'future') {
+                            const parentId = isChild ? c.dataset.recurrenceParent : (c.dataset.id || c.dataset.cardId);
+                            const parentCard = allCards.find(card => card.dataset.id === parentId || card.dataset.cardId === parentId);
+                            
+                            if (parentCard) {
+                                const targetDateStr = (c.dataset.when || '').split('T')[0];
+                                if (targetDateStr) {
+                                    const targetDate = new Date(targetDateStr + 'T12:00:00');
+                                    targetDate.setDate(targetDate.getDate() - 1);
+                                    const newEndDateStr = targetDate.toISOString().split('T')[0];
+                                    
+                                    const rule = parseRecurrenceRule(parentCard.dataset.recurrence);
+                                    if (rule) {
+                                        rule.endType = 'date';
+                                        rule.endDate = newEndDateStr;
+                                        parentCard.dataset.recurrence = JSON.stringify(rule);
+                                        generateRecurrences(parentCard);
+                                    }
+                                }
+                            }
+                            
+                            const targetDateStr = (c.dataset.when || '').split('T')[0];
+                            const children = allCards.filter(card => card.dataset.recurrenceParent === parentId);
+                            children.forEach(child => {
+                                const childDateStr = (child.dataset.when || '').split('T')[0];
+                                if (childDateStr >= targetDateStr) {
+                                    child._deletionHandled = true;
+                                    executeActualCardRemoval(child, bypassTrash);
+                                }
+                            });
+                            
+                            if (!isChild && parentCard) {
+                                parentCard._deletionHandled = true;
+                                executeActualCardRemoval(parentCard, bypassTrash);
+                            } else if (isChild && parentCard) {
+                                const parentDateStr = (parentCard.dataset.when || '').split('T')[0];
+                                if (parentDateStr >= targetDateStr) {
+                                    parentCard._deletionHandled = true;
+                                    executeActualCardRemoval(parentCard, bypassTrash);
+                                }
+                            }
+                        }
+                        
+                        persist();
+                        renderWeeklyView();
+                        applyFilters();
+                    });
+                    return;
+                }
+                
+                executeActualCardRemoval(c, bypassTrash);
+            }
+
+            function executeActualCardRemoval(c, bypassTrash) {
                 if (currentBoardId !== 'board-trash' && !bypassTrash) {
                     addCardHistory(c, 'Enviado para a lixeira');
                     moveCardToBoard(c, 'board-trash', 'Apagados');
@@ -4269,6 +4455,23 @@ padding: 6px 2px;
                         m.classList.toggle('selected', selected.has(m._originalReference));
                     }
                 });
+            }
+            var lastSelectedIds = [];
+            function saveSelectionState() {
+                lastSelectedIds = Array.from(selected).map(c => c.dataset.id).filter(Boolean);
+            }
+            function restoreSelectionState() {
+                if (lastSelectedIds.length === 0) return;
+                selected.clear();
+                lastSelectedIds.forEach(id => {
+                    const original = document.querySelector(`.card[data-id="${id}"]:not(.mirror-card)`);
+                    if (original) {
+                        selected.add(original);
+                        original.classList.add('selected');
+                    }
+                });
+                syncMirrors();
+                updateTotalTimerDisplay();
             }
             function clearSelection() { 
                 selected.forEach(function (c) { c.classList.remove('selected'); }); 
@@ -6942,8 +7145,13 @@ Regras Importantes:
                                     if (c) {
                                         const dupData = cardToData(c);
                                         const newCard = createCard(dupData);
-                                        c.parentNode.insertBefore(newCard, c.nextSibling);
+                                        if (c.parentNode) {
+                                            c.parentNode.insertBefore(newCard, c.nextSibling);
+                                        }
                                         persist();
+                                        if (typeof renderWeeklyView === 'function') {
+                                            renderWeeklyView();
+                                        }
                                     }
                                 }
                                 break;
@@ -7244,6 +7452,100 @@ toast.style.transform = 'translateY(-20px)';
 setTimeout(() => toast.remove(), 500);
 }, 8000);
 }
+function promptDeleteRecurringCard(card, onDecision) {
+    showModal('Excluir Recorr\u00EAncia', function () {
+        var d = el('div');
+        d.style.display = 'flex';
+        d.style.flexDirection = 'column';
+        d.style.gap = '12px';
+        d.style.minWidth = '300px';
+        d.style.color = '#fff';
+
+        d.innerHTML = `
+            <div style="font-size: 14px; margin-bottom: 10px; color: #9fb3d2; line-height: 1.4;">
+                Este cart\u00E3o faz parte de uma recorr\u00EAncia. O que voc\u00EA gostaria de fazer?
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                <input type="radio" name="delRecurOption" value="instance" checked />
+                <span>Deletar apenas esta ocorr\u00EAncia</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                <input type="radio" name="delRecurOption" value="all" />
+                <span>Deletar toda a s\u00E9rie (todas as ocorr\u00EAncias)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                <input type="radio" name="delRecurOption" value="future" />
+                <span>Deletar esta ocorr\u00EAncia e todas as futuras</span>
+            </label>
+        `;
+        return d;
+    }, function (body, wrap) {
+        var val = body.querySelector('input[name="delRecurOption"]:checked').value;
+        onDecision(val);
+    });
+}
+
+function parseRecurrenceRule(recurrenceVal) {
+    if (!recurrenceVal || recurrenceVal === 'none') return null;
+    let rule = null;
+    if (recurrenceVal.startsWith('{')) {
+        try {
+            rule = JSON.parse(recurrenceVal);
+        } catch (e) {
+            console.error("Error parsing recurrence JSON", e);
+        }
+    } else {
+        if (recurrenceVal === 'daily') {
+            rule = { freq: 'daily', interval: 1, endType: 'never' };
+        } else if (recurrenceVal === 'weekdays') {
+            rule = { freq: 'weekly', interval: 1, days: [1, 2, 3, 4, 5], endType: 'never' };
+        } else if (recurrenceVal === 'weekly') {
+            rule = { freq: 'weekly', interval: 1, endType: 'never' };
+        } else if (recurrenceVal === 'monthly') {
+            rule = { freq: 'monthly', interval: 1, endType: 'never' };
+        }
+    }
+    return rule;
+}
+
+function getNextRecurrenceDate(parentDateStr, rule) {
+    const startDate = new Date(parentDateStr + 'T12:00:00');
+    let currentDate = new Date(startDate);
+    
+    if (rule.freq === 'daily') {
+        currentDate.setDate(currentDate.getDate() + rule.interval);
+    } else if (rule.freq === 'weekly') {
+        let found = false;
+        for (let attempt = 0; attempt < 365; attempt++) {
+            currentDate.setDate(currentDate.getDate() + 1);
+            const startTemp = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12, 0, 0);
+            const currentTemp = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 12, 0, 0);
+            const startSun = new Date(startTemp);
+            startSun.setDate(startSun.getDate() - startSun.getDay());
+            const currentSun = new Date(currentTemp);
+            currentSun.setDate(currentSun.getDate() - currentSun.getDay());
+            const msDiff = currentSun.getTime() - startSun.getTime();
+            const weeksDiff = Math.round(msDiff / (7 * 24 * 60 * 60 * 1000));
+            if (weeksDiff % rule.interval === 0) {
+                const dayOfWeek = currentDate.getDay();
+                if (!rule.days || rule.days.length === 0 || rule.days.includes(dayOfWeek)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) return null;
+    } else if (rule.freq === 'monthly') {
+        currentDate.setMonth(currentDate.getMonth() + rule.interval);
+    } else if (rule.freq === 'yearly') {
+        currentDate.setFullYear(currentDate.getFullYear() + rule.interval);
+    } else {
+        return null;
+    }
+    
+    return currentDate.toISOString().split('T')[0];
+}
+
 function generateRecurrences(parentCard) {
 const parentId = parentCard.dataset.cardId;
 if (!parentId) return;
@@ -7333,6 +7635,11 @@ if (endLimitDate && currentDate > endLimitDate) {
 break;
 }
 const dateStr = currentDate.toISOString().slice(0, 10);
+const exceptions = parentCard.dataset.recurrenceExceptions || '';
+const exceptionList = exceptions ? exceptions.split(',') : [];
+if (exceptionList.includes(dateStr)) {
+    continue;
+}
 const whenVal = dateStr + 'T' + parentTimeSuffix;
 const childData = {
 text: (parentCard.querySelector('.text') ? 
@@ -7506,6 +7813,32 @@ countLabel.innerHTML = `
 `;
 endSection.appendChild(countLabel);
 r.appendChild(endSection);
+
+// Button: Não repetir (remover)
+const removeBtn = el('button');
+removeBtn.type = 'button';
+removeBtn.textContent = 'N\u00E3o repetir (remover)';
+removeBtn.style.width = '100%';
+removeBtn.style.marginTop = '12px';
+removeBtn.style.padding = '8px 12px';
+removeBtn.style.background = '#c62828';
+removeBtn.style.border = 'none';
+removeBtn.style.borderRadius = '6px';
+removeBtn.style.color = '#fff';
+removeBtn.style.fontWeight = 'bold';
+removeBtn.style.cursor = 'pointer';
+removeBtn.style.transition = 'background 0.2s';
+removeBtn.onmouseover = () => removeBtn.style.background = '#b71c1c';
+removeBtn.onmouseout = () => removeBtn.style.background = '#c62828';
+removeBtn.onclick = function() {
+    const w = removeBtn.closest('.modal-wrap');
+    if (w) {
+        w.remove();
+    }
+    onSave('none');
+};
+r.appendChild(removeBtn);
+
 return r;
 }, function (body, wrap) {
 const freq = body.querySelector('#recFreq').value;
@@ -7645,9 +7978,12 @@ const optDiv = el('div', 'alert-option-item');
 if (idx === matchedIdx) {
 optDiv.classList.add('selected');
 }
+// Use safe character mapping
+let cleanText = opt.text;
+if (cleanText.includes('hor\u00E1rio')) cleanText = cleanText.replace('hor\u00E1rio', 'hor\u00E1rio');
 optDiv.innerHTML = `
-<span>${opt.text}</span>
-<span class="check-mark">?</span>
+<span>${cleanText}</span>
+<span class="check-mark">&#10004;</span>
 `;
 optDiv.onclick = function () {
 r.querySelectorAll('.alert-option-item').forEach(item => 
@@ -7672,8 +8008,8 @@ alertTypeSection.innerHTML = `
        margin-bottom: 6px;">Tipo de alerta</span>
 <div style="display: flex; align-items: center; justify-content: space-between; 
        padding: 10px 12px; background: var(--bg); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;">
-<span style="font-size: 14px;">Notifica��o (Pop-up e Som)</span>
-<span style="color: #1976d2; font-weight: bold;">?</span>
+<span style="font-size: 14px;">Notifica\u00E7\u00E3o (Pop-up e Som)</span>
+<span style="color: #1976d2; font-weight: bold;">&#10004;</span>
 </div>
 `;
 optionsContainer.appendChild(alertTypeSection);
@@ -7902,99 +8238,98 @@ customDurationInput.style.fontSize = '14px';
 customDurationInput.style.width = '80px';
 customDurationInput.style.display = 'none';
 if (['15', '30', '60', '120', '180'].includes(currentDuration)) {
-durationSelect.value = currentDuration;
+    durationSelect.value = currentDuration;
 } else if (currentDuration) {
-durationSelect.value = 'custom';
-customDurationInput.value = currentDuration;
-customDurationInput.style.display = '';
+    durationSelect.value = 'custom';
+    customDurationInput.value = currentDuration;
+    customDurationInput.style.display = '';
 } else {
-durationSelect.value = '60';
+    durationSelect.value = '60';
 }
 durationSelect.addEventListener('change', function () {
-if (durationSelect.value === 'custom') {
-customDurationInput.style.display = '';
-} else {
-customDurationInput.style.display = 'none';
-}
+    if (durationSelect.value === 'custom') {
+        customDurationInput.style.display = '';
+    } else {
+        customDurationInput.style.display = 'none';
+    }
 });
-const recLabel = el('span');
-recLabel.textContent = 'Repetir:';
-recLabel.style.fontSize = '13px';
-recLabel.style.color = '#9fb3d2';
-const recurrenceSelect = el('select');
-recurrenceSelect.id = 'agendaRecurrence';
-recurrenceSelect.name = 'agendaRecurrence';
-recurrenceSelect.style.border = '1px solid rgba(255, 255, 255, 0.15)';
-recurrenceSelect.style.background = 'var(--bg)';
-recurrenceSelect.style.color = '#fff';
-recurrenceSelect.style.padding = '6px 8px';
-recurrenceSelect.style.borderRadius = '6px';
-recurrenceSelect.style.fontSize = '14px';
-recurrenceSelect.style.cursor = 'pointer';
-const recOptions = [
-{ val: 'none', text: 'N�o se repete' },
-{ val: 'daily', text: 'Todos os dias' },
-{ val: 'weekdays', text: 'Dias da semana (segunda a sexta)' },
-{ val: 'weekly', text: 'Semanalmente' },
-{ val: 'monthly', text: 'Mensalmente' },
-{ val: 'custom', text: 'Personalizado...' }
-];
-recOptions.forEach(o => {
-const opt = el('option');
-opt.value = o.val;
-opt.textContent = o.text;
-recurrenceSelect.appendChild(opt);
-});
-if (isCustomRecurrence) {
-recurrenceSelect.value = 'custom';
-} else {
-recurrenceSelect.value = currentRecurrence;
-}
-const recEditBtn = el('button');
-recEditBtn.type = 'button';
-recEditBtn.textContent = '?? Editar';
-recEditBtn.style.border = '1px solid rgba(255, 255, 255, 0.15)';
-recEditBtn.style.background = 'var(--bg)';
-recEditBtn.style.color = '#fff';
-recEditBtn.style.padding = '6px 8px';
-recEditBtn.style.borderRadius = '6px';
-recEditBtn.style.fontSize = '14px';
-recEditBtn.style.cursor = 'pointer';
-recEditBtn.style.display = isCustomRecurrence ? 'inline-block' : 'none';
-recurrenceSelect.addEventListener('change', function () {
-if (recurrenceSelect.value === 'custom') {
-openCustomRecurrenceDialog(tempRecurrenceValue.startsWith('{') ? 
-       tempRecurrenceValue : null, function(savedRule) {
-tempRecurrenceValue = JSON.stringify(savedRule);
-recEditBtn.style.display = 'inline-block';
-}, function() {
-if (tempRecurrenceValue.startsWith('{')) {
-recurrenceSelect.value = 'custom';
-recEditBtn.style.display = 'inline-block';
-} else {
-recurrenceSelect.value = tempRecurrenceValue;
-recEditBtn.style.display = 'none';
-}
-});
-} else {
-tempRecurrenceValue = recurrenceSelect.value;
-recEditBtn.style.display = 'none';
-}
-});
-recEditBtn.onclick = function(e) {
-e.preventDefault();
-openCustomRecurrenceDialog(tempRecurrenceValue.startsWith('{') ? tempRecurrenceValue : 
-       null, function(savedRule) {
-tempRecurrenceValue = JSON.stringify(savedRule);
-});
-};
+
 durRecRow.appendChild(durationLabel);
 durRecRow.appendChild(durationSelect);
 durRecRow.appendChild(customDurationInput);
-durRecRow.appendChild(recLabel);
-durRecRow.appendChild(recurrenceSelect);
-durRecRow.appendChild(recEditBtn);
 r.appendChild(durRecRow);
+
+// 3.1 Recurrence Row (looks like alertRow)
+const recRow = el('div');
+recRow.id = 'agendaRecurrenceRow';
+recRow.style.display = 'flex';
+recRow.style.alignItems = 'center';
+recRow.style.justifyContent = 'space-between';
+recRow.style.padding = '10px 12px';
+recRow.style.background = 'var(--bg)';
+recRow.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+recRow.style.borderRadius = '8px';
+recRow.style.cursor = 'pointer';
+recRow.style.marginTop = '6px';
+recRow.style.transition = 'background 0.2s';
+recRow.onmouseover = () => recRow.style.background = 'color-mix(in srgb, var(--brand) 10%, var(--panel))';
+recRow.onmouseout = () => recRow.style.background = 'var(--bg)';
+
+function updateRecurrenceRowSummary() {
+    const summaryEl = recRow.querySelector('#agendaRecurrenceSummary');
+    if (summaryEl) {
+        if (tempRecurrenceValue && tempRecurrenceValue !== 'none') {
+            if (tempRecurrenceValue.startsWith('{')) {
+                try {
+                    const rule = JSON.parse(tempRecurrenceValue);
+                    const freqText = rule.freq === 'daily' ? 'di\u00E1rio' : (rule.freq === 'weekly' ? 'semanal' : (rule.freq === 'monthly' ? 'mensal' : 'anual'));
+                    let desc = `Repete a cada ${rule.interval} ${rule.freq === 'daily' ? 'dia(s)' : (rule.freq === 'weekly' ? 'semana(s)' : (rule.freq === 'monthly' ? 'm\u00EAs(es)' : 'ano(s)'))}`;
+                    if (rule.freq === 'weekly' && rule.days && rule.days.length > 0) {
+                        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S\u00E1b'];
+                        const daysStr = rule.days.map(d => dayNames[d]).join(', ');
+                        desc += ` (as ${daysStr})`;
+                    }
+                    summaryEl.textContent = desc;
+                } catch(e) {
+                    summaryEl.textContent = 'Personalizado';
+                }
+            } else {
+                if (tempRecurrenceValue === 'daily') summaryEl.textContent = 'Todos os dias';
+                else if (tempRecurrenceValue === 'weekdays') summaryEl.textContent = 'Dias da semana (segunda a sexta)';
+                else if (tempRecurrenceValue === 'weekly') summaryEl.textContent = 'Semanalmente';
+                else if (tempRecurrenceValue === 'monthly') summaryEl.textContent = 'Mensalmente';
+                else summaryEl.textContent = tempRecurrenceValue;
+            }
+        } else {
+            summaryEl.textContent = 'N\u00E3o se repete';
+        }
+    }
+}
+
+recRow.innerHTML = `
+<div style="display: flex; align-items: center; gap: 10px;">
+<span style="font-size: 18px;">\uD83D\uDD01</span>
+<div style="display: flex; flex-direction: column; text-align: left;">
+<span style="font-size: 13px; font-weight: bold; color: #fff;">Recorr\u00EAncia</span>
+<span id="agendaRecurrenceSummary" style="font-size: 12px; color: #9fb3d2;">N\u00E3o se repete</span>
+</div>
+</div>
+<span style="font-size: 14px; color: #9fb3d2;">&#8250;</span>
+`;
+
+recRow.onclick = function() {
+    openCustomRecurrenceDialog(tempRecurrenceValue !== 'none' ? tempRecurrenceValue : null, function(savedRule) {
+        if (savedRule === 'none') {
+            tempRecurrenceValue = 'none';
+        } else {
+            tempRecurrenceValue = JSON.stringify(savedRule);
+        }
+        updateRecurrenceRowSummary();
+    });
+};
+r.appendChild(recRow);
+setTimeout(updateRecurrenceRowSummary, 0);
+
 // 4. Alert Row (Modern UX)
 const alertRow = el('div');
 alertRow.id = 'agendaAlertRow';
@@ -8069,7 +8404,7 @@ const dateVal = body.querySelector('#agendaDateVal').value;
 const timeVal = body.querySelector('#agendaTimeVal').value;
 const isAllDayChecked = body.querySelector('#agendaAllDay').checked;
 const isGoalChecked = body.querySelector('#agendaGoal').checked;
-const recVal = body.querySelector('#agendaRecurrence').value;
+const recVal = tempRecurrenceValue;
 const descVal = body.querySelector('#agendaDescription').value.trim();
 const durSelVal = body.querySelector('#agendaDuration').value;
 let durVal = durSelVal;
@@ -8077,10 +8412,7 @@ if (durSelVal === 'custom') {
 durVal = body.querySelector('#agendaCustomDuration').value.trim();
 }
 // Recurrence save string
-let recurrenceSaveValue = recVal;
-if (recVal === 'custom') {
-recurrenceSaveValue = tempRecurrenceValue;
-}
+let recurrenceSaveValue = tempRecurrenceValue;
 const targetCard = card._originalReference || card;
 const txtSpan = targetCard.querySelector('.text');
 if (txtSpan) {
