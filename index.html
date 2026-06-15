@@ -7656,7 +7656,7 @@ timerLeft: parentCard.dataset.timerLeft || '',
 timerState: 'stopped',
 timerEnd: '',
 completed: 'false',
-history: JSON.stringify([{ action: 'Criado por recorr�ncia personalizada', time: 
+history: JSON.stringify([{ action: 'Criado por recorr\u00eancia personalizada', time: 
        Date.now() }]),
 boardId: parentCard.dataset.boardId || '',
 description: parentCard.dataset.description || '',
@@ -7683,7 +7683,7 @@ try { recRule = JSON.parse(currentRule); } catch (e) {}
 recRule = { ...recRule, ...currentRule };
 }
 }
-const modalElements = showModal('Recorr�ncia', function () {
+const modalElements = showModal('Recorr\u00eancia', function () {
 const r = el('div');
 r.style.display = 'flex';
 r.style.flexDirection = 'column';
@@ -7708,7 +7708,7 @@ intervalRow.innerHTML = `
 <option value="weekly" ${recRule.freq === 'weekly' ? 'selected' : 
        ''}>semana(s)</option>
 <option value="monthly" ${recRule.freq === 'monthly' ? 'selected' : 
-       ''}>m�s(es)</option>
+       ''}>m\u00eas(es)</option>
 <option value="yearly" ${recRule.freq === 'yearly' ? 'selected' : 
        ''}>ano(s)</option>
 </select>
@@ -7716,20 +7716,20 @@ intervalRow.innerHTML = `
 const recIntervalInp = intervalRow.querySelector('#recInterval');
 const recFreqSelect = intervalRow.querySelector('#recFreq');
 r.appendChild(intervalRow);
-// 2. Repetir �Ã s/aos Row (Weekdays selector)
+// 2. Repetir \u00e0s/aos Row (Weekdays selector)
 const weekdaysRow = el('div');
 weekdaysRow.style.display = recRule.freq === 'weekly' ? 'flex' : 'none';
 weekdaysRow.style.flexDirection = 'column';
 weekdaysRow.style.gap = '8px';
 weekdaysRow.innerHTML = `<span style="font-size: 13px; color: #9fb3d2;">Repetir 
-       �Ã s/aos</span>`;
+       \u00e0s/aos</span>`;
 const daysGrid = el('div');
 daysGrid.style.display = 'flex';
 daysGrid.style.gap = '8px';
 daysGrid.style.justifyContent = 'space-between';
 const weekdayNames = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-const weekdayTitles = ['Domingo', 'Segunda', 'Ter�a', 'Quarta', 'Quinta', 'Sexta', 
-       'S�bado'];
+const weekdayTitles = ['Domingo', 'Segunda', 'Ter\u00e7a', 'Quarta', 'Quinta', 'Sexta', 
+       'S\u00e1bado'];
 const chosenDays = new Set(recRule.days || []);
 weekdayNames.forEach((name, idx) => {
 const dayBtn = el('button');
@@ -7799,7 +7799,7 @@ dateLabel.innerHTML = `
        color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
 `;
 endSection.appendChild(dateLabel);
-// Radio 3: Ap�s
+// Radio 3: Ap\u00f3s
 const countLabel = el('label');
 countLabel.style.display = 'flex';
 countLabel.style.alignItems = 'center';
@@ -7808,19 +7808,19 @@ countLabel.style.fontSize = '14px';
 countLabel.style.cursor = 'pointer';
 countLabel.innerHTML = `
 <input type="radio" id="recEndAfterCount" name="recEndType" value="count" 
-       ${recRule.endType === 'count' ? 'checked' : ''} /> Ap�s
+       ${recRule.endType === 'count' ? 'checked' : ''} /> Ap\u00f3s
 <input type="number" id="recEndCount" name="recEndCount" value="${recRule.endCount || 
        1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
        #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
-<span>ocorr�ncias</span>
+<span>ocorr\u00eancias</span>
 `;
 endSection.appendChild(countLabel);
 r.appendChild(endSection);
 
-// Button: Não repetir (remover)
+// Button: N\u00e3o repetir (remover)
 const removeBtn = el('button');
 removeBtn.type = 'button';
-removeBtn.textContent = 'N\u00E3o repetir (remover)';
+removeBtn.textContent = 'N\u00e3o repetir (remover)';
 removeBtn.style.width = '100%';
 removeBtn.style.marginTop = '12px';
 removeBtn.style.padding = '8px 12px';
@@ -7848,8 +7848,8 @@ const freq = body.querySelector('#recFreq').value;
 const interval = parseInt(body.querySelector('#recInterval').value, 10) || 1;
 const days = freq === 'weekly' ? 
        Array.from(body.querySelectorAll('.weekday-btn.selected')).map(btn => {
-const idx = ['Domingo', 'Segunda', 'Ter�a', 'Quarta', 'Quinta', 'Sexta', 
-       'S�bado'].indexOf(btn.title);
+const idx = ['Domingo', 'Segunda', 'Ter\u00e7a', 'Quarta', 'Quinta', 'Sexta', 
+       'S\u00e1bado'].indexOf(btn.title);
 return idx !== -1 ? idx : 0;
 }) : [];
 const endTypeRadio = body.querySelector('input[name="recEndType"]:checked');
@@ -7866,7 +7866,7 @@ endCount: endCount
 };
 onSave(newRule);
 });
-modalElements.okButton.textContent = 'Conclu�do';
+modalElements.okButton.textContent = 'Conclu\u00eddo';
 modalElements.cancelButton.onclick = function () {
 document.body.removeChild(modalElements.wrap);
 if (onCancel) onCancel();
@@ -7874,7 +7874,7 @@ if (onCancel) onCancel();
 }
 function openAlertDialog(cardOrData, onSave, onCancel) {
 const predefinedOptions = [
-{ text: 'No hor�rio do evento', val: 0, unit: 'minutos' },
+{ text: 'No hor\u00e1rio do evento', val: 0, unit: 'minutos' },
 { text: '5 minutos antes', val: 5, unit: 'minutos' },
 { text: '15 minutos antes', val: 15, unit: 'minutos' },
 { text: '30 minutos antes', val: 30, unit: 'minutos' },
@@ -7923,7 +7923,7 @@ optionsContainer.style.display = 'none';
 });
 // Predefined options list
 const predefinedOptions = [
-{ text: 'No hor�rio do evento', val: 0, unit: 'minutos' },
+{ text: 'No hor\u00e1rio do evento', val: 0, unit: 'minutos' },
 { text: '5 minutos antes', val: 5, unit: 'minutos' },
 { text: '15 minutos antes', val: 15, unit: 'minutos' },
 { text: '30 minutos antes', val: 30, unit: 'minutos' },
@@ -7983,7 +7983,6 @@ optDiv.classList.add('selected');
 }
 // Use safe character mapping
 let cleanText = opt.text;
-if (cleanText.includes('hor\u00E1rio')) cleanText = cleanText.replace('hor\u00E1rio', 'hor\u00E1rio');
 optDiv.innerHTML = `
 <span>${cleanText}</span>
 <span class="check-mark">&#10004;</span>
@@ -8011,7 +8010,7 @@ alertTypeSection.innerHTML = `
        margin-bottom: 6px;">Tipo de alerta</span>
 <div style="display: flex; align-items: center; justify-content: space-between; 
        padding: 10px 12px; background: var(--bg); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px;">
-<span style="font-size: 14px;">Notifica\u00E7\u00E3o (Pop-up e Som)</span>
+<span style="font-size: 14px;">Notifica\u00e7\u00e3o (Pop-up e Som)</span>
 <span style="color: #1976d2; font-weight: bold;">&#10004;</span>
 </div>
 `;
@@ -8041,7 +8040,7 @@ alertValue: val,
 alertUnit: unit
 });
 });
-modalElements.okButton.textContent = 'Conclu�do';
+modalElements.okButton.textContent = 'Conclu\u00eddo';
 modalElements.cancelButton.onclick = function () {
 document.body.removeChild(modalElements.wrap);
 if (onCancel) onCancel();
@@ -8085,7 +8084,7 @@ let tempAlertValue = parseInt(currentAlertValue, 10);
 if (isNaN(tempAlertValue)) tempAlertValue = 15;
 let tempAlertUnit = currentAlertUnit;
 let tempRecurrenceValue = currentRecurrence;
-var modalElements = showModal('Agendar / Recorr�ncia', function () {
+var modalElements = showModal('Agendar / Recorr\u00eancia', function () {
 var r = el('div');
 r.style.display = 'flex';
 r.style.flexDirection = 'column';
@@ -8097,7 +8096,7 @@ r.style.fontFamily = 'inherit';
 // 1. Title Input
 const titleRow = el('div');
 titleRow.innerHTML = `<input type="text" id="agendaTitle" name="agendaTitle" 
-       placeholder="Adicionar t�tulo" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent 
+       placeholder="Adicionar t\u00edtulo" value="${(card.querySelector('.text') ? card.querySelector('.text').textContent 
        : '').replace(/^\?\?\s*/, '').trim()}" style="width: 100%; border: none; border-bottom: 2px solid rgba(255, 
        255, 255, 0.15); background: transparent; color: #fff; font-size: 18px; font-weight: 500; padding: 6px 0; 
        outline: none; transition: border-color 0.2s;" />`;
@@ -8198,7 +8197,7 @@ durRecRow.style.gap = '10px';
 durRecRow.style.alignItems = 'center';
 durRecRow.style.flexWrap = 'wrap';
 const durationLabel = el('span');
-durationLabel.textContent = 'Dura��o:';
+durationLabel.textContent = 'Dura\u00e7\u00e3o:';
 durationLabel.style.fontSize = '13px';
 durationLabel.style.color = '#9fb3d2';
 if (isAllDay) durationLabel.style.display = 'none';
@@ -8285,10 +8284,9 @@ function updateRecurrenceRowSummary() {
             if (tempRecurrenceValue.startsWith('{')) {
                 try {
                     const rule = JSON.parse(tempRecurrenceValue);
-                    const freqText = rule.freq === 'daily' ? 'di\u00E1rio' : (rule.freq === 'weekly' ? 'semanal' : (rule.freq === 'monthly' ? 'mensal' : 'anual'));
-                    let desc = `Repete a cada ${rule.interval} ${rule.freq === 'daily' ? 'dia(s)' : (rule.freq === 'weekly' ? 'semana(s)' : (rule.freq === 'monthly' ? 'm\u00EAs(es)' : 'ano(s)'))}`;
+                    let desc = `Repete a cada ${rule.interval} ${rule.freq === 'daily' ? 'dia(s)' : (rule.freq === 'weekly' ? 'semana(s)' : (rule.freq === 'monthly' ? 'm\u00eas(es)' : 'ano(s)'))}`;
                     if (rule.freq === 'weekly' && rule.days && rule.days.length > 0) {
-                        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S\u00E1b'];
+                        const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S\u00e1b'];
                         const daysStr = rule.days.map(d => dayNames[d]).join(', ');
                         desc += ` (as ${daysStr})`;
                     }
@@ -8304,17 +8302,17 @@ function updateRecurrenceRowSummary() {
                 else summaryEl.textContent = tempRecurrenceValue;
             }
         } else {
-            summaryEl.textContent = 'N\u00E3o se repete';
+            summaryEl.textContent = 'N\u00e3o se repete';
         }
     }
 }
 
 recRow.innerHTML = `
 <div style="display: flex; align-items: center; gap: 10px;">
-<span style="font-size: 18px;">\uD83D\uDD01</span>
+<span style="font-size: 18px;">\ud83d\udd01</span>
 <div style="display: flex; flex-direction: column; text-align: left;">
-<span style="font-size: 13px; font-weight: bold; color: #fff;">Recorr\u00EAncia</span>
-<span id="agendaRecurrenceSummary" style="font-size: 12px; color: #9fb3d2;">N\u00E3o se repete</span>
+<span style="font-size: 13px; font-weight: bold; color: #fff;">Recorr\u00eancia</span>
+<span id="agendaRecurrenceSummary" style="font-size: 12px; color: #9fb3d2;">N\u00e3o se repete</span>
 </div>
 </div>
 <span style="font-size: 14px; color: #9fb3d2;">&#8250;</span>
@@ -8353,7 +8351,7 @@ const summaryEl = alertRow.querySelector('#agendaAlertSummary');
 if (summaryEl) {
 if (tempAlertEnabled) {
 if (tempAlertValue === 0) {
-summaryEl.textContent = 'No hor�rio do evento';
+summaryEl.textContent = 'No hor\u00e1rio do evento';
 } else {
 summaryEl.textContent = `${tempAlertValue} ${tempAlertUnit} antes`;
 }
@@ -8364,15 +8362,15 @@ summaryEl.textContent = 'Desativado';
 }
 alertRow.innerHTML = `
 <div style="display: flex; align-items: center; gap: 10px;">
-<span style="font-size: 18px;">??</span>
+<span style="font-size: 18px;">\ud83d\udd14</span>
 <div style="display: flex; flex-direction: column; text-align: left;">
 <span style="font-size: 13px; font-weight: bold; color: #fff;">Alerta / 
-       Notifica��o</span>
+       Notifica\u00e7\u00e3o</span>
 <span id="agendaAlertSummary" style="font-size: 12px; color: 
        #9fb3d2;">Desativado</span>
 </div>
 </div>
-<span style="font-size: 14px; color: #9fb3d2;">?</span>
+<span style="font-size: 14px; color: #9fb3d2;">&#8250;</span>
 `;
 alertRow.onclick = function() {
 openAlertDialog({
@@ -8391,7 +8389,7 @@ setTimeout(updateAlertRowSummary, 0);
 // 5. Description Textarea
 const descRow = el('div');
 descRow.innerHTML = `<textarea id="agendaDescription" name="agendaDescription" 
-       placeholder="Adicionar descri��o..." style="width: 100%; min-height: 80px; border: 1px solid rgba(255, 255, 
+       placeholder="Adicionar descri\u00e7\u00e3o..." style="width: 100%; min-height: 80px; border: 1px solid rgba(255, 255, 
        255, 0.15); background: var(--bg); color: #fff; border-radius: 6px; padding: 8px; font-size: 14px; resize: 
        vertical; outline: none; font-family: inherit;"></textarea>`;
 const descTextarea = descRow.querySelector('#agendaDescription');
@@ -8419,7 +8417,7 @@ let recurrenceSaveValue = tempRecurrenceValue;
 const targetCard = card._originalReference || card;
 const txtSpan = targetCard.querySelector('.text');
 if (txtSpan) {
-txtSpan.textContent = (isGoalChecked ? '?? ' : '') + titleVal;
+txtSpan.textContent = (isGoalChecked ? '\ud83c\udfaf ' : '') + titleVal;
 }
 targetCard.dataset.description = descVal;
 targetCard.dataset.duration = isAllDayChecked ? '' : durVal;
@@ -8484,7 +8482,7 @@ let inputMode = 'analog'; // 'analog' or 'keyboard'
 const backdrop = el('div', 'analog-time-picker-backdrop');
 const modal = el('div', 'analog-time-picker-modal');
 const title = el('div', 'analog-time-picker-title');
-title.textContent = 'Selecionar hor�rio';
+title.textContent = 'Selecionar hor\u00e1rio';
 modal.appendChild(title);
 // Digital display
 const displayRow = el('div', 'analog-time-picker-display');
@@ -8516,7 +8514,7 @@ const faceContainer = el('div', 'analog-time-picker-face-container');
 modal.appendChild(faceContainer);
 // Keyboard input help message (hidden by default)
 const keyboardMsg = el('div', 'analog-time-picker-keyboard-input-msg');
-keyboardMsg.textContent = 'Digite o hor�rio desejado nos campos acima.';
+keyboardMsg.textContent = 'Digite o hor\u00e1rio desejado nos campos acima.';
 keyboardMsg.style.display = 'none';
 modal.appendChild(keyboardMsg);
 // SVG for needle drawing
@@ -8631,7 +8629,7 @@ faceContainer.appendChild(numEl);
 updateNeedle(currentMinute);
 }
 }
-// InTerÃ§active selection handler from click/touch coordinates
+// InTer\u00e7active selection handler from click/touch coordinates
 function handlePointer(clientX, clientY, isEnd = false) {
 const rect = faceContainer.getBoundingClientRect();
 const x = clientX - rect.left - 115;
@@ -8704,8 +8702,8 @@ renderFace();
 const footer = el('div', 'analog-time-picker-footer');
 const keyboardBtn = el('button', 'analog-time-picker-keyboard-btn');
 keyboardBtn.type = 'button';
-keyboardBtn.innerHTML = '??'; // Keyboard icon
-keyboardBtn.title = 'Digitar hor�rio';
+keyboardBtn.innerHTML = '\u2328\ufe0f'; // Keyboard icon
+keyboardBtn.title = 'Digitar hor\u00e1rio';
 footer.appendChild(keyboardBtn);
 const buttonsDiv = el('div', 'analog-time-picker-buttons');
 const cancelBtn = el('button');
@@ -8727,8 +8725,8 @@ keyboardBtn.onclick = () => {
 if (inputMode === 'analog') {
 // Switch to keyboard mode
 inputMode = 'keyboard';
-keyboardBtn.innerHTML = '??'; // Clock icon
-keyboardBtn.title = 'Usar rel�gio';
+                keyboardBtn.innerHTML = '\ud83d\udd52'; // Clock icon
+                keyboardBtn.title = 'Usar rel\u00f3gio';
 faceContainer.style.display = 'none';
 keyboardMsg.style.display = 'block';
 hourInput.readOnly = false;
@@ -8740,8 +8738,8 @@ hourInput.select();
 } else {
 // Switch to analog mode
 inputMode = 'analog';
-keyboardBtn.innerHTML = '??';
-keyboardBtn.title = 'Digitar hor�rio';
+                keyboardBtn.innerHTML = '\u2328\ufe0f'; // Keyboard icon
+                keyboardBtn.title = 'Digitar hor\u00e1rio';
 faceContainer.style.display = 'block';
 keyboardMsg.style.display = 'none';
 // Parse values currently in inputs, clamp if invalid
