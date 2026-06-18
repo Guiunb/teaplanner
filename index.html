@@ -3326,6 +3326,7 @@ padding: 6px 2px;
                     globalTimerInterval = null;
                 }
                 startGlobalTimer();
+                updateListHeaderTooltips();
 
                 scrollMap.forEach((pos, element) => {
                     if (element) {
@@ -3352,14 +3353,35 @@ padding: 6px 2px;
                 return Date.now().toString(36) + Math.random().toString(36).substr(2);
             }
 
+            function sortBoardsMeta() {
+                if (!boardsMeta || !Array.isArray(boardsMeta)) return;
+                const todosBoard = boardsMeta.find(b => b.id === 'board-todos');
+                const trashBoard = boardsMeta.find(b => b.id === 'board-trash');
+                const otherBoards = boardsMeta.filter(b => b.id !== 'board-todos' && b.id !== 'board-trash');
+                
+                otherBoards.sort((a, b) => {
+                    const nameA = a.name || '';
+                    const nameB = b.name || '';
+                    return nameA.localeCompare(nameB, undefined, { sensitivity: 'base', numeric: true });
+                });
+                
+                const sorted = [];
+                if (todosBoard) sorted.push(todosBoard);
+                sorted.push(...otherBoards);
+                if (trashBoard) sorted.push(trashBoard);
+                boardsMeta = sorted;
+            }
+
             function loadBoardsMetadata() {
                 try {
                     const raw = localStorage.getItem(LS_BOARDS_META);
                     boardsMeta = raw ? JSON.parse(raw) : [];
+                    sortBoardsMeta();
                 } catch (e) { boardsMeta = []; }
             }
 
             function saveBoardsMetadata(syncToCloud = true) {
+                sortBoardsMeta();
                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                 updateBoardSelectUI();
 
@@ -4149,6 +4171,31 @@ padding: 6px 2px;
                 c.appendChild(body);
                 c.appendChild(progCont);
                 
+                // Play/Pause on single click on timerDisp or progCont
+                timerDisp.addEventListener('click', function (e) {
+                    var total = parseInt(c.dataset.timerTotal || '0', 10);
+                    if (total > 0) {
+                        e.stopPropagation();
+                        toggleCardTimer(c);
+                    }
+                });
+                timerDisp.addEventListener('dblclick', function (e) {
+                    e.stopPropagation();
+                    handleCardDblClick(c);
+                });
+
+                progCont.addEventListener('click', function (e) {
+                    var total = parseInt(c.dataset.timerTotal || '0', 10);
+                    if (total > 0) {
+                        e.stopPropagation();
+                        toggleCardTimer(c);
+                    }
+                });
+                progCont.addEventListener('dblclick', function (e) {
+                    e.stopPropagation();
+                    handleCardDblClick(c);
+                });
+
                 paintCard(c);
 
                 dot.addEventListener('click', toggleCardCompletion);
@@ -4191,6 +4238,16 @@ padding: 6px 2px;
                         return;
                     }
                     handleCardDblClick(c);
+                });
+
+                c.addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!selected.has(c)) {
+                        clearSelection();
+                        addSelection(c);
+                    }
+                    showCtx(e.clientX, e.clientY, c);
                 });
 
                 if (!allCards.includes(c)) {
@@ -4422,13 +4479,10 @@ padding: 6px 2px;
                 }, 1000);
             }
 
-            function handleCardDblClick(c) {
+            function toggleCardTimer(c) {
                 var state = c.dataset.timerState || 'stopped';
                 var total = parseInt(c.dataset.timerTotal || '0', 10);
-                if (total === 0) {
-                    startInlineEdit(c);
-                    return;
-                }
+                if (total === 0) return;
 
                 if (state === 'running') { // Pause
                     c.dataset.timerState = 'paused';
@@ -4443,8 +4497,13 @@ padding: 6px 2px;
                     c.style.animation = '';
                     startGlobalTimer();
                 }
-                updateTimerDisplay(c);
                 persist();
+                updateTimerDisplay(c);
+                syncMirrors();
+            }
+
+            function handleCardDblClick(c) {
+                startInlineEdit(c);
             }
 
             // ===== DnD =====
@@ -4800,6 +4859,45 @@ padding: 6px 2px;
 
             function getActiveDay() { var i = document.getElementById('agendaDate'); return (i && i.value) ? i.value : new Date().toISOString().slice(0, 10); }
 
+            function updateListHeaderTooltips() {
+                const isTodosBoard = (currentBoardId === 'board-todos');
+                const lists = $$('.board .list[data-type="kanban"]');
+                lists.forEach(list => {
+                    const header = list.querySelector('header');
+                    const titleInp = list.querySelector('.title');
+                    if (!header) return;
+                    
+                    if (!isTodosBoard) {
+                        header.removeAttribute('title');
+                        if (titleInp) titleInp.removeAttribute('title');
+                        return;
+                    }
+                    
+                    const cards = list.querySelectorAll('.card');
+                    const boardIds = new Set();
+                    cards.forEach(c => {
+                        if (c.dataset.boardId) {
+                            boardIds.add(c.dataset.boardId);
+                        }
+                    });
+                    
+                    if (boardIds.size === 0) {
+                        const defaultMsg = "Sem cartões";
+                        header.title = defaultMsg;
+                        if (titleInp) titleInp.title = defaultMsg;
+                    } else {
+                        const boardNames = Array.from(boardIds).map(bId => {
+                            const board = boardsMeta.find(b => b.id === bId);
+                            return board ? board.name : "Quadro Desconhecido";
+                        });
+                        boardNames.sort();
+                        const tooltipText = "Quadros nesta lista: " + boardNames.join(', ');
+                        header.title = tooltipText;
+                        if (titleInp) titleInp.title = tooltipText;
+                    }
+                });
+            }
+
             function updateSlotsHasItems() {
                 const day = getActiveDay();
                 const dayPrefixGoal = day + 'TGOAL';
@@ -4866,6 +4964,7 @@ padding: 6px 2px;
                     }
                 });
                 updateTotalTimerDisplay();
+                updateListHeaderTooltips();
                 renderWeeklyView();
             }
 
@@ -5705,6 +5804,36 @@ padding: 6px 2px;
                             });
                         }
 
+                        const cloneTimerDisp = clone.querySelector('.timer-display');
+                        if (cloneTimerDisp) {
+                            cloneTimerDisp.addEventListener('click', function (e) {
+                                var total = parseInt(originalCard.dataset.timerTotal || '0', 10);
+                                if (total > 0) {
+                                    e.stopPropagation();
+                                    toggleCardTimer(originalCard);
+                                }
+                            });
+                            cloneTimerDisp.addEventListener('dblclick', function (e) {
+                                e.stopPropagation();
+                                handleCardDblClick(clone);
+                            });
+                        }
+
+                        const cloneProgCont = clone.querySelector('.timer-progress-container');
+                        if (cloneProgCont) {
+                            cloneProgCont.addEventListener('click', function (e) {
+                                var total = parseInt(originalCard.dataset.timerTotal || '0', 10);
+                                if (total > 0) {
+                                    e.stopPropagation();
+                                    toggleCardTimer(originalCard);
+                                }
+                            });
+                            cloneProgCont.addEventListener('dblclick', function (e) {
+                                e.stopPropagation();
+                                handleCardDblClick(clone);
+                            });
+                        }
+
                         const dot = clone.querySelector('.dot');
                         if (dot) {
                             dot.addEventListener('click', function(e) {
@@ -5725,7 +5854,17 @@ padding: 6px 2px;
                             if (e.target.closest('.dot')) {
                                 e.stopPropagation(); return;
                             }
-                            handleCardDblClick(originalCard);
+                            handleCardDblClick(clone);
+                        });
+
+                        clone.addEventListener('contextmenu', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!selected.has(originalCard)) {
+                                clearSelection();
+                                addSelection(originalCard);
+                            }
+                            showCtx(e.clientX, e.clientY, originalCard);
                         });
 
                         clone.addEventListener('dragstart', function (e) {
@@ -5804,6 +5943,44 @@ padding: 6px 2px;
             }
             document.getElementById('prevWeekBtn').addEventListener('click', () => changeWeek(-1));
             document.getElementById('nextWeekBtn').addEventListener('click', () => changeWeek(1));
+
+            // Dynamically inject Weekly View today button
+            const weekControls = document.querySelector('.weekly-controls');
+            if (weekControls && !document.getElementById('todayWeekBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'todayWeekBtn';
+                btn.className = 'weekly-today-btn';
+                btn.title = 'Ir para a Semana Atual';
+                btn.textContent = 'Hoje';
+                btn.addEventListener('click', () => {
+                    const inputEl = document.getElementById('agendaDate');
+                    if (inputEl) {
+                        inputEl.value = new Date().toISOString().slice(0, 10);
+                        applyFilters();
+                    }
+                });
+                weekControls.appendChild(btn);
+            }
+
+            // Dynamically inject Agenda sidebar today button
+            const dateNav = document.querySelector('.schedule header .date-nav');
+            if (dateNav && !document.getElementById('todayDayBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'todayDayBtn';
+                btn.title = 'Ir para Hoje';
+                btn.style.fontWeight = 'bold';
+                btn.style.fontSize = '13px';
+                btn.style.padding = '4px 6px';
+                btn.textContent = 'Hoje';
+                btn.addEventListener('click', () => {
+                    const inputEl = document.getElementById('agendaDate');
+                    if (inputEl) {
+                        inputEl.value = new Date().toISOString().slice(0, 10);
+                        applyFilters();
+                    }
+                });
+                dateNav.appendChild(btn);
+            }
 
             // ===== INITIALIZATION =====
             const toggleAgendaBtn = document.getElementById('toggleAgendaBtn');
