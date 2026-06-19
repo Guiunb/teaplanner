@@ -4252,12 +4252,13 @@ function createCard(data) {
     let lastClockClick = 0;
     // Play/Pause on single click on timerDisp or progCont
     timerDisp.addEventListener('click', function (e) {
-        var total = parseInt(c.dataset.timerTotal || '0', 10);
+        const targetCard = c._originalReference || c;
+        var total = parseInt(targetCard.dataset.timerTotal || '0', 10);
         if (total > 0) {
             e.stopPropagation();
             const now = Date.now();
             if (now - lastClockClick > 300) {
-                toggleCardTimer(c);
+                toggleCardTimer(targetCard);
             }
             lastClockClick = now;
         }
@@ -4268,12 +4269,13 @@ function createCard(data) {
 
     let lastProgClick = 0;
     progCont.addEventListener('click', function (e) {
-        var total = parseInt(c.dataset.timerTotal || '0', 10);
+        const targetCard = c._originalReference || c;
+        var total = parseInt(targetCard.dataset.timerTotal || '0', 10);
         if (total > 0) {
             e.stopPropagation();
             const now = Date.now();
             if (now - lastProgClick > 300) {
-                toggleCardTimer(c);
+                toggleCardTimer(targetCard);
             }
             lastProgClick = now;
         }
@@ -4539,8 +4541,26 @@ function startInlineEdit(card, isNewCard = false) {
 var dragState = null; var draggingList = null; var lastAnchor = null;
 function syncMirrors() {
     $('.mirror-card').forEach(m => {
-        if (m._originalReference) {
-            m.classList.toggle('selected', selected.has(m._originalReference));
+        const orig = m._originalReference;
+        if (orig) {
+            m.classList.toggle('selected', selected.has(orig));
+            
+            // Sync timer states and dataset attributes
+            m.dataset.timerState = orig.dataset.timerState || 'stopped';
+            m.dataset.timerTotal = orig.dataset.timerTotal || '';
+            m.dataset.timerLeft = orig.dataset.timerLeft || '';
+            m.dataset.timerEnd = orig.dataset.timerEnd || '';
+            m.dataset.completed = orig.dataset.completed || 'false';
+            
+            // Sync text content
+            const origText = orig.querySelector('.text');
+            const mText = m.querySelector('.text');
+            if (origText && mText && mText.textContent !== origText.textContent) {
+                mText.textContent = origText.textContent;
+            }
+            
+            // Update the display of the mirror card
+            updateTimerDisplay(m);
         }
     });
 }
