@@ -2307,6 +2307,7 @@ padding: 6px 2px;
                     <button id="focusMinus5Btn" title="-5 minutos">-5m</button>
                     <button id="focusMinusBtn" title="-1 minuto">-1m</button>
                     <button id="focusToggleBtn" title="Pausar/Retomar">⏸️</button>
+                    <button id="focusResetBtn" title="Reiniciar tempo do timer">🔄</button>
                     <button id="focusPlusBtn" title="+1 minuto">+1m</button>
                     <button id="focusPlus5Btn" title="+5 minutos">+5m</button>
                     <button id="focusCompleteBtn" class="focus-complete-btn" title="Concluir Tarefa">✔️ Concluir</button>
@@ -3672,33 +3673,32 @@ function updateTotalTimerDisplay() {
 function startGlobalTimer() {
     if (globalTimerInterval) return;
     globalTimerInterval = setInterval(function () {
-        var activeTimers = false;
-        allCards.forEach(function (c) {
-            if (c.dataset.timerState === 'running') {
-                activeTimers = true;
-                var now = Date.now();
-                var end = parseInt(c.dataset.timerEnd, 10);
-                if (isNaN(end)) {
-                    c.dataset.timerState = 'paused';
-                    return;
-                }
-                var left = Math.round((end - now) / 1000);
-                if (left <= 0) {
-                    c.dataset.timerState = 'finished';
-                    c.dataset.timerLeft = 0;
-                    c.style.animation = '';
-                    playBeep(); // <--- ALERTA SONORO
-                } else {
-                    c.dataset.timerLeft = left;
-                }
-                updateTimerDisplay(c);
-                updateFocusMode();
-            }
-        });
-        if (!activeTimers) {
+        const runningCards = document.querySelectorAll('.card[data-timer-state="running"]:not(.mirror-card)');
+        if (runningCards.length === 0) {
             clearInterval(globalTimerInterval);
             globalTimerInterval = null;
+            return;
         }
+        runningCards.forEach(function (c) {
+            var now = Date.now();
+            var end = parseInt(c.dataset.timerEnd, 10);
+            if (isNaN(end)) {
+                c.dataset.timerState = 'paused';
+                return;
+            }
+            var left = Math.round((end - now) / 1000);
+            if (left <= 0) {
+                c.dataset.timerState = 'finished';
+                c.dataset.timerLeft = 0;
+                c.style.animation = '';
+                playBeep(); // <--- ALERTA SONORO
+            } else {
+                c.dataset.timerLeft = left;
+            }
+            updateTimerDisplay(c);
+        });
+        updateFocusMode();
+        syncMirrors();
     }, 1000);
 }
 
@@ -10735,6 +10735,19 @@ function updateFocusMode() {
 document.getElementById('focusToggleBtn').onclick = () => {
     if (focusActiveCard) {
         toggleCardTimer(focusActiveCard);
+        updateFocusMode();
+    }
+};
+
+document.getElementById('focusResetBtn').onclick = () => {
+    if (focusActiveCard) {
+        focusActiveCard.dataset.timerState = 'paused';
+        const total = parseInt(focusActiveCard.dataset.timerTotal || '0', 10);
+        focusActiveCard.dataset.timerLeft = total;
+        
+        persist();
+        updateTimerDisplay(focusActiveCard);
+        syncMirrors();
         updateFocusMode();
     }
 };
