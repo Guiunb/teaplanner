@@ -3715,7 +3715,7 @@ function toggleCardTimer(c) {
     } else { // Start or resume
         c.dataset.timerState = 'running';
         var left = parseInt(c.dataset.timerLeft, 10);
-        if (state === 'finished' || left <= 0) left = total;
+        if (state === 'finished' || isNaN(left) || left <= 0) left = total;
         c.dataset.timerEnd = Date.now() + left * 1000;
         c.style.animation = '';
         startGlobalTimer();
