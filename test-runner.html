@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEA PLANNER - Test Runner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060b13;
+            --panel: #0d1527;
+            --border: rgba(255, 255, 255, 0.08);
+            --brand: #2196f3;
+            --success: #4caf50;
+            --error: #f44336;
+            --warning: #ff9800;
+            --text: #ffffff;
+            --text-muted: #8fa0c2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        #runner-sidebar {
+            width: 420px;
+            background-color: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+        }
+
+        #app-viewport {
+            flex: 1;
+            height: 100%;
+            background-color: #000;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: var(--bg);
+        }
+
+        /* Sidebar Elements */
+        header {
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 span {
+            font-size: 14px;
+            background: rgba(33, 150, 243, 0.15);
+            color: var(--brand);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Controls */
+        .controls-row {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--brand);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #1976d2;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Test List */
+        .test-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-right: 4px;
+        }
+
+        .test-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .test-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .test-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .test-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .test-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .test-status {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Statuses */
+        .status-pending { color: var(--text-muted); }
+        .status-running { 
+            color: var(--warning);
+            animation: spin 1s linear infinite;
+        }
+        .status-pass { color: var(--success); }
+        .status-fail { color: var(--error); }
+
+        /* Logger area */
+        #logger {
+            height: 180px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            color: #d1dcf0;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 6px;
+            line-height: 1.4;
+        }
+
+        .log-time {
+            color: var(--text-muted);
+        }
+
+        .log-info { color: #d1dcf0; }
+        .log-success { color: var(--success); }
+        .log-error { color: var(--error); font-weight: bold; }
+        .log-header { color: var(--brand); font-weight: bold; margin-top: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-val {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="runner-sidebar">
+        <header>
+            <h1>TEA PLANNER <span>TESTS</span></h1>
+            <div class="subtitle">Suíte de testes de fumaça em tempo real</div>
+        </header>
+
+        <div class="controls-row">
+            <button id="run-btn" class="btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Rodar Testes
+            </button>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span id="stat-total" class="stat-val">4</span>
+                <span class="stat-lbl">Total</span>
+            </div>
+            <div class="stat-item" style="color: var(--success);">
+                <span id="stat-pass" class="stat-val">0</span>
+                <span class="stat-lbl">Pass</span>
+            </div>
+            <div class="stat-item" style="color: var(--error);">
+                <span id="stat-fail" class="stat-val">0</span>
+                <span class="stat-lbl">Fail</span>
+            </div>
+        </div>
+
+        <div class="test-list">
+            <div class="test-item" id="test-1">
+                <div class="test-info">
+                    <span class="test-name">1. Criar Cartão</span>
+                    <span class="test-desc">Simula o clique em + e digitação</span>
+                </div>
+                <div class="test-status status-pending">●</div>
+            </div>
+            <div class="test-item" id="test-2">
+                <div class="test-info">
+                    <span class="test-name">2. Duplicar Cartão (Ctrl+D)</span>
+                    <span class="test-desc">Seleciona o cartão e duplica</span>
+                </div>
+                <div class="test-status status-pending">●</div>
+            </div>
+            <div class="test-item" id="test-3">
+                <div class="test-info">
+                    <span class="test-name">3. Mover por Teclado</span>
+                    <span class="test-desc">Mover cartão com Ctrl + Setas</span>
+                </div>
+                <div class="test-status status-pending">●</div>
+            </div>
+            <div class="test-item" id="test-4">
+                <div class="test-info">
+                    <span class="test-name">4. Arrastar para Agenda</span>
+                    <span class="test-desc">Drag and drop para "A Definir"</span>
+                </div>
+                <div class="test-status status-pending">●</div>
+            </div>
+        </div>
+
+        <div id="logger">
+            <div class="log-entry log-info">Aguardando início... Clique em 'Rodar Testes'.</div>
+        </div>
+    </div>
+
+    <div id="app-viewport">
+        <iframe id="app-iframe" src="index.html"></iframe>
+    </div>
+
+    <script>
+        const runBtn = document.getElementById('run-btn');
+        const iframe = document.getElementById('app-iframe');
+        const logger = document.getElementById('logger');
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span>${message}</span>`;
+            logger.appendChild(entry);
+            logger.scrollTop = logger.scrollHeight;
+        }
+
+        function setTestStatus(testId, status) {
+            const item = document.getElementById(testId);
+            const statusEl = item.querySelector('.test-status');
+            statusEl.className = 'test-status';
+            
+            if (status === 'pending') {
+                statusEl.classList.add('status-pending');
+                statusEl.textContent = '●';
+            } else if (status === 'running') {
+                statusEl.classList.add('status-running');
+                statusEl.textContent = '↻';
+            } else if (status === 'pass') {
+                statusEl.classList.add('status-pass');
+                statusEl.textContent = '✓';
+            } else if (status === 'fail') {
+                statusEl.classList.add('status-fail');
+                statusEl.textContent = '✗';
+            }
+        }
+
+        // Test runner suite
+        runBtn.onclick = async () => {
+            runBtn.disabled = true;
+            logger.innerHTML = '';
+            log('Iniciando suíte de testes de fumaça...', 'header');
+            
+            let passCount = 0;
+            let failCount = 0;
+            document.getElementById('stat-pass').textContent = '0';
+            document.getElementById('stat-fail').textContent = '0';
+
+            // Reset statuses
+            for (let i = 1; i <= 4; i++) {
+                setTestStatus(`test-${i}`, 'pending');
+            }
+
+            // Reload iframe to ensure clean slate
+            log('Recarregando aplicativo no iframe para garantir estado limpo...');
+            iframe.src = 'index.html';
+            await sleep(1500); // Wait for load and Firebase init
+
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            const win = iframe.contentWindow;
+
+            if (!doc || !win) {
+                log('Erro crítico: Não foi possível acessar o contexto do iframe.', 'error');
+                runBtn.disabled = false;
+                return;
+            }
+
+            // Force quickConfigToggle to be unchecked for tests to prevent blocking dialogs
+            const qConfig = doc.getElementById('quickConfigToggle');
+            if (qConfig) qConfig.checked = false;
+
+            // --- SANDBOX INITIALIZATION ---
+            try {
+                log('Preparando sandbox de teste isolado...');
+                
+                // 1. Garantir que temos um quadro de testes para não corromper os dados reais do usuário
+                if (win.boardsMeta) {
+                    if (!win.boardsMeta.find(b => b.id === 'board-test')) {
+                        win.boardsMeta.push({ id: 'board-test', name: 'Quadro de Testes', color: '#1976d2' });
+                    }
+                    win.switchBoard('board-test');
+                    await sleep(400);
+                }
+
+                // 2. Limpar o quadro de testes e inicializar a demo com colunas e cartões padrão
+                const boardEl = doc.getElementById('board');
+                if (boardEl) boardEl.innerHTML = '';
+                
+                // Limpar cache de cartões
+                if (win.allCards) {
+                    win.allCards.length = 0;
+                }
+                
+                win.initDemo();
+                await sleep(400);
+
+                // 3. Forçar a exibição (expandir) de todos os painéis necessários
+                const boardContainer = doc.getElementById('board-container');
+                if (boardContainer && boardContainer.classList.contains('collapsed')) {
+                    const toggleBoardBtn = doc.getElementById('toggleBoardBtn');
+                    if (toggleBoardBtn) toggleBoardBtn.click();
+                }
+                const matrixContainer = doc.getElementById('matrix-container');
+                if (matrixContainer && matrixContainer.classList.contains('collapsed')) {
+                    const toggleMatrixBtn = doc.getElementById('toggleMatrixBtn');
+                    if (toggleMatrixBtn) toggleMatrixBtn.click();
+                }
+                const agendaSidebar = doc.getElementById('agenda-sidebar');
+                if (agendaSidebar && agendaSidebar.classList.contains('collapsed')) {
+                    const toggleAgendaBtn = doc.getElementById('toggleAgendaBtn');
+                    if (toggleAgendaBtn) toggleAgendaBtn.click();
+                }
+                await sleep(300);
+
+                log('Sandbox de teste preparado com sucesso!', 'success');
+            } catch (setupErr) {
+                log('Aviso durante a preparação da sandbox: ' + setupErr.message, 'warning');
+            }
+
+            // --- TEST 1: CREATE CARD ---
+            try {
+                setTestStatus('test-1', 'running');
+                log('Teste 1: Criando novo cartão na primeira lista Kanban...');
+
+                const firstList = doc.querySelector('.list[data-type="kanban"]');
+                if (!firstList) throw new Error('Primeira lista Kanban não encontrada no DOM.');
+
+                const addBtn = firstList.querySelector('.add-btn-minimal');
+                if (!addBtn) throw new Error('Botão "+" de adicionar cartão não encontrado na lista.');
+
+                // Click "+"
+                addBtn.click();
+                await sleep(400);
+
+                // Find editing card textarea or input
+                const editingCard = firstList.querySelector('.card.editing');
+                if (!editingCard) throw new Error('Cartão no estado de edição inline não foi criado.');
+
+                const textarea = editingCard.querySelector('.inline-edit-textarea') || editingCard.querySelector('textarea') || editingCard.querySelector('.text');
+                if (!textarea) throw new Error('Área de digitação do cartão inline não encontrada.');
+
+                // Type title
+                textarea.focus();
+                textarea.textContent = 'Tarefa de Teste Automatizado';
+                // Trigger events
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                textarea.dispatchEvent(new Event('blur', { bubbles: true }));
+                await sleep(500);
+
+                // Verify creation
+                const createdCard = Array.from(firstList.querySelectorAll('.card')).find(c => {
+                    const txt = c.querySelector('.text');
+                    return txt && txt.textContent.trim() === 'Tarefa de Teste Automatizado';
+                });
+
+                if (!createdCard) throw new Error('Cartão com o título digitado não foi encontrado na lista.');
+                
+                log('Sucesso: Cartão criado e salvo com sucesso!', 'success');
+                setTestStatus('test-1', 'pass');
+                passCount++;
+                document.getElementById('stat-pass').textContent = passCount;
+            } catch (err) {
+                log(`Falha no Teste 1: ${err.message}`, 'error');
+                setTestStatus('test-1', 'fail');
+                failCount++;
+                document.getElementById('stat-fail').textContent = failCount;
+            }
+
+            await sleep(500);
+
+            // --- TEST 2: DUPLICATE CARD (Ctrl + D) ---
+            try {
+                setTestStatus('test-2', 'running');
+                log('Teste 2: Duplicando cartão via atalho Control + D...');
+
+                const firstList = doc.querySelector('.list[data-type="kanban"]');
+                const card = Array.from(firstList.querySelectorAll('.card')).find(c => {
+                    const txt = c.querySelector('.text');
+                    return txt && txt.textContent.trim() === 'Tarefa de Teste Automatizado';
+                });
+
+                if (!card) throw new Error('Cartão criado no Teste 1 não foi localizado.');
+
+                // Select card (simulate mousedown)
+                const mousedownEv = new MouseEvent('mousedown', { bubbles: true, button: 0 });
+                card.dispatchEvent(mousedownEv);
+                await sleep(200);
+
+                // Verify selected class
+                if (!card.classList.contains('selected')) {
+                    throw new Error('O cartão não foi marcado com a classe "selected" ao ser clicado.');
+                }
+                log('Cartão selecionado com sucesso. Disparando Ctrl + D...');
+
+                // Dispatch Ctrl+D
+                const ctrlDEv = new KeyboardEvent('keydown', {
+                    key: 'd',
+                    code: 'KeyD',
+                    ctrlKey: true,
+                    bubbles: true,
+                    cancelable: true
+                });
+                doc.dispatchEvent(ctrlDEv);
+                await sleep(800); // Wait for duplicate and re-render
+
+                // Verify duplicate
+                const cards = Array.from(firstList.querySelectorAll('.card')).filter(c => {
+                    const txt = c.querySelector('.text');
+                    return txt && txt.textContent.trim() === 'Tarefa de Teste Automatizado';
+                });
+
+                if (cards.length < 2) {
+                    throw new Error(`Espera-se pelo menos 2 cartões duplicados, mas encontramos apenas ${cards.length}.`);
+                }
+
+                log(`Sucesso: Encontrados ${cards.length} cartões duplicados na lista!`, 'success');
+                setTestStatus('test-2', 'pass');
+                passCount++;
+                document.getElementById('stat-pass').textContent = passCount;
+            } catch (err) {
+                log(`Falha no Teste 2: ${err.message}`, 'error');
+                setTestStatus('test-2', 'fail');
+                failCount++;
+                document.getElementById('stat-fail').textContent = failCount;
+            }
+
+            await sleep(500);
+
+            // --- TEST 3: MOVE CARD WITH KEYBOARD (Ctrl + Arrows) ---
+            try {
+                setTestStatus('test-3', 'running');
+                log('Teste 3: Movimentando cartão com atalhos de teclado (Ctrl + Seta para Direita/Baixo)...');
+
+                const lists = doc.querySelectorAll('.list[data-type="kanban"]');
+                if (lists.length < 2) throw new Error('Precisamos de pelo menos 2 colunas Kanban para rodar este teste.');
+
+                const firstList = lists[0];
+                const secondList = lists[1];
+
+                // Find card to move
+                const card = firstList.querySelector('.card.selected') || firstList.querySelector('.card');
+                if (!card) throw new Error('Nenhum cartão selecionado ou disponível na primeira lista.');
+
+                // Ensure selected
+                if (!card.classList.contains('selected')) {
+                    card.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+                    await sleep(200);
+                }
+
+                log('Disparando Ctrl + Seta para a Direita...');
+                const ctrlRightEv = new KeyboardEvent('keydown', {
+                    key: 'ArrowRight',
+                    code: 'ArrowRight',
+                    ctrlKey: true,
+                    bubbles: true,
+                    cancelable: true
+                });
+                doc.dispatchEvent(ctrlRightEv);
+                await sleep(500);
+
+                // Verify moved to second list
+                const movedCard = secondList.querySelector(`.card[data-id="${card.dataset.id}"]`);
+                if (!movedCard) {
+                    throw new Error('O cartão selecionado não foi transferido para a segunda lista Kanban.');
+                }
+                log('Cartão movido com sucesso para a direita! Agora testando movimentação para baixo (ArrowDown)...');
+
+                // Let's create another card in the second list so we can move our card past it
+                const secondListCards = secondList.querySelector('.cards');
+                const pivotCard = win.createCard({ text: 'Card Pivô Estático', boardId: card.dataset.boardId });
+                secondListCards.appendChild(pivotCard);
+                win.persist();
+                await sleep(200);
+
+                // Position: our card is first, pivot is second.
+                // Select our card
+                movedCard.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+                await sleep(200);
+
+                log('Disparando Ctrl + Seta para Baixo...');
+                const ctrlDownEv = new KeyboardEvent('keydown', {
+                    key: 'ArrowDown',
+                    code: 'ArrowDown',
+                    ctrlKey: true,
+                    bubbles: true,
+                    cancelable: true
+                });
+                doc.dispatchEvent(ctrlDownEv);
+                await sleep(600);
+
+                // Verify position swapped (our card should now be after the pivot card)
+                const children = Array.from(secondListCards.children);
+                const ourIndex = children.indexOf(movedCard);
+                const pivotIndex = children.indexOf(pivotCard);
+
+                if (ourIndex === -1 || pivotIndex === -1) {
+                    throw new Error('Falha ao localizar cartões após movimentação vertical.');
+                }
+
+                if (ourIndex < pivotIndex) {
+                    throw new Error('O cartão não se moveu para baixo (ele continua acima do cartão pivô).');
+                }
+
+                log('Sucesso: Cartão movimentado para a direita e para baixo com sucesso!', 'success');
+                setTestStatus('test-3', 'pass');
+                passCount++;
+                document.getElementById('stat-pass').textContent = passCount;
+            } catch (err) {
+                log(`Falha no Teste 3: ${err.message}`, 'error');
+                setTestStatus('test-3', 'fail');
+                failCount++;
+                document.getElementById('stat-fail').textContent = failCount;
+            }
+
+            await sleep(500);
+
+            // --- TEST 4: DRAG AND DROP TO AGENDA ---
+            try {
+                setTestStatus('test-4', 'running');
+                log('Teste 4: Simulando drag-and-drop de cartão para o bucket "Horário a Definir" na agenda...');
+
+                // Find a card to drag (let's use the one in the second list)
+                const secondList = doc.querySelectorAll('.list[data-type="kanban"]')[1];
+                const card = secondList.querySelector('.card');
+                if (!card) throw new Error('Nenhum cartão encontrado na segunda lista para o arrasto.');
+
+                const unscheduledBucket = doc.getElementById('unscheduled-bucket');
+                if (!unscheduledBucket) throw new Error('Bucket "Horário a Definir" (ID #unscheduled-bucket) não encontrado.');
+
+                log(`Arrastando cartão "${card.querySelector('.text').textContent.trim()}" para o bucket...`);
+
+                // Simulate HTML5 drag-and-drop
+                const dataTransfer = new DataTransfer();
+                
+                // 1. dragstart
+                const dragStartEv = new DragEvent('dragstart', {
+                    bubbles: true,
+                    cancelable: true,
+                    dataTransfer: dataTransfer
+                });
+                card.dispatchEvent(dragStartEv);
+                await sleep(200);
+
+                // 2. dragover
+                const dragOverEv = new DragEvent('dragover', {
+                    bubbles: true,
+                    cancelable: true,
+                    dataTransfer: dataTransfer,
+                    clientX: unscheduledBucket.getBoundingClientRect().left + 10,
+                    clientY: unscheduledBucket.getBoundingClientRect().top + 40
+                });
+                unscheduledBucket.dispatchEvent(dragOverEv);
+                await sleep(200);
+
+                // 3. drop
+                const dropEv = new DragEvent('drop', {
+                    bubbles: true,
+                    cancelable: true,
+                    dataTransfer: dataTransfer,
+                    clientX: unscheduledBucket.getBoundingClientRect().left + 10,
+                    clientY: unscheduledBucket.getBoundingClientRect().top + 40
+                });
+                unscheduledBucket.dispatchEvent(dropEv);
+                
+                // 4. dragend
+                const dragEndEv = new DragEvent('dragend', {
+                    bubbles: true,
+                    cancelable: true,
+                    dataTransfer: dataTransfer
+                });
+                card.dispatchEvent(dragEndEv);
+                await sleep(600); // Wait for DOM updates and render
+
+                // Verify drop (verify if card has 'when' set correctly and is in allCards)
+                const originalCardInCache = win.allCards.find(c => c.dataset.id === card.dataset.id);
+                if (!originalCardInCache) throw new Error('O cartão arrastado sumiu da cache do aplicativo.');
+
+                const day = win.getActiveDay();
+                const expectedWhen = day + 'T';
+                if (originalCardInCache.dataset.when !== expectedWhen) {
+                    throw new Error(`O atributo dataset.when deveria ser "${expectedWhen}", mas é "${originalCardInCache.dataset.when}".`);
+                }
+
+                // Verify it's in the unscheduled slot DOM
+                const cardInBucket = unscheduledBucket.querySelector(`.card[data-id="${card.dataset.id}"]`);
+                if (!cardInBucket) {
+                    throw new Error('O cartão não foi renderizado visualmente dentro do bucket de horários a definir.');
+                }
+
+                log('Sucesso: Cartão arrastado para a agenda e sincronizado sem erros!', 'success');
+                setTestStatus('test-4', 'pass');
+                passCount++;
+                document.getElementById('stat-pass').textContent = passCount;
+            } catch (err) {
+                log(`Falha no Teste 4: ${err.message}`, 'error');
+                setTestStatus('test-4', 'fail');
+                failCount++;
+                document.getElementById('stat-fail').textContent = failCount;
+            }
+
+            log('Suíte de testes concluída!', 'header');
+            log(`Estatísticas finais: ${passCount} Passou, ${failCount} Falhou.`, failCount > 0 ? 'error' : 'success');
+            runBtn.disabled = false;
+        };
+    </script>
+</body>
+</html>

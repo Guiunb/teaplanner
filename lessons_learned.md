@@ -53,3 +53,32 @@ Antes de consolidar qualquer alteração crítica no `index.html`, o desenvolved
 3. **Comparação com Backups de Estabilidade**:
    * Executar uma ferramenta de diff local contra a última versão funcional conhecida (ex: `index - STABLE - 20260605.html` ou backups marcados como funcionais) para monitorar modificações não autorizadas ou acidentais em áreas adjacentes do código:
      `PowerShell -ExecutionPolicy Bypass -File "scratch/diff.ps1"`
+
+---
+
+## 4. Lições da Modularização e Testes Automatizados (Junho 2026)
+
+### A. Política de Mesma Origem (CORS) em Iframe Local
+* **O Problema**: Navegadores bloqueiam o acesso a scripts e DOM entre iframes carregados usando o protocolo `file:///` (exibindo `SecurityError: Blocked a frame with origin "null" from accessing a cross-origin frame`).
+* **A Solução**: Implementamos um servidor de desenvolvimento HTTP nativo em PowerShell (`iniciar_servidor_testes.ps1` e o atalho `iniciar_servidor.bat`). O runner e o planner devem sempre ser acessados via `http://localhost:8080/test-runner.html` para unificar a origem de rede e liberar as APIs.
+
+### B. Leitura no PowerShell e Corrupção de Emojis/Acentos
+* **O Problema**: Comandos tradicionais como `$c = Get-Content index.html` no PowerShell do Windows lêem arquivos usando codificação ANSI/Windows-1252 por padrão. Escrever isso de volta corrompe acentos e substitui emojis por strings como `ðŸ–±ï¸` e `â˜°`.
+* **A Solução**: Em scripts de build ou leitura, utilize sempre APIs do .NET como `[System.IO.File]::ReadAllLines($path, [System.Text.Encoding]::UTF8)` e salve com `[System.IO.File]::WriteAllLines` especificando `(New-Object System.Text.UTF8Encoding $false)` para evitar BOM e corrupções.
+
+### C. Isolamento de Estado no Test Runner (LocalStorage Compartilhado)
+* **O Problema**: O iframe e a página principal rodam sob o mesmo host local (`localhost:8080`), logo eles compartilham a mesma partição de `localStorage`. Estados do usuário (ex: abas colapsadas ou quadro ativo "TODOS" vazio) podem quebrar as asserções dos testes automatizados.
+* **A Solução**: No início do Test Runner, criamos uma etapa de **Sandbox Initialization** que muda programaticamente para um quadro temporário (`board-test`), popula dados de demo (`initDemo()`) e expande os painéis do Kanban, Matriz e Agenda para garantir que os testes rodem sempre em ambiente controlado e limpo.
+
+### D. Validação de Scripts em PowerShell (`$LASTEXITCODE` vs `$P?)`)
+* **O Problema**: No PowerShell, rodar scripts internos com o operador de chamada `&` não atualiza o código global `$LASTEXITCODE`, o que pode fazer checagens de erro usarem o código de execução de ferramentas antigas da sessão.
+* **A Solução**: Para scripts nativos PowerShell, valide o sucesso usando `-not $?` (que verifica se o último comando emitiu erros) em vez de `$LASTEXITCODE -ne 0`.
+
+### E. Modo Foco com Múltiplos Cronômetros e Gerenciamento de Estado Ativo
+* **O Problema**: O design inicial do Modo Foco assumia apenas um timer ativo na tela e usava seletores DOM genéricos para buscar o cartão "running". Isso impedia que o usuário visualizasse outros cronômetros ou alternasse o foco entre tarefas.
+* **A Solução**: Criamos uma variável de controle de estado (`focusActiveCard`) para rastrear qual cartão está atualmente no foco principal e renderizamos uma lista dinâmica lateral de todos os cartões com timers configurados. Implementamos filtros de visualização ("Todos" vs "Apenas Ativos") e permitimos a troca do cartão em foco com um clique direto, além de adicionar botões para ajustar o tempo (+/-1m, +/-5m) e concluir o cartão (pausando o timer e riscando a tarefa com persistência e sincronização de espelhos).
+* **Segurança na Coleta de Elementos**: Depender da variável global `allCards` para o Modo Foco causava falha na exibição de múltiplos cronômetros caso ela estivesse desatualizada. A solução foi consultar diretamente o DOM com `document.querySelectorAll('.card:not(.mirror-card)')` garantindo integridade e consistência.
+* **Isolamento de Ações de Clique e Edição**: Cliques rápidos ou cliques duplos na área do relógio (`timer-display` ou `timer-progress-container`) acionavam por engano o evento de duplo clique do card pai (abrindo a edição inline). Adicionamos um stop propagation explícito e filtragem de target no tratador de duplo clique do cartão.
+* **Cores Dinâmicas e Customizadas de Quadros**: Usamos propriedades CSS customizadas (`--focus-border-color` e `--focus-glow-color`) no seletor do clone do Foco para aplicar a cor do quadro correspondente da tarefa ativa dinamicamente via JS.
+
+

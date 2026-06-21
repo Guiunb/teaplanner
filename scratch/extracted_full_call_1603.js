@@ -1,0 +1,1 @@
+﻿"                 else if (action === 'color') { openColorDialog(block); }\n                 else if (action === 'date') { openDateDialog(block); }\n                 else if (action === 'agenda') { if (block.length) openAgendaDialog(block[0]); }\n                 else if (action === 'timer') { openTimerDialog(block); }"

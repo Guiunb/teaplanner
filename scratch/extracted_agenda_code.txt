@@ -1,0 +1,68 @@
+﻿function openAgendaDialog(card) {
+                if (!card) return;
+
+            
+                         if (!card.dataset.cardId) {
+                    card.dataset.cardId = 'card_' + Date.now() + 
+                     '_' + Math.floor(Math.random() * 1000);
+                }
+
+                const whenVal = 
+                     card.dataset.when || '';
+                let cardDate = '';
+                let cardTime = 
+                     '09:00';
+                let isGoal = false;
+                let isAllDay = false;
+
+          
+                           if (whenVal.includes('T')) {
+                    const parts = whenVal.split('T');
+       
+                                  cardDate = parts[0];
+                    const timePart = parts[1] || '';
+         
+                                if (timePart === 'GOAL') {
+                        isGoal = true;
+                   
+                          isAllDay = true;
+                    } else if (timePart === '') {
+                        
+                     isAllDay = true;
+                    } else {
+                        cardTime = timePart;
+    
+                                     }
+                }
+                if (!cardDate) {
+                    
+                     cardDate = new Date().toISOString().slice(0, 10);
+                }
+
+                const 
+                     currentRecurrence = card.dataset.recurrence || 'none';
+                const currentDuration = 
+                     card.dataset.duration || '60';
+                const currentDescription = 
+                     card.dataset.description || '';
+                
+                const currentAlertEnabled = 
+                     card.dataset.alertEnabled === 'true';
+                const currentAlertValue = 
+                     card.dataset.alertValue || '15';
+                const currentAlertUnit = card.dataset.alertUnit 
+                     || 'minutos';
+
+                let isCustomRecurrence = currentRecurrence.startsWith('{');
+    
+                                 let recRule = { freq: 'weekly', interval: 1, days: [], endType: 'never', endDate: '', 
+                     endCount: 1 };
+                if (isCustomRecurrence) {
+                    try { recRule = 
+                     JSON.parse(currentRecurrence); } catch (e) {}
+                }
+
+                var 
+                     modalElements = showModal('Agendar / RecorrÃªncia', function () {
+
+                     <truncated 27679 bytes>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <!-- CORREÇÃO DE SEGURANÇA E CONEXÃO -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;">
+
+    <title>TEA PLANNER (Sync Final Fix)</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍃</text></svg>">
+
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <!-- BUILD_STYLE_START -->
+    <link rel="stylesheet" href="style.css">
+    <!-- BUILD_STYLE_END -->
+</head>
+
+<body>
+    <header class="app" id="appHeader">
+        <h1>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" class="header-icon">
+                <path
+                    d="M17.32 10c.88.88 1.39 2.07 1.39 3.32 0 2.65-2.15 4.8-4.8 4.8s-4.8-2.15-4.8-4.8c0-1.25.51-2.44 1.39-3.32">
+                </path>
+                <path d="M12 18.12V22"></path>
+                <path
+                    d="M12 2a9.99 9.99 0 0 1 8.61 14.61A9.99 9.99 0 0 1 12 22a9.99 9.99 0 0 1-8.61-5.39A9.99 9.99 0 0 1 12 2z">
+                </path>
+            </svg>
+            TEA PLANNER
+        </h1>
+        <button id="loginBtn" style="background:#4285F4; color:white;">Login Google</button>
+        <span id="userInfo" style="font-size:12px; font-weight:bold;"></span>
+
+        <!-- BOARD CONTROLS -->
+        <div class="board-controls"
+            style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
+            <select id="boardSelect" class="board-selector">
+                <!-- Options populated by JS -->
+            </select>
+            
+            <div class="header-dropdown" id="boardDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Quadros &#9662;</button>
+                <div class="header-dropdown-content">
+                    <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
+                </div>
+            </div>
+            
+            <div class="header-dropdown" id="dataDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Dados &#9662;</button>
+                <div class="header-dropdown-content">
+                    <button type="button" id="menuExportJson">📥 Salvar Json</button>
+                    <button type="button" id="menuImportJson">📤 Importar Json</button>
+                </div>
+            </div>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
+            <!-- Ocultos para manter compatibilidade de IDs legados -->
+            <button id="newBoardBtn" style="display:none"></button>
+            <button id="editBoardBtn" style="display:none"></button>
+            <button id="cloneBoardBtn" style="display:none"></button>
+            <button id="boardThemeBtn" style="display:none"></button>
+            <button id="deleteBoardBtn" style="display:none"></button>
+        </div>
+
+        <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
+        <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
+        <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
+        <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
+        <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
+        <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
+            title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
+        <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
+        <label>De <input id="fFrom" type="date"></label>
+        <label>Até <input id="fTo" type="date"></label>
+        <button id="clearFilters">Limpar filtros</button>
+
+        <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
+        <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
+        <button id="toggleAgendaBtn" title="Mostrar/Ocultar Agenda">🗓️</button>
+        <button id="toggleWeeklyBtn" title="Visão Semanal">📅 Semana</button>
+        <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
+
+        <button id="quickSaveBtn" style="display:none"></button>
+        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
+            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+            <span class="toggle-switch-label">⚙️</span>
+            <span class="toggle-switch-button">OFF</span>
+        </label>
+        <button id="addList">+ Lista</button>
+        <!-- AI Assistant Header Bar -->
+        <div class="ai-assistant-container" id="aiAssistantContainer">
+            <div class="ai-prompt-bar">
+                <button class="ai-btn" id="aiConfigBtn" title="Configurar IA (Gemini, ChatGPT, Claude...)">🔑</button>
+                <div class="ai-soundwave" id="aiSoundwave">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+                <input type="text" class="ai-input" id="aiInput" placeholder="Fale ou digite um comando..." autocomplete="off">
+                <button class="ai-btn ai-mic-btn" id="aiMicBtn" title="Falar comando (Android/Chrome)">🎙️</button>
+                <button class="ai-btn ai-send-btn" id="aiSendBtn" title="Enviar comando">⚡</button>
+            </div>
+            <div class="ai-response-bubble" id="aiResponseBubble"></div>
+        </div>
+        <!-- Ocultos para manter compatibilidade de IDs legados -->
+        <button id="exportJson" style="display:none"></button>
+        <button id="importJsonBtn" style="display:none"></button>
+        <input id="importFile" type="file" style="display:none" />
+        <button id="reset" style="display:none"></button>
+    </header>
+    <section class="workspace">
+        <div id="main-content">
+            <div class="weekly-container collapsed" id="weekly-container">
+                <div class="weekly-controls">
+                    <button id="prevWeekBtn" title="Semana Anterior">❮</button>
+                    <span id="weekRangeDisplay">Semana Atual</span>
+                    <button id="nextWeekBtn" title="Próxima Semana">❯</button>
+                </div>
+                <div class="weekly-grid" id="weeklyGrid">
+                    <!-- Colunas geradas via JS -->
+                </div>
+            </div>
+            <div class="resizer resizer-h" id="resizer-weekly"></div>
+            <div class="board-container" id="board-container">
+                <main class="board" id="board"></main>
+            </div>
+            <div class="resizer resizer-h" id="resizer-matrix"></div>
+            <div class="matrix-container" id="matrix-container">
+                <section class="matrix" id="matrix"></section>
+            </div>
+        </div>
+        <div class="resizer resizer-v" id="resizer-sidebar"></div>
+        <aside id="agenda-sidebar">
+            <div class="schedule" id="schedule">
+                <header>
+                    <div class="header-row">
+                        <strong>AGENDA</strong>
+                        <div class="copy-paste-buttons">
+                            <button id="addUnscheduledBtn" title="Novo Evento (A definir)">+</button>
+                            <button id="copyDayBtn" title="Copiar dia atual">📋</button>
+                            <button id="pasteDayBtn" title="Colar dia copiado">📥</button>
+                        </div>
+                    </div>
+                    <div class="header-row">
+                        <div class="date-nav">
+                            <button id="prevDayBtn" title="Dia Anterior">&lt;</button>
+                            <input id="agendaDate" type="date" />
+                            <button id="nextDayBtn" title="Próximo Dia">&gt;</button>
+                        </div>
+                    </div>
+                </header>
+                <div id="slots"></div>
+            </div>
+        </aside>
+    </section>
+
+    <div id="ctx" class="ctx">
+        <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+        <button data-action="select-mode">🖱️ Selecionar Cartão</button>
+        <div class="sep"></div>
+        <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
+        <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
+        <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
+        <button data-action="agenda">📅 Agendar / Recorrência...</button>
+        <button data-action="alert">🔔 Configurar Alerta...</button>
+        <div class="sep"></div>
+        <div id="ctx-move-board" style="position:relative">
+            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
+            <div class="ctx-sub" id="ctx-move-board-sub"></div>
+        </div>
+        <div class="sep"></div>
+        <button data-action="prop">ℹ️ Propriedades do Cartão</button>
+        <button data-action="gemini-subtasks">✨ Gerar subtarefas</button>
+        <button data-action="gemini-organize">✨ Organizar na Matriz</button>
+        <div class="sep"></div>
+        <button data-action="dup">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
+        <button data-action="del">🗑️ Excluir <span class="shortcut">Del</span></button>
+        <div id="ctx-move" style="position:relative">
+            <button data-action="move">➡️ Mover para ▶</button>
+            <div class="ctx-sub" id="ctx-move-sub"></div>
+        </div>
+        <div id="ctx-move-all" style="position:relative">
+            <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
+            <div class="ctx-sub" id="ctx-moveall-sub"></div>
+        </div>
+        <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
+    </div>
+
+    <div id="ctx-list" class="ctx">
+        <button data-action="list-del">🗑️ Excluir lista</button>
+        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
+        <div class="ctx-sub" id="ctx-list-move-sub"></div>
+        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro ▶</button>
+        <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
+    </div>
+
+    <!-- Container do Modo Foco -->
+    <div id="focus-overlay">
+        <div class="focus-window">
+            <div class="focus-card-clone">
+                <div id="focusTargetText">Carregando tarefa...</div>
+                <div class="focus-time" id="focusTargetTime">00:00</div>
+                <div class="focus-controls">
+                    <button id="focusMinus5Btn" title="-5 minutos">-5m</button>
+                    <button id="focusMinusBtn" title="-1 minuto">-1m</button>
+                    <button id="focusToggleBtn" title="Pausar/Retomar">⏸️</button>
+                    <button id="focusResetBtn" title="Reiniciar tempo do timer">🔄</button>
+                    <button id="focusPlusBtn" title="+1 minuto">+1m</button>
+                    <button id="focusPlus5Btn" title="+5 minutos">+5m</button>
+                    <button id="focusCompleteBtn" class="focus-complete-btn" title="Concluir Tarefa">✔️ Concluir</button>
+                    <button id="focusCloseBtn" title="Sair do Modo Foco">✖</button>
+                </div>
+            </div>
+            
+            <div class="focus-timers-panel">
+                <div class="focus-panel-header">
+                    <h3>OUTROS CRONÔMETROS</h3>
+                    <div class="focus-filter-tabs">
+                        <button id="focusFilterAll" class="active">Todos</button>
+                        <button id="focusFilterActive">Apenas Ativos</button>
+                    </div>
+                    <div class="focus-sort-container">
+                        <span>Ordenar:</span>
+                        <select id="focusSortSelect">
+                            <option value="default">Padrão</option>
+                            <option value="shortest">Menor tempo</option>
+                            <option value="longest">Maior tempo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="focus-timers-list" id="focusTimersList">
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marquee Selection Box -->
+    <div id="marquee"></div>
+
+
+
+    <!-- BUILD_JS_START -->
+    <script src="js/core.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/timers.js"></script>
+    <script src="js/kanban.js"></script>
+    <script src="js/agenda.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/init.js"></script>
+    <!-- BUILD_JS_END -->
+    </script>
+</body>
+
+</html>

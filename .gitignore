@@ -1,0 +1,13 @@
+# Ignore user data backups
+*.json
+
+# Ignore HTML backups and copies
+index - *.html
+*bkp*.html
+index-stable-backup.html
+index_corrupted_backup_*.html
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+Desktop.ini

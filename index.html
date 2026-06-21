@@ -1556,6 +1556,48 @@
             color: #fff;
         }
 
+        .focus-sort-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 6px;
+            background: rgba(0,0,0,0.15);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .focus-sort-container span {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #focusSortSelect {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--ink);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            outline: none;
+            flex-grow: 1;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        #focusSortSelect:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        #focusSortSelect option {
+            background: #0f223d;
+            color: var(--ink);
+        }
+
         .focus-timers-list {
             flex-grow: 1;
             overflow-y: auto;
@@ -1587,6 +1629,20 @@
         .focus-timer-item.active {
             border-color: #ffa726;
             background: rgba(255, 167, 38, 0.06);
+        }
+
+        .focus-timer-item.dragging {
+            opacity: 0.4;
+            border: 1px dashed var(--brand) !important;
+            background: rgba(25, 118, 210, 0.05) !important;
+        }
+
+        .focus-timer-item.drag-over-top {
+            border-top: 2px solid var(--brand) !important;
+        }
+
+        .focus-timer-item.drag-over-bottom {
+            border-bottom: 2px solid var(--brand) !important;
         }
 
         .focus-timer-item .info {
@@ -2321,6 +2377,14 @@ padding: 6px 2px;
                     <div class="focus-filter-tabs">
                         <button id="focusFilterAll" class="active">Todos</button>
                         <button id="focusFilterActive">Apenas Ativos</button>
+                    </div>
+                    <div class="focus-sort-container">
+                        <span>Ordenar:</span>
+                        <select id="focusSortSelect">
+                            <option value="default">Padrão</option>
+                            <option value="shortest">Menor tempo</option>
+                            <option value="longest">Maior tempo</option>
+                        </select>
                     </div>
                 </div>
                 <div class="focus-timers-list" id="focusTimersList">
@@ -10204,11 +10268,74 @@ document.getElementById('pasteDayBtn').addEventListener('click', function () {
 $('#fFrom, #fTo, #fTime').forEach(function (el) { el.addEventListener('input', applyFilters); });
 
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' || e.key === 'Esc') {
-        if (document.body.classList.contains('focus-mode')) {
+    if (document.body.classList.contains('focus-mode')) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
             e.preventDefault();
             document.body.classList.remove('manual-focus-mode', 'focus-mode');
             return;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+            if (focusActiveCard) {
+                e.preventDefault();
+                
+                // If sort is active, reset it to default
+                const sortSelect = document.getElementById('focusSortSelect');
+                if (sortSelect && sortSelect.value !== 'default') {
+                    sortSelect.value = 'default';
+                }
+                
+                const cardMap = new Map();
+                document.querySelectorAll('.card:not(.mirror-card)').forEach(c => {
+                    const id = c.dataset.id;
+                    const total = parseInt(c.dataset.timerTotal || '0', 10);
+                    if (id && total > 0 && c.dataset.completed !== 'true') {
+                        cardMap.set(id, c);
+                    }
+                });
+                const timerCards = Array.from(cardMap.values());
+                const filtered = timerCards.filter(c => {
+                    if (focusFilterMode === 'active') {
+                        return c.dataset.timerState === 'paused';
+                    }
+                    return true;
+                });
+                
+                const idx = filtered.indexOf(focusActiveCard);
+                if (idx !== -1) {
+                    let targetCard = null;
+                    let isAbove = true;
+                    
+                    if (e.key === 'ArrowUp' && idx > 0) {
+                        targetCard = filtered[idx - 1];
+                        isAbove = true;
+                    } else if (e.key === 'ArrowDown' && idx < filtered.length - 1) {
+                        targetCard = filtered[idx + 1];
+                        isAbove = false;
+                    }
+                    
+                    if (targetCard) {
+                        const targetListEl = targetCard.closest('.list');
+                        if (targetListEl) {
+                            const sourceListEl = focusActiveCard.closest('.list');
+                            if (sourceListEl !== targetListEl) {
+                                applyWhen(targetListEl, [focusActiveCard]);
+                            }
+                            
+                            if (isAbove) {
+                                targetCard.parentNode.insertBefore(focusActiveCard, targetCard);
+                            } else {
+                                targetCard.parentNode.insertBefore(focusActiveCard, targetCard.nextSibling);
+                            }
+                            
+                            syncAllCardsOrderFromDOM();
+                            updateSlotsHasItems();
+                            persist();
+                            updateFocusMode();
+                        }
+                    }
+                }
+                return;
+            }
         }
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? doRedo() : doUndo(); return; }
@@ -10572,6 +10699,7 @@ function initDemo() {
 
 var focusActiveCard = null;
 var focusFilterMode = 'all';
+var focusDragSourceCard = null;
 
 function renderFocusTimersList() {
     const listEl = document.getElementById('focusTimersList');
@@ -10592,10 +10720,27 @@ function renderFocusTimersList() {
     // Apply active filter if selected
     const filtered = timerCards.filter(c => {
         if (focusFilterMode === 'active') {
-            return c.dataset.timerState === 'running' || c.dataset.timerState === 'paused';
+            return c.dataset.timerState === 'paused';
         }
         return true; // 'all'
     });
+    
+    // Apply sorting
+    const focusSortSelect = document.getElementById('focusSortSelect');
+    const sortVal = focusSortSelect ? focusSortSelect.value : 'default';
+    if (sortVal === 'shortest') {
+        filtered.sort((a, b) => {
+            const timeA = parseInt(a.dataset.timerLeft || a.dataset.timerTotal || '0', 10);
+            const timeB = parseInt(b.dataset.timerLeft || b.dataset.timerTotal || '0', 10);
+            return timeA - timeB;
+        });
+    } else if (sortVal === 'longest') {
+        filtered.sort((a, b) => {
+            const timeA = parseInt(a.dataset.timerLeft || a.dataset.timerTotal || '0', 10);
+            const timeB = parseInt(b.dataset.timerLeft || b.dataset.timerTotal || '0', 10);
+            return timeB - timeA;
+        });
+    }
     
     if (filtered.length === 0) {
         const empty = document.createElement('div');
@@ -10603,7 +10748,7 @@ function renderFocusTimersList() {
         empty.style.fontSize = '12px';
         empty.style.textAlign = 'center';
         empty.style.padding = '20px 0';
-        empty.textContent = focusFilterMode === 'active' ? 'Nenhum timer ativo no momento.' : 'Nenhum timer configurado.';
+        empty.textContent = focusFilterMode === 'active' ? 'Nenhum timer pausado no momento.' : 'Nenhum timer configurado.';
         listEl.appendChild(empty);
         return;
     }
@@ -10611,6 +10756,88 @@ function renderFocusTimersList() {
     filtered.forEach(c => {
         const item = document.createElement('div');
         item.className = 'focus-timer-item';
+        
+        // HTML5 Drag and Drop reordering
+        item.draggable = true;
+        item.ondragstart = (e) => {
+            focusDragSourceCard = c;
+            item.classList.add('dragging');
+            
+            // If sort is active, reset it to default
+            const sortSelect = document.getElementById('focusSortSelect');
+            if (sortSelect && sortSelect.value !== 'default') {
+                sortSelect.value = 'default';
+            }
+            
+            try {
+                e.dataTransfer.setData('text/plain', 'focus-timer');
+                e.dataTransfer.effectAllowed = 'move';
+            } catch (_) {}
+        };
+        
+        item.ondragover = (e) => {
+            e.preventDefault();
+            if (!focusDragSourceCard || focusDragSourceCard === c) return;
+            
+            const rect = item.getBoundingClientRect();
+            const relY = e.clientY - rect.top;
+            const midpoint = rect.height / 2;
+            
+            if (relY < midpoint) {
+                item.classList.add('drag-over-top');
+                item.classList.remove('drag-over-bottom');
+            } else {
+                item.classList.add('drag-over-bottom');
+                item.classList.remove('drag-over-top');
+            }
+        };
+        
+        item.ondragenter = (e) => {
+            e.preventDefault();
+        };
+        
+        item.ondragleave = () => {
+            item.classList.remove('drag-over-top', 'drag-over-bottom');
+        };
+        
+        item.ondragend = () => {
+            item.classList.remove('dragging');
+            item.classList.remove('drag-over-top', 'drag-over-bottom');
+            focusDragSourceCard = null;
+        };
+        
+        item.ondrop = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            item.classList.remove('drag-over-top', 'drag-over-bottom');
+            
+            if (!focusDragSourceCard || focusDragSourceCard === c) return;
+            
+            const rect = item.getBoundingClientRect();
+            const relY = e.clientY - rect.top;
+            const midpoint = rect.height / 2;
+            const isAbove = relY < midpoint;
+            
+            const targetListEl = c.closest('.list');
+            if (targetListEl) {
+                const sourceListEl = focusDragSourceCard.closest('.list');
+                if (sourceListEl !== targetListEl) {
+                    applyWhen(targetListEl, [focusDragSourceCard]);
+                }
+                
+                if (isAbove) {
+                    c.parentNode.insertBefore(focusDragSourceCard, c);
+                } else {
+                    c.parentNode.insertBefore(focusDragSourceCard, c.nextSibling);
+                }
+                
+                syncAllCardsOrderFromDOM();
+                updateSlotsHasItems();
+                persist();
+                updateFocusMode();
+            }
+        };
+
         if (c === focusActiveCard) {
             item.classList.add('active');
         }
@@ -10888,6 +11115,13 @@ document.getElementById('focusFilterActive').onclick = () => {
     focusFilterMode = 'active';
     updateFocusMode();
 };
+
+const focusSortEl = document.getElementById('focusSortSelect');
+if (focusSortEl) {
+    focusSortEl.onchange = () => {
+        updateFocusMode();
+    };
+}
 
 document.getElementById('focusCloseBtn').onclick = () => {
     document.body.classList.remove('manual-focus-mode', 'focus-mode');
