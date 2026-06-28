@@ -1379,71 +1379,89 @@
 
         .focus-window {
             display: flex;
-            gap: 30px;
+            gap: 20px;
             align-items: stretch;
             justify-content: center;
-            max-width: 900px;
-            width: 100%;
-            flex-wrap: wrap;
+            max-width: 1500px;
+            width: 96vw;
+            height: 86vh;
+            flex-wrap: nowrap;
         }
 
         #focus-overlay .focus-card-clone {
             background: var(--card);
-            border: 2px solid var(--focus-border-color, #ffa726);
-            border-radius: 12px;
-            padding: 30px;
-            flex: 1.2;
-            min-width: 300px;
-            max-width: 460px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 4px var(--focus-glow-color, rgba(255, 167, 38, 0.2));
+            border: 2.5px solid var(--focus-border-color, #ffa726);
+            border-left-width: 6px;
+            border-radius: 10px;
+            padding: 16px;
+            width: 220px;
+            min-width: 220px;
+            max-width: 220px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 3px var(--focus-glow-color, rgba(255, 167, 38, 0.2));
             color: var(--ink);
-            font-size: 22px;
-            text-align: center;
-            word-break: break-word;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 12px;
             animation: pulse-orange-focus 2s infinite;
+            height: 100%;
         }
 
         @keyframes pulse-orange-focus {
-            0% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 var(--focus-glow-color, rgba(255, 167, 38, 0.4)); }
-            50% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 8px var(--focus-glow-color-half, rgba(255, 167, 38, 0.2)); }
-            100% { box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 0 rgba(255, 167, 38, 0); }
+            0% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 0 var(--focus-glow-color, rgba(255, 167, 38, 0.4)); }
+            50% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 6px var(--focus-glow-color-half, rgba(255, 167, 38, 0.2)); }
+            100% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 0 rgba(255, 167, 38, 0); }
         }
 
         #focus-overlay .focus-time {
-            font-size: 56px;
+            font-size: 34px;
             font-weight: bold;
             color: #66bb6a;
-            margin: 24px 0;
+            margin: 12px 0;
             font-family: monospace;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #focusTargetText {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--ink);
+            text-align: left;
+            word-break: break-word;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 200px;
+            padding-right: 4px;
         }
 
         .focus-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
             width: 100%;
+            margin-top: auto;
         }
 
         .focus-controls button {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: white;
-            font-size: 15px;
+            font-size: 11px;
             font-weight: bold;
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
+            height: 32px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s, transform 0.1s;
+            width: 100% !important;
         }
 
         .focus-controls button:hover {
@@ -1455,13 +1473,19 @@
             transform: scale(0.95);
         }
 
+        #focusMinus5Btn { grid-column: span 1; }
+        #focusMinusBtn { grid-column: span 1; }
+        #focusPlusBtn { grid-column: span 1; }
+        #focusPlus5Btn { grid-column: span 1; }
+
         #focusToggleBtn {
-            font-size: 22px;
+            grid-column: span 2;
+            font-size: 14px !important;
             background: rgba(42, 113, 255, 0.15);
             border-color: rgba(42, 113, 255, 0.3);
             color: #64b5f6;
-            width: 54px;
-            height: 54px;
+            height: 34px !important;
+            border-radius: 6px !important;
         }
         
         #focusToggleBtn:hover {
@@ -1469,15 +1493,22 @@
             border-color: rgba(42, 113, 255, 0.5);
         }
 
+        #focusResetBtn {
+            grid-column: span 2;
+            font-size: 14px !important;
+            height: 34px !important;
+            border-radius: 6px !important;
+        }
+
         .focus-controls button.focus-complete-btn {
-            width: auto;
-            padding: 0 18px;
-            border-radius: 23px;
+            grid-column: span 2;
             background: rgba(102, 187, 106, 0.15);
             border-color: rgba(102, 187, 106, 0.3);
             color: #81c784;
-            font-size: 14px;
+            font-size: 11px !important;
             font-weight: 600;
+            height: 34px !important;
+            border-radius: 6px !important;
         }
         
         .focus-controls button.focus-complete-btn:hover {
@@ -1486,10 +1517,13 @@
         }
 
         #focusCloseBtn {
-            font-size: 16px;
+            grid-column: span 2;
+            font-size: 11px !important;
             background: rgba(239, 83, 80, 0.15);
             border-color: rgba(239, 83, 80, 0.3);
             color: #e57373;
+            height: 34px !important;
+            border-radius: 6px !important;
         }
         
         #focusCloseBtn:hover {
@@ -1500,8 +1534,8 @@
         /* OUTROS CRONÔMETROS SIDEBAR */
         .focus-timers-panel {
             flex: 1;
-            min-width: 300px;
-            max-width: 400px;
+            min-width: 400px;
+            max-width: none;
             background: rgba(15, 23, 42, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
@@ -1510,6 +1544,7 @@
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
+            height: 100%;
         }
 
         .focus-panel-header {
@@ -1601,7 +1636,7 @@
         .focus-timers-list {
             flex-grow: 1;
             overflow-y: auto;
-            max-height: 320px;
+            max-height: none;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -2253,6 +2288,29 @@ padding: 6px 2px;
         font-size: 10px;
         line-height: 1.1;
         text-align: center;
+    }
+}
+
+/* Responsividade Mobile para a Janela de Foco */
+@media (max-width: 768px) {
+    .focus-window {
+        flex-direction: column !important;
+        height: auto !important;
+        width: 92vw !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+    }
+    .focus-timers-panel {
+        min-width: unset !important;
+        max-width: none !important;
+        height: 500px !important;
+        flex-grow: 1 !important;
+    }
+    #focus-overlay .focus-card-clone {
+        min-width: unset !important;
+        max-width: none !important;
+        width: 100% !important;
+        height: auto !important;
     }
 }
 
