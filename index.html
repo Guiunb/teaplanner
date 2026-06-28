@@ -11518,14 +11518,25 @@ function renderFocusTreemap(filteredCards) {
 
     if (filteredCards.length === 0) return;
 
+    function getCardTimerValue(card) {
+        let left = parseInt(card.dataset.timerLeft, 10);
+        if (isNaN(left) || left < 0) {
+            left = parseInt(card.dataset.timerTotal, 10);
+        }
+        if (isNaN(left) || left < 0) {
+            left = 0;
+        }
+        return Math.max(left, 1);
+    }
+
     // 1. Extração de Metadados e Cálculo de Pesos
     let items = [];
     if (focusSizeCriteria === 'default') {
         items = filteredCards.map(c => ({ card: c, weight: 1 }));
     } else if (focusSizeCriteria.startsWith('age-')) {
-        const ages = filteredCards.map(c => getCardAge(c));
-        const minAge = Math.min(...ages);
-        const maxAge = Math.max(...ages);
+        const ages = filteredCards.map(c => getCardAge(c)).filter(a => !isNaN(a));
+        const minAge = ages.length > 0 ? Math.min(...ages) : Date.now();
+        const maxAge = ages.length > 0 ? Math.max(...ages) : Date.now();
         const diff = maxAge - minAge;
 
         items = filteredCards.map(c => {
@@ -11533,22 +11544,22 @@ function renderFocusTreemap(filteredCards) {
             let w = 1;
             if (diff > 0) {
                 w = focusSizeCriteria === 'age-oldest' 
-                    ? 1 + 9 * ((maxAge - age) / diff) 
-                    : 1 + 9 * ((age - minAge) / diff);
+                    ? 1 + 49 * ((maxAge - age) / diff) 
+                    : 1 + 49 * ((age - minAge) / diff);
             }
             return { card: c, weight: w };
         });
     } else if (focusSizeCriteria.startsWith('timer-')) {
-        const timers = filteredCards.map(c => Math.max(parseInt(c.dataset.timerLeft || c.dataset.timerTotal || '0', 10), 1));
+        const timers = filteredCards.map(c => getCardTimerValue(c));
         const minT = Math.min(...timers);
         const maxT = Math.max(...timers);
         const diff = maxT - minT;
 
         items = filteredCards.map(c => {
-            const tVal = Math.max(parseInt(c.dataset.timerLeft || c.dataset.timerTotal || '0', 10), 1);
+            const tVal = getCardTimerValue(c);
             let w = tVal;
             if (focusSizeCriteria === 'timer-smallest') {
-                w = diff > 0 ? 1 + 9 * ((maxT - tVal) / diff) : 1;
+                w = diff > 0 ? (maxT + minT - tVal) : 1;
             }
             return { card: c, weight: w };
         });
