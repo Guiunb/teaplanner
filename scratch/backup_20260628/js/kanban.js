@@ -297,7 +297,6 @@ function toggleCardCompletion(e) {
         }
     }
 
-    syncCardTimerState(card);
     persist();
     updateTimerDisplay(card);
     syncMirrors();

@@ -286,59 +286,12 @@ document.addEventListener('keydown', function (e) {
         }
         return;
     }
-function getActiveCardForEdit() {
-    // 1. Check if there's a visible selected card in the DOM (original or mirror)
-    const visibleSelectedCard = Array.from(document.querySelectorAll('.card.selected'))
-        .find(c => c.offsetParent !== null);
-    if (visibleSelectedCard) {
-        return visibleSelectedCard;
-    }
-
-    // 2. Fallback to the global selection Set. If the card is mirror-represented in the weekly view, edit the mirror.
-    if (selected.size > 0) {
-        const firstSelected = Array.from(selected)[0];
-        const mirrorCard = Array.from(document.querySelectorAll('.mirror-card'))
-            .find(m => m._originalReference === firstSelected && m.offsetParent !== null);
-        if (mirrorCard) return mirrorCard;
-        return firstSelected;
-    }
-
-    // 3. Fallback to the context menu target
-    if (ctxTarget) {
-        const mirrorCard = Array.from(document.querySelectorAll('.mirror-card'))
-            .find(m => m._originalReference === ctxTarget && m.offsetParent !== null);
-        if (mirrorCard) return mirrorCard;
-        return ctxTarget;
-    }
-
-    // 4. Fallback to the active card in Focus Mode
-    if (document.body.classList.contains('focus-mode') && focusActiveCard) {
-        if (focusActiveCard.offsetParent !== null) return focusActiveCard;
-        const mirrorCard = Array.from(document.querySelectorAll('.mirror-card'))
-            .find(m => m._originalReference === focusActiveCard && m.offsetParent !== null);
-        if (mirrorCard) return mirrorCard;
-        return focusActiveCard;
-    }
-
-    return null;
-}
-
     var currentSelection = getSelectionOr(ctxTarget);
     const activeEl = document.activeElement;
     const isEditingCard = activeEl.isContentEditable && activeEl.classList.contains('text') && activeEl.closest('.card');
     if (e.key === 'F2') {
-        if (activeEl.closest('.modal') || activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') {
-            return;
-        }
         e.preventDefault();
-        if (isEditingCard) {
-            activeEl.blur();
-        } else {
-            const cardToEdit = getActiveCardForEdit();
-            if (cardToEdit) {
-                startInlineEdit(cardToEdit);
-            }
-        }
+        if (isEditingCard) activeEl.blur(); else if (currentSelection.length > 0) startInlineEdit(currentSelection[0]);
         return;
     }
     if ((activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.closest('.modal')) || (isEditingCard)) {
@@ -636,330 +589,23 @@ var focusActiveCard = null;
 var focusFilterMode = 'all';
 var focusDragSourceCard = null;
 
-// Variáveis Globais de Estado do Treemap
-var focusViewMode = 'list'; // 'list' | 'treemap'
-var focusSizeCriteria = 'default'; // 'default' | 'age-oldest' | 'age-newest' | 'timer-largest' | 'timer-smallest'
-var treemapZoom = 1;
-var treemapPanX = 0;
-var treemapPanY = 0;
-
-function setupFocusTreemapControls() {
-    const listBtn = document.getElementById('focusViewListBtn');
-    const treemapBtn = document.getElementById('focusViewTreemapBtn');
-    const sortGroup = document.getElementById('focusSortGroup');
-    const sizeGroup = document.getElementById('focusSizeGroup');
-    const listList = document.getElementById('focusTimersList');
-    const treemapContainer = document.getElementById('focusTreemapContainer');
-    const sizeSelect = document.getElementById('focusSizeSelect');
-
-    if (listBtn) {
-        listBtn.onclick = () => {
-            focusViewMode = 'list';
-            listBtn.classList.add('active');
-            treemapBtn.classList.remove('active');
-            sortGroup.style.display = '';
-            sizeGroup.style.display = 'none';
-            listList.style.display = '';
-            treemapContainer.style.display = 'none';
-            updateFocusMode();
-        };
-    }
-
-    if (treemapBtn) {
-        treemapBtn.onclick = () => {
-            focusViewMode = 'treemap';
-            treemapBtn.classList.add('active');
-            listBtn.classList.remove('active');
-            sortGroup.style.display = 'none';
-            sizeGroup.style.display = '';
-            listList.style.display = 'none';
-            treemapContainer.style.display = 'flex';
-            resetTreemapView();
-            updateFocusMode();
-        };
-    }
-
-    if (sizeSelect) {
-        sizeSelect.onchange = (e) => {
-            focusSizeCriteria = e.target.value;
-            updateFocusMode();
-        };
-    }
-
-    setupTreemapInteractivity();
-}
-
-function setupTreemapInteractivity() {
-    const container = document.getElementById('focusTreemapContainer');
-    const canvas = document.getElementById('focusTreemapCanvas');
-    const resetBtn = document.getElementById('focusTreemapResetBtn');
-    if (!container || !canvas) return;
-    
-    let isDragging = false;
-    let startX = 0, startY = 0;
-
-    container.onwheel = (e) => {
-        e.preventDefault();
-        const factor = 1.1;
-        let newZoom = treemapZoom;
-        if (e.deltaY < 0) {
-            newZoom *= factor;
-        } else {
-            newZoom /= factor;
-        }
-        newZoom = Math.max(0.5, Math.min(newZoom, 4.0));
-
-        const rect = container.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        treemapPanX = mouseX - (mouseX - treemapPanX) * (newZoom / treemapZoom);
-        treemapPanY = mouseY - (mouseY - treemapPanY) * (newZoom / treemapZoom);
-        treemapZoom = newZoom;
-
-        applyTreemapTransform();
-    };
-
-    container.onmousedown = (e) => {
-        if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.card') || e.target.closest('.focus-timer-item')) return;
-        isDragging = true;
-        startX = e.clientX - treemapPanX;
-        startY = e.clientY - treemapPanY;
-    };
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        treemapPanX = e.clientX - startX;
-        treemapPanY = e.clientY - startY;
-        applyTreemapTransform();
-    });
-
-    window.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-
-    if (resetBtn) {
-        resetBtn.onclick = resetTreemapView;
-    }
-}
-
-function applyTreemapTransform() {
-    const canvas = document.getElementById('focusTreemapCanvas');
-    if (canvas) {
-        canvas.style.transform = `translate(${treemapPanX}px, ${treemapPanY}px) scale(${treemapZoom})`;
-    }
-}
-
-function resetTreemapView() {
-    treemapZoom = 1;
-    treemapPanX = 0;
-    treemapPanY = 0;
-    applyTreemapTransform();
-}
-
-function getCardAge(card) {
-    try {
-        const history = JSON.parse(card.dataset.history || '[]');
-        if (history.length > 0 && history[0].time) {
-            return history[0].time;
-        }
-    } catch(e) {}
-    if (card.dataset.createdTime) {
-        return parseInt(card.dataset.createdTime, 10);
-    }
-    return Date.now();
-}
-
-function calculateSquarifiedTreemap(items, containerRect, onLayoutCard) {
-    if (items.length === 0) return;
-    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
-    const containerArea = containerRect.w * containerRect.h;
-    if (totalWeight === 0 || containerArea === 0) return;
-
-    const data = items.map(item => ({
-        ...item,
-        area: (item.weight / totalWeight) * containerArea
-    })).sort((a, b) => b.area - a.area);
-
-    let x = containerRect.x, y = containerRect.y;
-    let w = containerRect.w, h = containerRect.h;
-    let remaining = [...data];
-
-    while (remaining.length > 0) {
-        const side = Math.min(w, h);
-        const row = [];
-        let rowArea = 0;
-
-        while (remaining.length > 0) {
-            const next = remaining[0];
-            const nextRowArea = rowArea + next.area;
-            const currentRatio = worstRatio(row, side, rowArea);
-            const nextRatio = worstRatio([...row, next], side, nextRowArea);
-
-            if (row.length > 0 && nextRatio > currentRatio) break;
-            row.push(remaining.shift());
-            rowArea = nextRowArea;
-        }
-
-        const rowHeight = rowArea / side;
-        let offset = 0;
-
-        row.forEach(item => {
-            const itemLength = item.area / rowHeight;
-            let rx, ry, rw, rh;
-            if (w >= h) {
-                rx = x; ry = y + offset; rw = rowHeight; rh = itemLength;
-            } else {
-                rx = x + offset; ry = y; rw = itemLength; rh = rowHeight;
-            }
-            onLayoutCard(item, { x: rx, y: ry, w: rw, h: rh });
-            offset += itemLength;
-        });
-
-        if (w >= h) {
-            x += rowHeight; w -= rowHeight;
-        } else {
-            y += rowHeight; h -= rowHeight;
-        }
-    }
-}
-
-function worstRatio(row, side, rowArea) {
-    if (row.length === 0) return Infinity;
-    let minArea = Infinity, maxArea = -Infinity;
-    row.forEach(item => {
-        if (item.area < minArea) minArea = item.area;
-        if (item.area > maxArea) maxArea = item.area;
-    });
-    const sideSq = side * side, rowAreaSq = rowArea * rowArea;
-    return Math.max((sideSq * maxArea) / rowAreaSq, rowAreaSq / (sideSq * minArea));
-}
-
-function renderFocusTreemap(filteredCards) {
-    const canvas = document.getElementById('focusTreemapCanvas');
-    if (!canvas) return;
-    canvas.innerHTML = '';
-
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const containerWidth = rect.width || 400;
-    const containerHeight = rect.height || 280;
-
-    if (filteredCards.length === 0) return;
-
-    // 1. Extração de Metadados e Cálculo de Pesos
-    let items = [];
-    if (focusSizeCriteria === 'default') {
-        items = filteredCards.map(c => ({ card: c, weight: 1 }));
-    } else if (focusSizeCriteria.startsWith('age-')) {
-        const ages = filteredCards.map(c => getCardAge(c));
-        const minAge = Math.min(...ages);
-        const maxAge = Math.max(...ages);
-        const diff = maxAge - minAge;
-
-        items = filteredCards.map(c => {
-            const age = getCardAge(c);
-            let w = 1;
-            if (diff > 0) {
-                w = focusSizeCriteria === 'age-oldest' 
-                    ? 1 + 9 * ((maxAge - age) / diff) 
-                    : 1 + 9 * ((age - minAge) / diff);
-            }
-            return { card: c, weight: w };
-        });
-    } else if (focusSizeCriteria.startsWith('timer-')) {
-        const timers = filteredCards.map(c => Math.max(parseInt(c.dataset.timerLeft || c.dataset.timerTotal || '0', 10), 1));
-        const minT = Math.min(...timers);
-        const maxT = Math.max(...timers);
-        const diff = maxT - minT;
-
-        items = filteredCards.map(c => {
-            const tVal = Math.max(parseInt(c.dataset.timerLeft || c.dataset.timerTotal || '0', 10), 1);
-            let w = tVal;
-            if (focusSizeCriteria === 'timer-smallest') {
-                w = diff > 0 ? 1 + 9 * ((maxT - tVal) / diff) : 1;
-            }
-            return { card: c, weight: w };
-        });
-    }
-
-    // 2. Executa o Layout do Treemap
-    calculateSquarifiedTreemap(items, { x: 0, y: 0, w: containerWidth, h: containerHeight }, (item, rect) => {
-        const c = item.card;
-        
-        // Criação de Wrapper absoluto
-        const wrapper = document.createElement('div');
-        wrapper.className = 'treemap-card-wrapper';
-        wrapper.style.left = `${rect.x}px`;
-        wrapper.style.top = `${rect.y}px`;
-        wrapper.style.width = `${rect.w}px`;
-        wrapper.style.height = `${rect.h}px`;
-
-        // Clone interativo do cartão original
-        const cardClone = c.cloneNode(true);
-        cardClone.className = 'treemap-card';
-        cardClone.classList.remove('selected', 'dragging');
-        cardClone.removeAttribute('draggable');
-        
-        if (c === focusActiveCard) {
-            cardClone.classList.add('active');
-        }
-
-        // Garante aplicação de cor do board
-        const cardColor = getBoardColor(c.dataset.boardId) || c.dataset.color;
-        if (cardColor) {
-            cardClone.style.setProperty('--board-color', cardColor);
-        }
-
-        // Associações de eventos interativos
-        cardClone.onclick = (e) => {
-            if (e.target.closest('.dot') || e.target.closest('.play-pause-btn') || e.target.closest('.timer-display')) return;
-            focusActiveCard = c;
-            updateFocusMode();
-        };
-
-        cardClone.ondblclick = (e) => {
-            e.stopPropagation();
-            handleCardDblClick(c);
-        };
-
-        // Eventos nos botões internos do clone
-        const dot = cardClone.querySelector('.dot');
-        if (dot) {
-            dot.onclick = (e) => {
-                e.stopPropagation();
-                toggleCardCompletion({ target: dot });
-                updateFocusMode();
-            };
-        }
-
-        const timerDisp = cardClone.querySelector('.timer-display');
-        if (timerDisp) {
-            timerDisp.onclick = (e) => {
-                e.stopPropagation();
-                toggleCardTimer(c);
-                updateFocusMode();
-            };
-        }
-
-        // Atualização da exibição interna
-        updateTimerDisplay(cardClone);
-
-        wrapper.appendChild(cardClone);
-        canvas.appendChild(wrapper);
-    });
-}
-
 function renderFocusTimersList() {
     const listEl = document.getElementById('focusTimersList');
     if (!listEl) return;
+    listEl.innerHTML = '';
     
-    // 1. Gather all unique card elements from allCards that have a timer set and are not completed
-    const timerCards = allCards.filter(c => {
+    // Get all unique card elements currently in the DOM that have a timer set and are not completed
+    const cardMap = new Map();
+    document.querySelectorAll('.card:not(.mirror-card)').forEach(c => {
+        const id = c.dataset.id;
         const total = parseInt(c.dataset.timerTotal || '0', 10);
-        return total > 0 && c.dataset.completed !== 'true';
+        if (id && total > 0 && c.dataset.completed !== 'true') {
+            cardMap.set(id, c);
+        }
     });
+    const timerCards = Array.from(cardMap.values());
     
-    // 2. Apply active filter if selected
+    // Apply active filter if selected
     const filtered = timerCards.filter(c => {
         if (focusFilterMode === 'active') {
             return c.dataset.timerState === 'paused';
@@ -967,7 +613,7 @@ function renderFocusTimersList() {
         return true; // 'all'
     });
     
-    // 3. Apply sorting
+    // Apply sorting
     const focusSortSelect = document.getElementById('focusSortSelect');
     const sortVal = focusSortSelect ? focusSortSelect.value : 'default';
     if (sortVal === 'shortest') {
@@ -983,19 +629,7 @@ function renderFocusTimersList() {
             return timeB - timeA;
         });
     }
-
-    if (focusViewMode === 'list') {
-        renderFocusTimersListWithData(filtered);
-    } else {
-        renderFocusTreemap(filtered);
-    }
-}
-
-function renderFocusTimersListWithData(filtered) {
-    const listEl = document.getElementById('focusTimersList');
-    if (!listEl) return;
-    listEl.innerHTML = '';
-
+    
     if (filtered.length === 0) {
         const empty = document.createElement('div');
         empty.style.color = 'var(--muted)';
@@ -1163,17 +797,17 @@ function updateFocusMode() {
         // Resolve a card to focus on
         let targetCard = focusActiveCard;
         // Verify if targetCard is still valid
-        if (targetCard && (!allCards.includes(targetCard) || targetCard.dataset.completed === 'true')) {
+        if (targetCard && (!document.body.contains(targetCard) || targetCard.dataset.completed === 'true')) {
             targetCard = null;
         }
         
-        // If no targetCard, look for a running timer
+        // If no targetCard, look for a running timer in the DOM
         if (!targetCard) {
-            targetCard = allCards.find(c => c.dataset.timerState === 'running');
+            targetCard = document.querySelector('.card.timer-running:not(.mirror-card)');
         }
-        // If still none, look for a paused/finished/stopped timer that is not completed
+        // If still none, look for a paused/finished/stopped timer that is not completed in the DOM
         if (!targetCard) {
-            targetCard = allCards.find(c => {
+            targetCard = Array.from(document.querySelectorAll('.card:not(.mirror-card)')).find(c => {
                 const total = parseInt(c.dataset.timerTotal || '0', 10);
                 return total > 0 && c.dataset.completed !== 'true';
             });
@@ -1246,7 +880,6 @@ document.getElementById('focusResetBtn').onclick = () => {
         const total = parseInt(focusActiveCard.dataset.timerTotal || '0', 10);
         focusActiveCard.dataset.timerLeft = total;
         
-        syncCardTimerState(focusActiveCard);
         persist();
         updateTimerDisplay(focusActiveCard);
         syncMirrors();
@@ -1266,7 +899,6 @@ document.getElementById('focusPlusBtn').onclick = () => {
             if (!isNaN(end)) focusActiveCard.dataset.timerEnd = end + 60000;
             else focusActiveCard.dataset.timerEnd = Date.now() + (left + 60) * 1000;
         }
-        syncCardTimerState(focusActiveCard);
         updateTimerDisplay(focusActiveCard);
         updateFocusMode();
         persist();
@@ -1286,7 +918,6 @@ document.getElementById('focusPlus5Btn').onclick = () => {
             if (!isNaN(end)) focusActiveCard.dataset.timerEnd = end + 300000;
             else focusActiveCard.dataset.timerEnd = Date.now() + (left + 300) * 1000;
         }
-        syncCardTimerState(focusActiveCard);
         updateTimerDisplay(focusActiveCard);
         updateFocusMode();
         persist();
@@ -1310,7 +941,6 @@ document.getElementById('focusMinusBtn').onclick = () => {
             focusActiveCard.dataset.timerLeft = 0;
             focusActiveCard.dataset.timerState = 'finished';
         }
-        syncCardTimerState(focusActiveCard);
         updateTimerDisplay(focusActiveCard);
         updateFocusMode();
         persist();
@@ -1334,7 +964,6 @@ document.getElementById('focusMinus5Btn').onclick = () => {
             focusActiveCard.dataset.timerLeft = 0;
             focusActiveCard.dataset.timerState = 'finished';
         }
-        syncCardTimerState(focusActiveCard);
         updateTimerDisplay(focusActiveCard);
         updateFocusMode();
         persist();
@@ -1357,7 +986,6 @@ document.getElementById('focusCompleteBtn').onclick = () => {
         if (focusActiveCard.dataset.timerState === 'finished') {
             focusActiveCard.dataset.timerState = 'stopped';
         }
-        syncCardTimerState(focusActiveCard);
         persist();
         updateTimerDisplay(focusActiveCard);
         syncMirrors();
@@ -1536,7 +1164,6 @@ function initApp() {
     loadState();
     migrateToMultiBoard();
     initAiControls();
-    setupFocusTreemapControls();
     if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
     startAlertCheck();
 }

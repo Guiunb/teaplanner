@@ -81,4 +81,11 @@ Antes de consolidar qualquer alteração crítica no `index.html`, o desenvolved
 * **Isolamento de Ações de Clique e Edição**: Cliques rápidos ou cliques duplos na área do relógio (`timer-display` ou `timer-progress-container`) acionavam por engano o evento de duplo clique do card pai (abrindo a edição inline). Adicionamos um stop propagation explícito e filtragem de target no tratador de duplo clique do cartão.
 * **Cores Dinâmicas e Customizadas de Quadros**: Usamos propriedades CSS customizadas (`--focus-border-color` e `--focus-glow-color`) no seletor do clone do Foco para aplicar a cor do quadro correspondente da tarefa ativa dinamicamente via JS.
 
-
+### F. Incident C: Deleção Indesejada via Comando de Voz e Race Condition na Sincronização Inicial (Junho 2026)
+* **O Problema**: O usuário executou um comando de voz ("hostinger") no Android que resultou na limpeza de todos os cartões de todos os quadros. Investigamos duas falhas combinadas que causaram isso:
+  1. **Race Condition na Inicialização**: Se o usuário interagir ou disparar um salvamento (`persist()`) antes que a carga inicial do Firebase tenha terminado (ou se o Firebase retornar vazio temporariamente em uma nova sessão), o aplicativo serializava o DOM parcial/vazio e realizava um `.set()` no Firebase, limpando o banco na nuvem.
+  2. **Execução Autônoma de Ações Destrutivas da IA**: Comandos de voz/texto interpretados pela IA (Gemini/OpenAI) como `DELETE_LIST`, `DELETE_CARD` ou `COMPLETE_CARDS` com `all: true` eram executados imediatamente no DOM sem qualquer validação ou confirmação do usuário. Se o reconhecimento de voz falhasse ou a IA alucinasse, listas inteiras de tarefas eram excluídas silenciosamente e a deleção era propagada para o servidor.
+* **A Solução**:
+  1. **Gate de Carga Inicial (`isInitialLoadComplete`)**: Criamos uma trava que impede qualquer gravação no Firebase até que o carregamento inicial dos metadados e do quadro ativo tenha sido totalmente concluído e renderizado.
+  2. **Confirmação para Ações Destrutivas da IA**: Alteramos o motor de execução da IA (`executeAiActions`) para que ações de exclusão (`DELETE_LIST`, `DELETE_CARD`) ou conclusão em lote (`COMPLETE_CARDS` com `all: true`) solicitem confirmação explícita do usuário (`showConfirm`) antes de rodar.
+  3. **Backups Automáticos na Nuvem (10 Minutos)**: Adicionamos um sistema de backups na nuvem que roda a cada 10 minutos (throttled) quando há alterações, guardando o histórico do banco de dados por 7 dias com opção de restauração rápida no menu de Dados.
