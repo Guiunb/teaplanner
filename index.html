@@ -2315,6 +2315,210 @@ padding: 6px 2px;
 }
 
 
+/* ============================================================
+   Add-on: Propósito Visual (Ciclo 4) — gamification.js
+   Estilo calmo e celebrativo. Nada pisca, nada cobra.
+   ============================================================ */
+
+.addons-dropdown-content {
+    min-width: 240px;
+}
+
+.addon-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+}
+
+.addon-name {
+    font-size: 14px;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.addon-toggle {
+    flex-shrink: 0;
+}
+
+.proposito-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 12, 24, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10050;
+    padding: 16px;
+}
+
+.proposito-modal {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(440px, 94vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.proposito-modal h3 {
+    margin: 0 0 6px 0;
+    color: var(--ink);
+    font-size: 17px;
+}
+
+.proposito-hint {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.proposito-modal input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.proposito-thumbs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    min-height: 8px;
+}
+
+.proposito-thumb {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.proposito-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.proposito-thumb-del {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.proposito-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.proposito-actions button {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--card);
+    color: var(--ink);
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.proposito-btn-pri {
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+}
+
+.proposito-btn-sec {
+    opacity: 0.8;
+}
+
+/* ---- Check-in Matinal ---- */
+.checkin-overlay {
+    background: rgba(5, 12, 24, 0.9);
+}
+
+.checkin-card {
+    background: linear-gradient(180deg, #122a4d 0%, var(--panel) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    padding: 26px 24px;
+    width: min(400px, 92vw);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    animation: checkinFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes checkinFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.checkin-saudacao {
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.checkin-foto {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 16px;
+}
+
+.checkin-frase {
+    color: var(--ink);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 6px;
+}
+
+.checkin-board {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 18px;
+}
+
+.checkin-comecar {
+    width: 100%;
+    background: var(--brand);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.checkin-comecar:hover {
+    filter: brightness(1.12);
+}
+
     </style>
 </head>
 
@@ -2350,6 +2554,7 @@ padding: 6px 2px;
                     <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
                     <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
                     <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuBoardProposito" style="display:none;">🎯 Editar Propósito</button>
                     <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
@@ -2360,6 +2565,21 @@ padding: 6px 2px;
                     <button type="button" id="menuExportJson">📥 Salvar Json</button>
                     <button type="button" id="menuImportJson">📤 Importar Json</button>
                     <button type="button" id="menuCloudBackups">☁️ Backups na Nuvem</button>
+                </div>
+            </div>
+
+            <div class="header-dropdown" id="addonsDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Add-ons &#9662;</button>
+                <div class="header-dropdown-content addons-dropdown-content">
+                    <div class="addon-row" title="Propósito Visual: conecte cada quadro a um objetivo com foto e frase. Aparece no check-in matinal.">
+                        <span class="addon-name">🎯 Propósito Visual</span>
+                        <label class="toggle-switch addon-toggle">
+                            <input type="checkbox" id="addonPropositoToggle" class="toggle-switch-input">
+                            <span class="toggle-switch-label"></span>
+                            <span class="toggle-switch-button">OFF</span>
+                        </label>
+                    </div>
+                    <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
                 </div>
             </div>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
@@ -2575,7 +2795,35 @@ padding: 6px 2px;
     <!-- Marquee Selection Box -->
     <div id="marquee"></div>
 
+    <!-- ===== Add-on: Propósito Visual (Ciclo 4) ===== -->
+    <!-- Editor de Propósito (por quadro) -->
+    <div id="propositoEditorOverlay" class="proposito-overlay" style="display:none;">
+        <div class="proposito-modal">
+            <h3>🎯 Propósito do quadro <span id="propositoEditorBoardName"></span></h3>
+            <p class="proposito-hint">Pelo que você está lutando neste quadro? Uma frase e até 3 fotos.</p>
+            <input type="text" id="propositoFraseInput" maxlength="140"
+                placeholder="Ex.: Estudar pelo futuro da minha filha">
+            <div id="propositoThumbs" class="proposito-thumbs"></div>
+            <input type="file" id="propositoFotoInput" accept="image/*" style="display:none;">
+            <div class="proposito-actions">
+                <button type="button" id="propositoAddFotoBtn">📷 Adicionar foto</button>
+                <span style="flex:1"></span>
+                <button type="button" id="propositoCancelarBtn" class="proposito-btn-sec">Cancelar</button>
+                <button type="button" id="propositoSalvarBtn" class="proposito-btn-pri">Salvar</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Check-in Matinal -->
+    <div id="checkinOverlay" class="proposito-overlay checkin-overlay" style="display:none;">
+        <div class="checkin-card">
+            <div class="checkin-saudacao">🌅 Bom dia</div>
+            <img id="checkinFoto" class="checkin-foto" alt="Foto do seu propósito">
+            <div id="checkinFrase" class="checkin-frase"></div>
+            <div id="checkinBoardName" class="checkin-board"></div>
+            <button type="button" id="checkinComecarBtn" class="checkin-comecar">Começar o dia ✨</button>
+        </div>
+    </div>
 
         <script>
         window.addEventListener('load', function () {
@@ -3310,7 +3558,9 @@ function cloneBoard() {
 function switchBoard(id) {
     if (id === currentBoardId && boardEl.children.length > 0) return;
 
-    saveImmediately();
+    if (boardEl.children.length > 0) {
+        saveImmediately();
+    }
 
     console.log("Switching to board: " + id);
     currentBoardId = id;
@@ -4465,45 +4715,49 @@ function addCardHistory(card, actionText) {
 
 function distributeAndSaveTodos(mergedBoardData, agendaData) {
     let boardsDataMap = {};
+    
+    // Inicializa o mapa com os dados já existentes em localStorage para cada quadro,
+    // preservando todas as listas vazias e estrutura de cada um deles.
     boardsMeta.forEach(b => {
-        if (b.id === 'board-trash') return;
-        boardsDataMap[b.id] = [];
+        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+        let bData = [];
+        try {
+            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+            if (bStr) bData = JSON.parse(bStr);
+        } catch (e) {
+            console.error("Error loading board in distributeAndSaveTodos", b.id, e);
+        }
+        if (!Array.isArray(bData)) bData = [];
+        
+        boardsDataMap[b.id] = bData.map(item => {
+            if (item.type === 'kanban') {
+                return { type: 'kanban', title: item.title, cards: [], boardId: b.id };
+            } else if (item.type === 'quad') {
+                return { type: 'quad', quad: item.quad, cards: [] };
+            }
+            return item;
+        });
     });
+    
     if (!boardsDataMap['board-todos']) {
         boardsDataMap['board-todos'] = [];
     }
 
-    // First, initialize empty lists for boards associated with lists in DOM
+    // Garante que as listas e quadrantes presentes no DOM da visão agregada
+    // existam em seus respectivos quadros antes da redistribuição de cartões.
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
-            const associatedBoards = new Set();
-            if (list.boardId && list.boardId !== 'board-todos') {
-                associatedBoards.add(list.boardId);
-            }
-            (list.cards || []).forEach(card => {
-                if (card.boardId && card.boardId !== 'board-trash') {
-                    associatedBoards.add(card.boardId);
+            if (list.boardId && list.boardId !== 'board-todos' && boardsDataMap[list.boardId]) {
+                let targetList = boardsDataMap[list.boardId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
+                if (!targetList) {
+                    boardsDataMap[list.boardId].push({ type: 'kanban', title: title, cards: [], boardId: list.boardId });
                 }
-            });
-            if (associatedBoards.size === 0) {
-                associatedBoards.add('board-todos');
             }
-
-            associatedBoards.forEach(bId => {
-                if (boardsDataMap[bId]) {
-                    boardsDataMap[bId].push({ type: 'kanban', title: title, cards: [] });
-                }
-            });
-        } else if (list.type === 'quad') {
-            const quad = list.quad;
-            Object.keys(boardsDataMap).forEach(bId => {
-                boardsDataMap[bId].push({ type: 'quad', quad: quad, cards: [] });
-            });
         }
     });
 
-    // Then, populate the cards in the corresponding lists
+    // Popula os cartões distribuindo-os para os quadros e listas correspondentes
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
@@ -4515,7 +4769,7 @@ function distributeAndSaveTodos(mergedBoardData, agendaData) {
                 }
                 let targetList = boardsDataMap[bId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
                 if (!targetList) {
-                    targetList = { type: 'kanban', title: title, cards: [] };
+                    targetList = { type: 'kanban', title: title, cards: [], boardId: bId };
                     boardsDataMap[bId].push(targetList);
                 }
                 targetList.cards.push(card);
@@ -10669,6 +10923,305 @@ okBtn.click();
 
 
 
+// ===== MODULE: gamification.js =====
+// ============================================================
+// MÓDULO: gamification.js — Add-ons de Gamificação (Ciclo 4)
+// v1: Propósito Visual (foto + frase por quadro, check-in matinal)
+// Princípios: opt-in total, celebrativo, nunca punitivo, zero culpa.
+// Dados do propósito vivem em boardsMeta[i].proposito e pegam
+// carona no sync existente (saveBoardsMetadata -> Firebase /meta).
+// ============================================================
+
+var LS_ADDONS_KEY = 'tea-planner-addons';
+var LS_CHECKIN_LAST_KEY = 'tea-planner-checkin-last';
+var LS_CHECKIN_ROTATION_KEY = 'tea-planner-checkin-rotation';
+var GAMIFICATION_MAX_FOTOS = 3;
+
+var addonsState = { propositoVisual: false };
+
+// ---------- Estado dos add-ons ----------
+function loadAddonsState() {
+    try {
+        var raw = localStorage.getItem(LS_ADDONS_KEY);
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                addonsState.propositoVisual = !!parsed.propositoVisual;
+            }
+        }
+    } catch (e) { /* estado padrão: tudo OFF */ }
+}
+
+function saveAddonsState() {
+    try {
+        localStorage.setItem(LS_ADDONS_KEY, JSON.stringify(addonsState));
+    } catch (e) { console.error('Erro ao salvar estado dos add-ons:', e); }
+}
+
+function isPropositoVisualOn() {
+    return addonsState.propositoVisual === true;
+}
+
+// ---------- Helpers de propósito ----------
+function getBoardMetaById(boardId) {
+    if (!boardsMeta || !Array.isArray(boardsMeta)) return null;
+    return boardsMeta.find(function (b) { return b.id === boardId; }) || null;
+}
+
+function boardHasProposito(meta) {
+    return !!(meta && meta.proposito && meta.proposito.fotos &&
+        meta.proposito.fotos.length > 0);
+}
+
+function getBoardsComProposito() {
+    if (!boardsMeta || !Array.isArray(boardsMeta)) return [];
+    return boardsMeta.filter(function (b) {
+        return b.id !== 'board-trash' && boardHasProposito(b);
+    });
+}
+
+// ---------- Compressão de foto (máx ~720px, JPEG 0.7) ----------
+function comprimirFotoProposito(file, callback) {
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+        var img = new Image();
+        img.onload = function () {
+            var MAX = 720;
+            var w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+                if (w >= h) { h = Math.round(h * (MAX / w)); w = MAX; }
+                else { w = Math.round(w * (MAX / h)); h = MAX; }
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(dataUrl);
+        };
+        img.onerror = function () { callback(null); };
+        img.src = ev.target.result;
+    };
+    reader.onerror = function () { callback(null); };
+    reader.readAsDataURL(file);
+}
+
+// ---------- UI: visibilidade do item de menu ----------
+function updatePropositoMenuVisibility() {
+    var btn = document.getElementById('menuBoardProposito');
+    if (btn) btn.style.display = isPropositoVisualOn() ? '' : 'none';
+}
+
+// ---------- UI: toggle do add-on ----------
+function initAddonToggle() {
+    var toggle = document.getElementById('addonPropositoToggle');
+    if (!toggle) return;
+    var btnLabel = toggle.parentElement.querySelector('.toggle-switch-button');
+
+    toggle.checked = isPropositoVisualOn();
+    if (btnLabel) btnLabel.textContent = toggle.checked ? 'ON' : 'OFF';
+
+    toggle.addEventListener('change', function () {
+        addonsState.propositoVisual = toggle.checked;
+        if (btnLabel) btnLabel.textContent = toggle.checked ? 'ON' : 'OFF';
+        saveAddonsState();
+        updatePropositoMenuVisibility();
+        if (toggle.checked) {
+            // Liga: se ainda não houve check-in hoje e existe propósito, mostra
+            maybeShowCheckinMatinal();
+        } else {
+            fecharCheckinMatinal();
+            fecharEditorProposito();
+        }
+    });
+}
+
+// ---------- Editor de Propósito (por quadro) ----------
+function abrirEditorProposito() {
+    if (!isPropositoVisualOn()) return;
+    var meta = getBoardMetaById(currentBoardId);
+    if (!meta) { alert('Selecione um quadro primeiro.'); return; }
+    if (meta.id === 'board-trash') { alert('A lixeira não pode ter propósito.'); return; }
+
+    var overlay = document.getElementById('propositoEditorOverlay');
+    if (!overlay) return;
+
+    document.getElementById('propositoEditorBoardName').textContent = meta.name || '';
+    document.getElementById('propositoFraseInput').value =
+        (meta.proposito && meta.proposito.frase) ? meta.proposito.frase : '';
+    renderPropositoThumbs(meta);
+    overlay.style.display = 'flex';
+}
+
+function fecharEditorProposito() {
+    var overlay = document.getElementById('propositoEditorOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function renderPropositoThumbs(meta) {
+    var wrap = document.getElementById('propositoThumbs');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    var fotos = (meta.proposito && meta.proposito.fotos) ? meta.proposito.fotos : [];
+    fotos.forEach(function (b64, idx) {
+        var item = document.createElement('div');
+        item.className = 'proposito-thumb';
+        var img = document.createElement('img');
+        img.src = b64;
+        img.alt = 'Foto do propósito ' + (idx + 1);
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'proposito-thumb-del';
+        del.textContent = '✕';
+        del.title = 'Remover esta foto';
+        del.onclick = function () {
+            meta.proposito.fotos.splice(idx, 1);
+            renderPropositoThumbs(meta);
+        };
+        item.appendChild(img);
+        item.appendChild(del);
+        wrap.appendChild(item);
+    });
+    var addBtn = document.getElementById('propositoAddFotoBtn');
+    if (addBtn) addBtn.disabled = fotos.length >= GAMIFICATION_MAX_FOTOS;
+}
+
+function salvarProposito() {
+    var meta = getBoardMetaById(currentBoardId);
+    if (!meta) return;
+    var frase = document.getElementById('propositoFraseInput').value.trim();
+    if (!meta.proposito) meta.proposito = { frase: '', fotos: [], indiceRotacao: 0 };
+    meta.proposito.frase = frase;
+    // Se ficou sem frase e sem fotos, remove o campo (retrocompatível)
+    if (!frase && meta.proposito.fotos.length === 0) {
+        delete meta.proposito;
+    }
+    saveBoardsMetadata(true); // persiste + sync Firebase (carona no fluxo existente)
+    fecharEditorProposito();
+}
+
+function initEditorProposito() {
+    var addBtn = document.getElementById('propositoAddFotoBtn');
+    var fileInput = document.getElementById('propositoFotoInput');
+    var saveBtn = document.getElementById('propositoSalvarBtn');
+    var cancelBtn = document.getElementById('propositoCancelarBtn');
+    if (!addBtn || !fileInput || !saveBtn || !cancelBtn) return;
+
+    addBtn.onclick = function () { fileInput.click(); };
+    fileInput.onchange = function () {
+        var file = fileInput.files && fileInput.files[0];
+        fileInput.value = '';
+        if (!file) return;
+        var meta = getBoardMetaById(currentBoardId);
+        if (!meta) return;
+        if (!meta.proposito) meta.proposito = { frase: '', fotos: [], indiceRotacao: 0 };
+        if (meta.proposito.fotos.length >= GAMIFICATION_MAX_FOTOS) {
+            alert('Máximo de ' + GAMIFICATION_MAX_FOTOS + ' fotos por quadro (para manter a sincronização leve).');
+            return;
+        }
+        comprimirFotoProposito(file, function (b64) {
+            if (!b64) { alert('Não foi possível processar a imagem.'); return; }
+            meta.proposito.fotos.push(b64);
+            renderPropositoThumbs(meta);
+        });
+    };
+    saveBtn.onclick = salvarProposito;
+    cancelBtn.onclick = fecharEditorProposito;
+}
+
+// ---------- Check-in Matinal ----------
+function getTodayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+}
+
+// Regra travada no PRD §8: quadro ativo; senão, rotação entre os que têm.
+function escolherPropositoParaCheckin() {
+    var ativo = getBoardMetaById(currentBoardId);
+    if (boardHasProposito(ativo)) return ativo;
+    var candidatos = getBoardsComProposito();
+    if (candidatos.length === 0) return null;
+    var rot = parseInt(localStorage.getItem(LS_CHECKIN_ROTATION_KEY) || '0', 10);
+    var escolhido = candidatos[rot % candidatos.length];
+    localStorage.setItem(LS_CHECKIN_ROTATION_KEY, String((rot + 1) % candidatos.length));
+    return escolhido;
+}
+
+function escolherFotoDoProposito(meta) {
+    var p = meta.proposito;
+    if (!p.fotos || p.fotos.length === 0) return null;
+    var idx = (typeof p.indiceRotacao === 'number') ? p.indiceRotacao : 0;
+    idx = idx % p.fotos.length;
+    var foto = p.fotos[idx];
+    p.indiceRotacao = (idx + 1) % p.fotos.length;
+    // Persiste rotação localmente sem forçar sync na nuvem (mudança cosmética)
+    try { localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta)); } catch (e) { }
+    return foto;
+}
+
+function maybeShowCheckinMatinal() {
+    if (!isPropositoVisualOn()) return;
+    var hoje = getTodayStr();
+    if (localStorage.getItem(LS_CHECKIN_LAST_KEY) === hoje) return;
+    mostrarCheckinMatinal(false);
+}
+
+function mostrarCheckinMatinal(sobDemanda) {
+    if (!isPropositoVisualOn()) return;
+    var meta = escolherPropositoParaCheckin();
+    if (!meta) {
+        if (sobDemanda) alert('Nenhum quadro tem propósito ainda. Use "🎯 Editar Propósito" no menu Quadros.');
+        return;
+    }
+    var overlay = document.getElementById('checkinOverlay');
+    if (!overlay) return;
+
+    var foto = escolherFotoDoProposito(meta);
+    var imgEl = document.getElementById('checkinFoto');
+    if (imgEl) {
+        if (foto) { imgEl.src = foto; imgEl.style.display = ''; }
+        else { imgEl.style.display = 'none'; }
+    }
+    var fraseEl = document.getElementById('checkinFrase');
+    if (fraseEl) fraseEl.textContent = (meta.proposito.frase || 'Seu propósito te espera.');
+    var boardEl = document.getElementById('checkinBoardName');
+    if (boardEl) boardEl.textContent = meta.name || '';
+
+    overlay.style.display = 'flex';
+    if (!sobDemanda) {
+        localStorage.setItem(LS_CHECKIN_LAST_KEY, getTodayStr());
+    }
+}
+
+function fecharCheckinMatinal() {
+    var overlay = document.getElementById('checkinOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function initCheckin() {
+    var startBtn = document.getElementById('checkinComecarBtn');
+    if (startBtn) startBtn.onclick = fecharCheckinMatinal;
+    var verBtn = document.getElementById('addonVerPropositoBtn');
+    if (verBtn) verBtn.onclick = function () { mostrarCheckinMatinal(true); };
+}
+
+// ---------- Inicialização do módulo ----------
+function initGamification() {
+    loadAddonsState();
+    initAddonToggle();
+    initEditorProposito();
+    initCheckin();
+
+    var menuBtn = document.getElementById('menuBoardProposito');
+    if (menuBtn) menuBtn.onclick = abrirEditorProposito;
+    updatePropositoMenuVisibility();
+
+    // Check-in matinal: aguarda o boot (Firebase/boards) estabilizar
+    setTimeout(maybeShowCheckinMatinal, 1800);
+}
+
+
 // ===== MODULE: init.js =====
 // ===== INITIALIZATION =====
 const toggleAgendaBtn = document.getElementById('toggleAgendaBtn');
@@ -12222,6 +12775,7 @@ function initApp() {
     setupFocusTreemapControls();
     if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
     startAlertCheck();
+    if (typeof initGamification === 'function') { initGamification(); }
 }
 
 // Exposição para o Test Runner
