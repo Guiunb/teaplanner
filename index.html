@@ -2519,6 +2519,47 @@ padding: 6px 2px;
     filter: brightness(1.12);
 }
 
+/* ---- Add-on: controle de duração do check-in + barra de progresso ---- */
+.addon-subrow {
+    padding: 4px 12px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.addon-subrow label {
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.addon-subrow label strong {
+    color: var(--ink);
+}
+
+.addon-range {
+    width: 100%;
+    accent-color: var(--brand);
+    cursor: pointer;
+}
+
+.checkin-progress {
+    margin-top: 14px;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.checkin-progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: var(--brand);
+    opacity: 0.65;
+}
+
     </style>
 </head>
 
@@ -2578,6 +2619,10 @@ padding: 6px 2px;
                             <span class="toggle-switch-label"></span>
                             <span class="toggle-switch-button">OFF</span>
                         </label>
+                    </div>
+                    <div class="addon-subrow" title="Por quanto tempo o check-in matinal fica na tela antes de fechar sozinho.">
+                        <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
+                        <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
                 </div>
@@ -2822,6 +2867,7 @@ padding: 6px 2px;
             <div id="checkinFrase" class="checkin-frase"></div>
             <div id="checkinBoardName" class="checkin-board"></div>
             <button type="button" id="checkinComecarBtn" class="checkin-comecar">Começar o dia ✨</button>
+            <div class="checkin-progress"><div class="checkin-progress-bar" id="checkinProgressBar"></div></div>
         </div>
     </div>
 
@@ -10936,8 +10982,12 @@ var LS_ADDONS_KEY = 'tea-planner-addons';
 var LS_CHECKIN_LAST_KEY = 'tea-planner-checkin-last';
 var LS_CHECKIN_ROTATION_KEY = 'tea-planner-checkin-rotation';
 var GAMIFICATION_MAX_FOTOS = 3;
+var CHECKIN_DUR_MIN = 5;
+var CHECKIN_DUR_MAX = 30;
+var CHECKIN_DUR_PADRAO = 8;
 
-var addonsState = { propositoVisual: false };
+var addonsState = { propositoVisual: false, checkinDuracao: CHECKIN_DUR_PADRAO };
+var checkinAutoCloseTimer = null;
 
 // ---------- Estado dos add-ons ----------
 function loadAddonsState() {
@@ -10947,6 +10997,9 @@ function loadAddonsState() {
             var parsed = JSON.parse(raw);
             if (parsed && typeof parsed === 'object') {
                 addonsState.propositoVisual = !!parsed.propositoVisual;
+                if (typeof parsed.checkinDuracao === 'number') {
+                    addonsState.checkinDuracao = clampCheckinDuracao(parsed.checkinDuracao);
+                }
             }
         }
     } catch (e) { /* estado padrão: tudo OFF */ }
@@ -10960,6 +11013,18 @@ function saveAddonsState() {
 
 function isPropositoVisualOn() {
     return addonsState.propositoVisual === true;
+}
+
+function clampCheckinDuracao(v) {
+    v = parseInt(v, 10);
+    if (isNaN(v)) return CHECKIN_DUR_PADRAO;
+    if (v < CHECKIN_DUR_MIN) return CHECKIN_DUR_MIN;
+    if (v > CHECKIN_DUR_MAX) return CHECKIN_DUR_MAX;
+    return v;
+}
+
+function getCheckinDuracao() {
+    return clampCheckinDuracao(addonsState.checkinDuracao);
 }
 
 // ---------- Helpers de propósito ----------
@@ -11192,9 +11257,29 @@ function mostrarCheckinMatinal(sobDemanda) {
     if (!sobDemanda) {
         localStorage.setItem(LS_CHECKIN_LAST_KEY, getTodayStr());
     }
+
+    // Fechamento automático configurável (5–30s): a foto nunca vira distração.
+    iniciarAutoFechamentoCheckin();
+}
+
+function iniciarAutoFechamentoCheckin() {
+    var dur = getCheckinDuracao();
+    // Barra de progresso calma que esvazia ao longo da duração.
+    var bar = document.getElementById('checkinProgressBar');
+    if (bar) {
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        // força reflow para a animação recomeçar do zero
+        void bar.offsetWidth;
+        bar.style.transition = 'width ' + dur + 's linear';
+        bar.style.width = '0%';
+    }
+    if (checkinAutoCloseTimer) { clearTimeout(checkinAutoCloseTimer); }
+    checkinAutoCloseTimer = setTimeout(fecharCheckinMatinal, dur * 1000);
 }
 
 function fecharCheckinMatinal() {
+    if (checkinAutoCloseTimer) { clearTimeout(checkinAutoCloseTimer); checkinAutoCloseTimer = null; }
     var overlay = document.getElementById('checkinOverlay');
     if (overlay) overlay.style.display = 'none';
 }
@@ -11206,12 +11291,29 @@ function initCheckin() {
     if (verBtn) verBtn.onclick = function () { mostrarCheckinMatinal(true); };
 }
 
+function initCheckinDuracaoControl() {
+    var range = document.getElementById('checkinDuracaoRange');
+    var label = document.getElementById('checkinDuracaoLabel');
+    if (!range) return;
+    range.min = CHECKIN_DUR_MIN;
+    range.max = CHECKIN_DUR_MAX;
+    range.value = getCheckinDuracao();
+    if (label) label.textContent = getCheckinDuracao() + 's';
+    range.addEventListener('input', function () {
+        var v = clampCheckinDuracao(range.value);
+        addonsState.checkinDuracao = v;
+        if (label) label.textContent = v + 's';
+        saveAddonsState();
+    });
+}
+
 // ---------- Inicialização do módulo ----------
 function initGamification() {
     loadAddonsState();
     initAddonToggle();
     initEditorProposito();
     initCheckin();
+    initCheckinDuracaoControl();
 
     var menuBtn = document.getElementById('menuBoardProposito');
     if (menuBtn) menuBtn.onclick = abrirEditorProposito;
