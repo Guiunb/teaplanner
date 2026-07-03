@@ -1561,19 +1561,16 @@ window.persist = persist;
 window.getActiveDay = getActiveDay;
 window.switchBoard = switchBoard;
 window.initDemo = initDemo;
-try { Object.defineProperty(window, 'allCards', {
+Object.defineProperty(window, 'allCards', {
     get: function() { return allCards; },
     set: function(val) { allCards = val; },
     configurable: true
 });
-} catch (e) { /* var global ja expoe allCards */ }
-try { Object.defineProperty(window, 'boardsMeta', {
+Object.defineProperty(window, 'boardsMeta', {
     get: function() { return boardsMeta; },
     set: function(val) { boardsMeta = val; },
     configurable: true
 });
-} catch (e) { /* var global ja expoe boardsMeta */ }
-
 
 // Inicialização do App
 initApp();

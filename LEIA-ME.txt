@@ -1,0 +1,9 @@
+PACOTE M1 + M2 (v2 - correcao do crash "allCards") 
+====================================================
+1. Extraia DENTRO da pasta "- TEA PLANNER 2.0", SUBSTITUINDO tudo.
+2. NAO precisa rodar build.ps1 - o index.html da raiz ja vem pronto.
+3. Apague da src\js o arquivo "gamification (Cópia em conflito...).js" se ainda existir.
+4. Teste: iniciar_servidor.bat -> http://localhost:8080/index.html
+   -> Add-ons deve listar: Proposito Visual, Carteira & Moedas, Sequencias.
+   -> Console (F12) NAO deve ter o erro "allCards".
+5. OK? Deploy (deploy.bat ou upload manual do index.html da raiz).

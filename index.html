@@ -2619,6 +2619,44 @@ padding: 6px 2px;
     100% { box-shadow: 0 0 0 0 transparent; }
 }
 
+/* ============================================================
+   M2 — Sequências / Streaks (streaks.js)
+   ============================================================ */
+.streak-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(255, 148, 54, 0.16);
+    border: 1px solid rgba(255, 148, 54, 0.35);
+    color: #ffb36b;
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: middle;
+    pointer-events: none;
+}
+.milestone-toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translate(-50%, 16px);
+    background: var(--panel);
+    border: 1px solid rgba(255, 179, 107, 0.4);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.35s, transform 0.35s;
+    z-index: 10060;
+    pointer-events: none;
+    max-width: min(480px, 90vw);
+    text-align: center;
+}
+.milestone-toast.show { opacity: 1; transform: translate(-50%, 0); }
+.dormant-toast { border-color: rgba(110, 200, 140, 0.4); }
+
     </style>
 </head>
 
@@ -2679,19 +2717,11 @@ padding: 6px 2px;
                             <span class="toggle-switch-button">OFF</span>
                         </label>
                     </div>
-                    <div class="addon-row" title="QuickCard: Ao criar um cartão, abrir pop-ups de timer e cor automaticamente.">
-                        <span class="addon-name">⏱️ QuickCard Automático</span>
-                        <label class="toggle-switch addon-toggle">
-                            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-                            <span class="toggle-switch-label"></span>
-                        </label>
-                    </div>
                     <div class="addon-subrow" title="Por quanto tempo o check-in matinal fica na tela antes de fechar sozinho.">
                         <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
                         <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
-                    <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
                 </div>
             </div>
 
@@ -2724,6 +2754,11 @@ padding: 6px 2px;
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
+        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
+            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+            <span class="toggle-switch-label">⚙️</span>
+            <span class="toggle-switch-button">OFF</span>
+        </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
@@ -5020,7 +5055,7 @@ function duplicateCards(cards) {
     updateSlotsHasItems();
     updateTotalTimerDisplay();
     if (typeof renderWeeklyView === 'function') {
-        if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
+        renderWeeklyView();
     }
 }
 
@@ -5103,11 +5138,14 @@ function toggleCardCompletion(e) {
 
     // Ponte kanban -> gamificação (Fundação 0.5). Inerte se nada escutar.
     if (window.TEAEvents) {
+        var _isChild = !!(card.dataset.recurrenceParent);
+        var _isParentRec = !!(card.dataset.recurrence && card.dataset.recurrence !== 'none');
         var _gpayload = {
             cardId: card.dataset.id,
             boardId: card.dataset.boardId || (typeof currentBoardId !== 'undefined' ? currentBoardId : ''),
             quadrant: (typeof detectCardQuadrant === 'function') ? detectCardQuadrant(card) : 'none',
-            isRecurring: !!(card.dataset.recurrence && card.dataset.recurrence !== 'none'),
+            isRecurring: _isChild || _isParentRec,
+            seriesId: _isChild ? card.dataset.recurrenceParent : (_isParentRec ? card.dataset.id : ''),
             timerSeconds: (typeof getCardFocusSeconds === 'function') ? getCardFocusSeconds(card) : 0
         };
         if (card.dataset.completed === 'true') { TEAEvents.emit('task:completed', _gpayload); }
@@ -5438,7 +5476,7 @@ function removeCard(c, bypassTrash = false) {
             }
             
             persist();
-            if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
+            renderWeeklyView();
             applyFilters();
         });
         return;
@@ -5680,25 +5718,6 @@ function wireDropZone(container) {
         if (!after) cardsContainer.appendChild(ph);
         else cardsContainer.insertBefore(ph, after);
         if (isSlot) container.classList.add('hover');
-        
-        // Matrix Color Drop (Hover over quadrant)
-        if (container.dataset.type === 'quad' && dragState.block) {
-            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
-            const qColor = EISENHOWER_COLORS[container.dataset.quad];
-            if (qColor) {
-                var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
-                block.forEach(function(n) {
-                    if (n._originalReference) n = n._originalReference;
-                    n.dataset.labelColor = qColor;
-                    paintCard(n);
-                    const cardInCache = allCards.find(card => card === n);
-                    if (cardInCache && cardInCache !== n) {
-                        cardInCache.dataset.labelColor = qColor;
-                        paintCard(cardInCache);
-                    }
-                });
-            }
-        }
     }
 
     container.addEventListener('dragover', handleDragOver);
@@ -6036,7 +6055,7 @@ function updateSlotsHasItems() {
     });
     updateTotalTimerDisplay();
     updateListHeaderTooltips();
-    if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
+    renderWeeklyView();
 }
 
 var selectedColors = new Set();
@@ -11271,81 +11290,6 @@ var CHECKIN_DUR_PADRAO = 8;
 var addonsState = { propositoVisual: false, checkinDuracao: CHECKIN_DUR_PADRAO };
 var checkinAutoCloseTimer = null;
 
-// ============================================================
-// EVENT BUS GLOBAL (TEAEvents) - Desacoplamento de Módulos
-// ============================================================
-window.TEAEvents = {
-    _listeners: {},
-    on: function (event, callback) {
-        if (!this._listeners[event]) this._listeners[event] = [];
-        this._listeners[event].push(callback);
-    },
-    emit: function (event, payload) {
-        if (!this._listeners[event]) return;
-        this._listeners[event].forEach(function (cb) { cb(payload); });
-    }
-};
-
-// ============================================================
-// REGISTRO GENÉRICO DE ADD-ONS
-// ============================================================
-var ADDON_REGISTRY = [];
-window.registerAddon = function(def) {
-    // def: { id, nome, descricao, onEnable, onDisable }
-    ADDON_REGISTRY.push(def);
-    renderAddonRow(def);
-};
-window.isAddonOn = function(id) { return addonsState[id] === true; };
-window.setAddonOn = function(id, on) {
-    addonsState[id] = !!on; 
-    saveAddonsState();
-    var def = ADDON_REGISTRY.find(function (d) { return d.id === id; });
-    if (def) { on ? def.onEnable() : def.onDisable(); }
-};
-
-function renderAddonRow(def) {
-    var container = document.querySelector('.addons-dropdown-content');
-    if (!container) return;
-    
-    var row = document.createElement('div');
-    row.className = 'addon-row';
-    
-    var nameSpan = document.createElement('span');
-    nameSpan.className = 'addon-name';
-    nameSpan.textContent = def.nome;
-    if (def.descricao) nameSpan.title = def.descricao;
-    
-    var toggleLabel = document.createElement('label');
-    toggleLabel.className = 'toggle-switch addon-toggle';
-    
-    var input = document.createElement('input');
-    input.type = 'checkbox';
-    input.id = 'addon_' + def.id + '_toggle';
-    input.checked = isAddonOn(def.id);
-    input.addEventListener('change', function() {
-        var btnLabel = toggleLabel.querySelector('.toggle-switch-button');
-        if (btnLabel) btnLabel.textContent = input.checked ? 'ON' : 'OFF';
-        setAddonOn(def.id, input.checked);
-    });
-    
-    var btnSpan = document.createElement('span');
-    btnSpan.className = 'toggle-switch-button';
-    btnSpan.textContent = input.checked ? 'ON' : 'OFF';
-    
-    toggleLabel.appendChild(input);
-    toggleLabel.appendChild(btnSpan);
-    
-    row.appendChild(nameSpan);
-    row.appendChild(toggleLabel);
-    
-    var checkinBtn = document.getElementById('addonVerPropositoBtn');
-    if (checkinBtn) {
-        container.insertBefore(row, checkinBtn);
-    } else {
-        container.appendChild(row);
-    }
-}
-
 // ---------- Estado dos add-ons ----------
 function loadAddonsState() {
     try {
@@ -11353,15 +11297,12 @@ function loadAddonsState() {
         if (raw) {
             var parsed = JSON.parse(raw);
             if (parsed && typeof parsed === 'object') {
-                for (var key in parsed) {
-                    if (parsed.hasOwnProperty(key)) {
-                        if (key === 'checkinDuracao') {
-                            if (typeof parsed[key] === 'number') {
-                                addonsState[key] = clampCheckinDuracao(parsed[key]);
-                            }
-                        } else {
-                            addonsState[key] = !!parsed[key];
-                        }
+                for (var k in parsed) {
+                    if (!parsed.hasOwnProperty(k)) continue;
+                    if (k === 'checkinDuracao') {
+                        addonsState.checkinDuracao = clampCheckinDuracao(parsed.checkinDuracao);
+                    } else {
+                        addonsState[k] = parsed[k];
                     }
                 }
             }
@@ -11373,6 +11314,114 @@ function saveAddonsState() {
     try {
         localStorage.setItem(LS_ADDONS_KEY, JSON.stringify(addonsState));
     } catch (e) { console.error('Erro ao salvar estado dos add-ons:', e); }
+}
+
+// ============================================================
+// FUNDAÇÃO (Part 0) — infraestrutura compartilhada dos módulos M1..M6
+// ============================================================
+
+// ---- Barramento de eventos: módulos conversam sem se conhecer ----
+var TEAEvents = window.TEAEvents || (function () {
+    var listeners = {};
+    return {
+        on: function (evt, fn) {
+            if (!listeners[evt]) listeners[evt] = [];
+            listeners[evt].push(fn);
+        },
+        emit: function (evt, payload) {
+            (listeners[evt] || []).forEach(function (fn) {
+                try { fn(payload); } catch (e) { console.error('TEAEvents', evt, e); }
+            });
+        }
+    };
+})();
+window.TEAEvents = TEAEvents;
+
+// ---- Registro genérico de add-ons (cada módulo M1..M6 se registra) ----
+var ADDON_REGISTRY = [];
+
+function isAddonOn(id) { return addonsState[id] === true; }
+
+function setAddonOn(id, on) {
+    addonsState[id] = !!on;
+    saveAddonsState();
+    var def = ADDON_REGISTRY.find(function (d) { return d.id === id; });
+    if (def) {
+        if (on) { if (def.onEnable) def.onEnable(); }
+        else { if (def.onDisable) def.onDisable(); }
+    }
+}
+
+function registerAddon(def) {
+    // def: { id, nome, descricao, onEnable, onDisable }
+    ADDON_REGISTRY.push(def);
+    renderAddonRow(def);
+    if (isAddonOn(def.id) && def.onEnable) { def.onEnable(); }
+}
+
+function renderAddonRow(def) {
+    var container = document.querySelector('.addons-dropdown-content');
+    if (!container) return;
+    var anchor = document.getElementById('addonVerPropositoBtn');
+    var row = document.createElement('div');
+    row.className = 'addon-row';
+    if (def.descricao) row.title = def.descricao;
+
+    var name = document.createElement('span');
+    name.className = 'addon-name';
+    name.textContent = def.nome;
+
+    var lbl = document.createElement('label');
+    lbl.className = 'toggle-switch addon-toggle';
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.className = 'toggle-switch-input';
+    inp.id = 'addon_' + def.id + '_toggle';
+    inp.checked = isAddonOn(def.id);
+    var sp1 = document.createElement('span');
+    sp1.className = 'toggle-switch-label';
+    var sp2 = document.createElement('span');
+    sp2.className = 'toggle-switch-button';
+    sp2.textContent = inp.checked ? 'ON' : 'OFF';
+    inp.addEventListener('change', function () {
+        setAddonOn(def.id, inp.checked);
+        sp2.textContent = inp.checked ? 'ON' : 'OFF';
+    });
+    lbl.appendChild(inp); lbl.appendChild(sp1); lbl.appendChild(sp2);
+    row.appendChild(name); row.appendChild(lbl);
+
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(row, anchor); }
+    else { container.appendChild(row); }
+}
+
+// ---- Utilitário: quadrante Eisenhower de um card (ancorado no DOM real) ----
+// Regra: coluna .list[data-quad] onde o card está; senão o espelho na matriz;
+// senão 'none'. (Matriz usa .list[data-quad="Q1".."Q4"], vide core.js.)
+function detectCardQuadrant(cardEl) {
+    if (!cardEl) return 'none';
+    var own = cardEl.closest ? cardEl.closest('.list[data-quad]') : null;
+    if (own && own.dataset && own.dataset.quad) return own.dataset.quad;
+    var id = cardEl.dataset ? cardEl.dataset.id : null;
+    if (id) {
+        var matrix = document.getElementById('matrix');
+        if (matrix) {
+            var mirror = matrix.querySelector('.card[data-id="' + id + '"]');
+            if (mirror) {
+                var ql = mirror.closest('.list[data-quad]');
+                if (ql && ql.dataset && ql.dataset.quad) return ql.dataset.quad;
+            }
+        }
+    }
+    return 'none';
+}
+
+// ---- Utilitário: segundos de foco real registrados no TEA Timer ----
+function getCardFocusSeconds(cardEl) {
+    if (!cardEl || !cardEl.dataset) return 0;
+    var total = parseInt(cardEl.dataset.timerTotal, 10);
+    var left = parseInt(cardEl.dataset.timerLeft, 10);
+    if (!isNaN(total) && !isNaN(left) && total >= left) return total - left;
+    return 0;
 }
 
 function isPropositoVisualOn() {
@@ -11960,6 +12009,256 @@ function initEconomy() {
     try {
         if (window.firebase && firebase.auth) {
             firebase.auth().onAuthStateChanged(function (user) { if (user) subscribeWalletRemote(); });
+        }
+    } catch (e) { }
+}
+
+
+// ===== MODULE: streaks.js =====
+// ============================================================
+// MÓDULO: streaks.js — M2 Streaks + Economia de Recorrentes
+// Regras (PRD M2): recorrente NUNCA ganha Ouro; ganha streak
+// bend-not-break e converte em Diamante nos marcos 7/30/365.
+// Sistema sugere, usuário decide. Depende: Fundação + economy (M1).
+// ============================================================
+
+var LS_STREAKS_KEY = 'tea-planner-streaks';
+var STREAK_MARCOS = [{ dias: 7, diamante: 1 }, { dias: 30, diamante: 5 }, { dias: 365, diamante: 60 }];
+
+var streaksData = { v: 1, porRecorrencia: {}, marcosPendentes: [], config: { diasParaAlertaDesistencia: 7 }, lastUpdate: 0 };
+var _streaksSubscribed = false;
+
+// ---------- Persistência (mesmo padrão isolado do M1) ----------
+function defaultStreaks() {
+    return { v: 1, porRecorrencia: {}, marcosPendentes: [], config: { diasParaAlertaDesistencia: 7 }, lastUpdate: 0 };
+}
+function normalizeStreaks(s) {
+    var d = defaultStreaks();
+    if (s && typeof s === 'object') {
+        if (s.porRecorrencia && typeof s.porRecorrencia === 'object') d.porRecorrencia = s.porRecorrencia;
+        if (Array.isArray(s.marcosPendentes)) d.marcosPendentes = s.marcosPendentes;
+        if (s.config && typeof s.config.diasParaAlertaDesistencia === 'number') {
+            d.config.diasParaAlertaDesistencia = Math.min(30, Math.max(3, s.config.diasParaAlertaDesistencia));
+        }
+        if (typeof s.lastUpdate === 'number') d.lastUpdate = s.lastUpdate;
+    }
+    return d;
+}
+function loadStreaks() {
+    try {
+        var raw = localStorage.getItem(LS_STREAKS_KEY);
+        streaksData = raw ? normalizeStreaks(JSON.parse(raw)) : defaultStreaks();
+    } catch (e) { streaksData = defaultStreaks(); }
+}
+function saveStreaks() {
+    streaksData.lastUpdate = Date.now();
+    try { localStorage.setItem(LS_STREAKS_KEY, JSON.stringify(streaksData)); } catch (e) { }
+    if (typeof gamRef === 'function') {
+        var ref = gamRef('streaks');
+        if (ref) { try { ref.set(streaksData); } catch (e) { } }
+    }
+}
+function subscribeStreaksRemote() {
+    if (_streaksSubscribed || typeof gamRef !== 'function') return;
+    var ref = gamRef('streaks');
+    if (!ref) return;
+    _streaksSubscribed = true;
+    ref.on('value', function (snap) {
+        var remote = snap.val();
+        if (!remote || typeof remote.lastUpdate !== 'number') return;
+        if (remote.lastUpdate > (streaksData.lastUpdate || 0)) {
+            // Conflito entre aparelhos: prevalece o MAIOR streak (generosidade > rigor)
+            var local = streaksData.porRecorrencia || {};
+            streaksData = normalizeStreaks(remote);
+            for (var k in local) {
+                if (!local.hasOwnProperty(k)) continue;
+                var l = local[k], r = streaksData.porRecorrencia[k];
+                if (!r || (l.streakAtual || 0) > (r.streakAtual || 0)) { streaksData.porRecorrencia[k] = l; }
+            }
+            try { localStorage.setItem(LS_STREAKS_KEY, JSON.stringify(streaksData)); } catch (e) { }
+            renderStreakBadges();
+        }
+    });
+}
+
+// ---------- Datas ----------
+function diasEntre(strA, strB) {
+    // strings 'YYYY-MM-DD' -> diferença em dias inteiros (B - A)
+    var a = new Date(strA + 'T12:00:00'), b = new Date(strB + 'T12:00:00');
+    return Math.round((b - a) / 86400000);
+}
+
+// ---------- Núcleo bend-not-break ----------
+function onTaskCompletedStreak(payload) {
+    if (!isAddonOn('streaks')) return;
+    if (!payload.isRecurring || !payload.seriesId) return;
+
+    var hoje = getTodayStr();
+    var s = streaksData.porRecorrencia[payload.seriesId];
+    if (!s) {
+        s = { streakAtual: 0, melhorStreak: 0, ultimaConclusao: '', flexRestantes: 2, marcosPagos: [] };
+        streaksData.porRecorrencia[payload.seriesId] = s;
+    }
+    if (s.ultimaConclusao === hoje) return; // conta 1 por dia
+
+    if (!s.ultimaConclusao) {
+        s.streakAtual = 1;                                  // primeira vez
+    } else {
+        var gap = diasEntre(s.ultimaConclusao, hoje);
+        if (gap <= 1) {
+            s.streakAtual += 1;                             // dia seguido
+        } else if (gap === 2 && s.flexRestantes > 0) {
+            s.flexRestantes -= 1;                           // pulou 1 dia: flex segura, streak mantém
+        } else {
+            s.streakAtual = Math.max(1, Math.floor(s.streakAtual * 0.75)); // dobra, não quebra
+        }
+    }
+    s.ultimaConclusao = hoje;
+    if (s.streakAtual > (s.melhorStreak || 0)) s.melhorStreak = s.streakAtual;
+    if (s.streakAtual > 0 && s.streakAtual % 7 === 0) s.flexRestantes = 2; // recarga de flex
+
+    verificarMarcos(payload.seriesId, s);
+    saveStreaks();
+    renderStreakBadges();
+    if (window.TEAEvents) TEAEvents.emit('streak:updated', { seriesId: payload.seriesId, dias: s.streakAtual });
+}
+
+function verificarMarcos(seriesId, s) {
+    STREAK_MARCOS.forEach(function (m) {
+        if (s.streakAtual >= m.dias && s.marcosPagos.indexOf(m.dias) === -1) {
+            s.marcosPagos.push(m.dias);
+            pagarMarco(seriesId, m);
+            if (window.TEAEvents) TEAEvents.emit('streak:milestone', { recurrenceId: seriesId, dias: m.dias });
+            mostrarMilestoneToast(m.dias, m.diamante);
+        }
+    });
+}
+
+function pagarMarco(seriesId, marco) {
+    if (typeof grantDiamante === 'function' && isAddonOn('economy')) {
+        grantDiamante(marco.diamante, 'streak:' + marco.dias + 'd', { cardId: seriesId });
+    } else {
+        streaksData.marcosPendentes.push({ seriesId: seriesId, dias: marco.dias, diamante: marco.diamante });
+    }
+}
+
+function pagarMarcosPendentes() {
+    if (typeof grantDiamante !== 'function' || !isAddonOn('economy')) return;
+    if (!streaksData.marcosPendentes.length) return;
+    streaksData.marcosPendentes.forEach(function (p) {
+        grantDiamante(p.diamante, 'streak:' + p.dias + 'd', { cardId: p.seriesId });
+    });
+    streaksData.marcosPendentes = [];
+    saveStreaks();
+}
+
+// ---------- UI: badge 🔥 nos cards recorrentes ----------
+function getSeriesIdOfCardEl(el) {
+    if (!el || !el.dataset) return '';
+    if (el.dataset.recurrenceParent) return el.dataset.recurrenceParent;
+    if (el.dataset.recurrence && el.dataset.recurrence !== 'none') return el.dataset.id || '';
+    return '';
+}
+function renderStreakBadges() {
+    var on = isAddonOn('streaks');
+    var cards = document.querySelectorAll('.card');
+    Array.prototype.forEach.call(cards, function (el) {
+        var old = el.querySelector('.streak-badge');
+        var sid = getSeriesIdOfCardEl(el);
+        if (!on || !sid) { if (old) old.remove(); return; }
+        var s = streaksData.porRecorrencia[sid];
+        if (!s || !s.streakAtual) { if (old) old.remove(); return; }
+        if (!old) {
+            old = document.createElement('span');
+            old.className = 'streak-badge';
+            el.appendChild(old);
+        }
+        old.textContent = '🔥 ' + s.streakAtual;
+        old.title = 'Sequência: ' + s.streakAtual + ' dias (' + (s.flexRestantes || 0) + ' flex) · Melhor: ' + (s.melhorStreak || s.streakAtual);
+    });
+}
+
+// ---------- UI: toast de marco (celebração 4s, calma) ----------
+function mostrarMilestoneToast(dias, diamante) {
+    var t = document.createElement('div');
+    t.className = 'milestone-toast';
+    t.textContent = '🔥 ' + dias + ' dias de consistência! +' + diamante + ' 💎';
+    document.body.appendChild(t);
+    setTimeout(function () { t.classList.add('show'); }, 30);
+    setTimeout(function () {
+        t.classList.remove('show');
+        setTimeout(function () { t.remove(); }, 400);
+    }, 4000);
+}
+
+// ---------- Sugestão calma para recorrência adormecida ----------
+function sugerirAdormecidas() {
+    if (!isAddonOn('streaks')) return;
+    var alerta = streaksData.config.diasParaAlertaDesistencia;
+    var hoje = getTodayStr();
+    for (var sid in streaksData.porRecorrencia) {
+        if (!streaksData.porRecorrencia.hasOwnProperty(sid)) continue;
+        var s = streaksData.porRecorrencia[sid];
+        if (!s.ultimaConclusao || s.sugerido === hoje) continue;
+        if (diasEntre(s.ultimaConclusao, hoje) >= alerta) {
+            s.sugerido = hoje; // 1 sugestão por dia, no máximo
+            var el = document.querySelector('.card[data-id="' + sid + '"] .text');
+            var nome = el ? el.textContent.trim().slice(0, 30) : 'uma recorrência';
+            var t = document.createElement('div');
+            t.className = 'milestone-toast dormant-toast';
+            t.textContent = '🌿 "' + nome + '" está adormecida. Quer pausar? Sem culpa — você decide.';
+            document.body.appendChild(t);
+            setTimeout(function () { t.classList.add('show'); }, 30);
+            setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 6000);
+            saveStreaks();
+            break; // no máximo 1 por abertura
+        }
+    }
+}
+
+// ---------- Config: slider no dropdown Add-ons ----------
+function initStreakConfigUI() {
+    var toggle = document.getElementById('addon_streaks_toggle');
+    if (!toggle) return;
+    var row = toggle.closest('.addon-row');
+    if (!row || document.getElementById('streakAlertaRange')) return;
+    var sub = document.createElement('div');
+    sub.className = 'addon-subrow';
+    sub.title = 'Depois de quantos dias sem completar a recorrência o app sugere pausar (só sugere).';
+    sub.innerHTML = '<label for="streakAlertaRange">🌿 Sugerir pausa após: <strong id="streakAlertaLabel">' +
+        streaksData.config.diasParaAlertaDesistencia + ' dias</strong></label>' +
+        '<input type="range" id="streakAlertaRange" min="3" max="30" step="1" class="addon-range" value="' +
+        streaksData.config.diasParaAlertaDesistencia + '">';
+    row.parentNode.insertBefore(sub, row.nextSibling);
+    var range = document.getElementById('streakAlertaRange');
+    var label = document.getElementById('streakAlertaLabel');
+    range.addEventListener('input', function () {
+        var v = Math.min(30, Math.max(3, parseInt(range.value, 10) || 7));
+        streaksData.config.diasParaAlertaDesistencia = v;
+        label.textContent = v + ' dias';
+        saveStreaks();
+    });
+}
+
+// ---------- Inicialização ----------
+function initStreaks() {
+    loadStreaks();
+    registerAddon({
+        id: 'streaks', nome: '🔥 Sequências (Streaks)',
+        descricao: 'Recorrências criam sequências. Falhar um dia não zera. Marcos de 7/30/365 dias pagam Diamante.',
+        onEnable: function () { renderStreakBadges(); pagarMarcosPendentes(); },
+        onDisable: function () { renderStreakBadges(); }
+    });
+    initStreakConfigUI();
+    if (window.TEAEvents) {
+        TEAEvents.on('task:completed', onTaskCompletedStreak);
+    }
+    // Badges e sugestões após o boot estabilizar; re-render leve periódico
+    setTimeout(function () { renderStreakBadges(); pagarMarcosPendentes(); sugerirAdormecidas(); }, 2500);
+    setInterval(renderStreakBadges, 12000);
+    try {
+        if (window.firebase && firebase.auth) {
+            firebase.auth().onAuthStateChanged(function (user) { if (user) subscribeStreaksRemote(); });
         }
     } catch (e) { }
 }
@@ -13520,6 +13819,7 @@ function initApp() {
     startAlertCheck();
     if (typeof initGamification === 'function') { initGamification(); }
     if (typeof initEconomy === 'function') { initEconomy(); }
+    if (typeof initStreaks === 'function') { initStreaks(); }
 }
 
 // Exposição para o Test Runner
@@ -13528,16 +13828,19 @@ window.persist = persist;
 window.getActiveDay = getActiveDay;
 window.switchBoard = switchBoard;
 window.initDemo = initDemo;
-Object.defineProperty(window, 'allCards', {
+try { Object.defineProperty(window, 'allCards', {
     get: function() { return allCards; },
     set: function(val) { allCards = val; },
     configurable: true
 });
-Object.defineProperty(window, 'boardsMeta', {
+} catch (e) { /* var global ja expoe allCards */ }
+try { Object.defineProperty(window, 'boardsMeta', {
     get: function() { return boardsMeta; },
     set: function(val) { boardsMeta = val; },
     configurable: true
 });
+} catch (e) { /* var global ja expoe boardsMeta */ }
+
 
 // Inicialização do App
 initApp();

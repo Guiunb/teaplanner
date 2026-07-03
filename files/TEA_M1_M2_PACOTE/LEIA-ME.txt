@@ -1,0 +1,24 @@
+PACOTE M1 + M2 — TEA PLANNER (extrair na pasta do projeto)
+===========================================================
+1. Extraia este ZIP DENTRO da pasta "- TEA PLANNER 2.0" do Dropbox,
+   aceitando SUBSTITUIR tudo o que ele perguntar.
+   (Ele coloca cada arquivo no lugar certo sozinho: raiz, src e src\js)
+
+2. O index.html da RAIZ ja vem PRONTO (buildado e validado aqui).
+   Voce NAO precisa rodar o build.ps1 desta vez.
+
+3. Teste local: duplo-clique em iniciar_servidor.bat
+   -> abra http://localhost:8080/index.html
+   -> Add-ons: deve aparecer "Proposito Visual", "Carteira & Moedas"
+      e "Sequencias (Streaks)".
+   -> Ligue a Carteira, conclua uma tarefa: brilho no card; abra o botao
+      "moeda" no topo e veja o Ouro.
+
+4. Se tudo certo: rode o deploy.bat (ou suba o index.html da raiz
+   manualmente no GitHub, como voce ja fez antes).
+
+IMPORTANTE (licao registrada):
+- Apague o arquivo "gamification (Cópia em conflito ...).js" da src\js.
+- Evite editar o projeto por outra IA sem passar pelo coordenador:
+  o Gemini reescreveu o gamification.js e removeu 5 funcoes vitais,
+  e foi por isso que o M1 nunca aparecia.
