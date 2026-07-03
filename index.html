@@ -2315,6 +2315,310 @@ padding: 6px 2px;
 }
 
 
+/* ============================================================
+   Add-on: Propósito Visual (Ciclo 4) — gamification.js
+   Estilo calmo e celebrativo. Nada pisca, nada cobra.
+   ============================================================ */
+
+.addons-dropdown-content {
+    min-width: 240px;
+}
+
+.addon-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+}
+
+.addon-name {
+    font-size: 14px;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.addon-toggle {
+    flex-shrink: 0;
+}
+
+.proposito-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 12, 24, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10050;
+    padding: 16px;
+}
+
+.proposito-modal {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(440px, 94vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.proposito-modal h3 {
+    margin: 0 0 6px 0;
+    color: var(--ink);
+    font-size: 17px;
+}
+
+.proposito-hint {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.proposito-modal input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.proposito-thumbs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    min-height: 8px;
+}
+
+.proposito-thumb {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.proposito-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.proposito-thumb-del {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.proposito-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.proposito-actions button {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--card);
+    color: var(--ink);
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.proposito-btn-pri {
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+}
+
+.proposito-btn-sec {
+    opacity: 0.8;
+}
+
+/* ---- Check-in Matinal ---- */
+.checkin-overlay {
+    background: rgba(5, 12, 24, 0.9);
+}
+
+.checkin-card {
+    background: linear-gradient(180deg, #122a4d 0%, var(--panel) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    padding: 26px 24px;
+    width: min(400px, 92vw);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    animation: checkinFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes checkinFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.checkin-saudacao {
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.checkin-foto {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 16px;
+}
+
+.checkin-frase {
+    color: var(--ink);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 6px;
+}
+
+.checkin-board {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 18px;
+}
+
+.checkin-comecar {
+    width: 100%;
+    background: var(--brand);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.checkin-comecar:hover {
+    filter: brightness(1.12);
+}
+
+/* ---- Add-on: controle de duração do check-in + barra de progresso ---- */
+.addon-subrow {
+    padding: 4px 12px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.addon-subrow label {
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.addon-subrow label strong {
+    color: var(--ink);
+}
+
+.addon-range {
+    width: 100%;
+    accent-color: var(--brand);
+    cursor: pointer;
+}
+
+.checkin-progress {
+    margin-top: 14px;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.checkin-progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: var(--brand);
+    opacity: 0.65;
+}
+
+/* ============================================================
+   M1 — Carteira & Moedas (economy.js)
+   ============================================================ */
+.wallet-header-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin: 0 2px;
+}
+.wallet-header-btn:hover { border-color: var(--brand); }
+
+.wallet-card {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    width: min(420px, 94vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.wallet-card h3 { margin: 0 0 14px; color: var(--ink); font-size: 17px; }
+.wallet-saldos { display: flex; gap: 12px; margin-bottom: 16px; }
+.wallet-saldo {
+    flex: 1; background: var(--card); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; padding: 14px; text-align: center;
+}
+.wallet-num { display: block; font-size: 26px; font-weight: 700; color: var(--ink); }
+.wallet-lbl { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.wallet-hist-titulo { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.wallet-historico {
+    max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 14px;
+}
+.wallet-hist-row {
+    font-size: 13px; color: var(--ink); padding: 7px 10px;
+    background: var(--card); border-radius: 8px; opacity: 0.92;
+}
+.wallet-vazio { font-size: 13px; color: var(--muted); padding: 10px; line-height: 1.5; }
+.wallet-som-row {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+    margin-bottom: 14px; cursor: pointer;
+}
+.wallet-fechar {
+    width: 100%; background: var(--brand); border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600; padding: 11px; cursor: pointer;
+}
+.wallet-fechar:hover { filter: brightness(1.12); }
+
+/* Feedback: brilho proporcional ao quadrante (dia a dia, sem número) */
+.reward-flash { animation: rewardFlash 0.9s ease-out; }
+@keyframes rewardFlash {
+    0%   { box-shadow: 0 0 0 0 transparent; }
+    25%  { box-shadow: 0 0 var(--rf-size, 10px) 2px var(--rf-color, #3a8bff); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
     </style>
 </head>
 
@@ -2350,6 +2654,7 @@ padding: 6px 2px;
                     <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
                     <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
                     <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuBoardProposito" style="display:none;">🎯 Editar Propósito</button>
                     <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
@@ -2362,6 +2667,35 @@ padding: 6px 2px;
                     <button type="button" id="menuCloudBackups">☁️ Backups na Nuvem</button>
                 </div>
             </div>
+
+            <div class="header-dropdown" id="addonsDropdownContainer">
+                <button class="header-dropdown-btn" type="button">Add-ons &#9662;</button>
+                <div class="header-dropdown-content addons-dropdown-content">
+                    <div class="addon-row" title="Propósito Visual: conecte cada quadro a um objetivo com foto e frase. Aparece no check-in matinal.">
+                        <span class="addon-name">🎯 Propósito Visual</span>
+                        <label class="toggle-switch addon-toggle">
+                            <input type="checkbox" id="addonPropositoToggle" class="toggle-switch-input">
+                            <span class="toggle-switch-label"></span>
+                            <span class="toggle-switch-button">OFF</span>
+                        </label>
+                    </div>
+                    <div class="addon-row" title="QuickCard: Ao criar um cartão, abrir pop-ups de timer e cor automaticamente.">
+                        <span class="addon-name">⏱️ QuickCard Automático</span>
+                        <label class="toggle-switch addon-toggle">
+                            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+                            <span class="toggle-switch-label"></span>
+                        </label>
+                    </div>
+                    <div class="addon-subrow" title="Por quanto tempo o check-in matinal fica na tela antes de fechar sozinho.">
+                        <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
+                        <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
+                    </div>
+                    <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
+                    <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
+                </div>
+            </div>
+
+            <button id="walletBtn" class="wallet-header-btn" title="Carteira" style="display:none;">💰</button>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
             <!-- Ocultos para manter compatibilidade de IDs legados -->
             <button id="newBoardBtn" style="display:none"></button>
@@ -2390,11 +2724,6 @@ padding: 6px 2px;
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
-            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-            <span class="toggle-switch-label">⚙️</span>
-            <span class="toggle-switch-button">OFF</span>
-        </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
@@ -2575,7 +2904,53 @@ padding: 6px 2px;
     <!-- Marquee Selection Box -->
     <div id="marquee"></div>
 
+    <!-- ===== Add-on: Propósito Visual (Ciclo 4) ===== -->
+    <!-- Editor de Propósito (por quadro) -->
+    <div id="propositoEditorOverlay" class="proposito-overlay" style="display:none;">
+        <div class="proposito-modal">
+            <h3>🎯 Propósito do quadro <span id="propositoEditorBoardName"></span></h3>
+            <p class="proposito-hint">Pelo que você está lutando neste quadro? Uma frase e até 3 fotos.</p>
+            <input type="text" id="propositoFraseInput" maxlength="140"
+                placeholder="Ex.: Estudar pelo futuro da minha filha">
+            <div id="propositoThumbs" class="proposito-thumbs"></div>
+            <input type="file" id="propositoFotoInput" accept="image/*" style="display:none;">
+            <div class="proposito-actions">
+                <button type="button" id="propositoAddFotoBtn">📷 Adicionar foto</button>
+                <span style="flex:1"></span>
+                <button type="button" id="propositoCancelarBtn" class="proposito-btn-sec">Cancelar</button>
+                <button type="button" id="propositoSalvarBtn" class="proposito-btn-pri">Salvar</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Check-in Matinal -->
+    <div id="checkinOverlay" class="proposito-overlay checkin-overlay" style="display:none;">
+        <div class="checkin-card">
+            <div class="checkin-saudacao">🌅 Bom dia</div>
+            <img id="checkinFoto" class="checkin-foto" alt="Foto do seu propósito">
+            <div id="checkinFrase" class="checkin-frase"></div>
+            <div id="checkinBoardName" class="checkin-board"></div>
+            <button type="button" id="checkinComecarBtn" class="checkin-comecar">Começar o dia ✨</button>
+            <div class="checkin-progress"><div class="checkin-progress-bar" id="checkinProgressBar"></div></div>
+        </div>
+    </div>
+
+    <!-- Carteira (M1) -->
+    <div id="walletOverlay" class="proposito-overlay" style="display:none;">
+        <div class="wallet-card">
+            <h3>💰 Carteira</h3>
+            <div class="wallet-saldos">
+                <div class="wallet-saldo"><span class="wallet-num" id="walletOuro">0</span><span class="wallet-lbl">🪙 Ouro</span></div>
+                <div class="wallet-saldo"><span class="wallet-num" id="walletDiamante">0</span><span class="wallet-lbl">💎 Diamante</span></div>
+            </div>
+            <div class="wallet-hist-titulo">Últimos ganhos</div>
+            <div id="walletHistorico" class="wallet-historico"></div>
+            <label class="wallet-som-row" title="Som curto só em ganhos especiais (Q2 / foco). Desligado por padrão.">
+                <input type="checkbox" id="walletSomToggle"> 🔊 Som de recompensa (Q2 e foco)
+            </label>
+            <button type="button" id="walletFecharBtn" class="wallet-fechar">Fechar</button>
+        </div>
+    </div>
 
         <script>
         window.addEventListener('load', function () {
@@ -3310,7 +3685,9 @@ function cloneBoard() {
 function switchBoard(id) {
     if (id === currentBoardId && boardEl.children.length > 0) return;
 
-    saveImmediately();
+    if (boardEl.children.length > 0) {
+        saveImmediately();
+    }
 
     console.log("Switching to board: " + id);
     currentBoardId = id;
@@ -4465,45 +4842,49 @@ function addCardHistory(card, actionText) {
 
 function distributeAndSaveTodos(mergedBoardData, agendaData) {
     let boardsDataMap = {};
+    
+    // Inicializa o mapa com os dados já existentes em localStorage para cada quadro,
+    // preservando todas as listas vazias e estrutura de cada um deles.
     boardsMeta.forEach(b => {
-        if (b.id === 'board-trash') return;
-        boardsDataMap[b.id] = [];
+        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+        let bData = [];
+        try {
+            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+            if (bStr) bData = JSON.parse(bStr);
+        } catch (e) {
+            console.error("Error loading board in distributeAndSaveTodos", b.id, e);
+        }
+        if (!Array.isArray(bData)) bData = [];
+        
+        boardsDataMap[b.id] = bData.map(item => {
+            if (item.type === 'kanban') {
+                return { type: 'kanban', title: item.title, cards: [], boardId: b.id };
+            } else if (item.type === 'quad') {
+                return { type: 'quad', quad: item.quad, cards: [] };
+            }
+            return item;
+        });
     });
+    
     if (!boardsDataMap['board-todos']) {
         boardsDataMap['board-todos'] = [];
     }
 
-    // First, initialize empty lists for boards associated with lists in DOM
+    // Garante que as listas e quadrantes presentes no DOM da visão agregada
+    // existam em seus respectivos quadros antes da redistribuição de cartões.
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
-            const associatedBoards = new Set();
-            if (list.boardId && list.boardId !== 'board-todos') {
-                associatedBoards.add(list.boardId);
-            }
-            (list.cards || []).forEach(card => {
-                if (card.boardId && card.boardId !== 'board-trash') {
-                    associatedBoards.add(card.boardId);
+            if (list.boardId && list.boardId !== 'board-todos' && boardsDataMap[list.boardId]) {
+                let targetList = boardsDataMap[list.boardId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
+                if (!targetList) {
+                    boardsDataMap[list.boardId].push({ type: 'kanban', title: title, cards: [], boardId: list.boardId });
                 }
-            });
-            if (associatedBoards.size === 0) {
-                associatedBoards.add('board-todos');
             }
-
-            associatedBoards.forEach(bId => {
-                if (boardsDataMap[bId]) {
-                    boardsDataMap[bId].push({ type: 'kanban', title: title, cards: [] });
-                }
-            });
-        } else if (list.type === 'quad') {
-            const quad = list.quad;
-            Object.keys(boardsDataMap).forEach(bId => {
-                boardsDataMap[bId].push({ type: 'quad', quad: quad, cards: [] });
-            });
         }
     });
 
-    // Then, populate the cards in the corresponding lists
+    // Popula os cartões distribuindo-os para os quadros e listas correspondentes
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
@@ -4515,7 +4896,7 @@ function distributeAndSaveTodos(mergedBoardData, agendaData) {
                 }
                 let targetList = boardsDataMap[bId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
                 if (!targetList) {
-                    targetList = { type: 'kanban', title: title, cards: [] };
+                    targetList = { type: 'kanban', title: title, cards: [], boardId: bId };
                     boardsDataMap[bId].push(targetList);
                 }
                 targetList.cards.push(card);
@@ -4719,6 +5100,19 @@ function toggleCardCompletion(e) {
     persist();
     updateTimerDisplay(card);
     syncMirrors();
+
+    // Ponte kanban -> gamificação (Fundação 0.5). Inerte se nada escutar.
+    if (window.TEAEvents) {
+        var _gpayload = {
+            cardId: card.dataset.id,
+            boardId: card.dataset.boardId || (typeof currentBoardId !== 'undefined' ? currentBoardId : ''),
+            quadrant: (typeof detectCardQuadrant === 'function') ? detectCardQuadrant(card) : 'none',
+            isRecurring: !!(card.dataset.recurrence && card.dataset.recurrence !== 'none'),
+            timerSeconds: (typeof getCardFocusSeconds === 'function') ? getCardFocusSeconds(card) : 0
+        };
+        if (card.dataset.completed === 'true') { TEAEvents.emit('task:completed', _gpayload); }
+        else { TEAEvents.emit('task:uncompleted', _gpayload); }
+    }
 }
 
 function paintCard(c) {
@@ -5286,6 +5680,25 @@ function wireDropZone(container) {
         if (!after) cardsContainer.appendChild(ph);
         else cardsContainer.insertBefore(ph, after);
         if (isSlot) container.classList.add('hover');
+        
+        // Matrix Color Drop (Hover over quadrant)
+        if (container.dataset.type === 'quad' && dragState.block) {
+            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const qColor = EISENHOWER_COLORS[container.dataset.quad];
+            if (qColor) {
+                var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
+                block.forEach(function(n) {
+                    if (n._originalReference) n = n._originalReference;
+                    n.dataset.labelColor = qColor;
+                    paintCard(n);
+                    const cardInCache = allCards.find(card => card === n);
+                    if (cardInCache && cardInCache !== n) {
+                        cardInCache.dataset.labelColor = qColor;
+                        paintCard(cardInCache);
+                    }
+                });
+            }
+        }
     }
 
     container.addEventListener('dragover', handleDragOver);
@@ -6346,9 +6759,9 @@ listCtx.addEventListener('click', function (e) {
                     cards.forEach(function (c) {
                         var newTotal = (parseInt(timerMins, 10) || 0) * 60;
                         c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timerState = 'stopped';
-                        c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); paintCard(c);
+                        c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); paintCard(c); if(typeof updateTimerDisplay === \'function\') updateTimerDisplay(c);
                     });
-                    applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+                    applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
                 });
                 modalElements.cancelButton.onclick = function () { modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); document.body.removeChild(modalElements.wrap); persist(); }
             }
@@ -7635,7 +8048,7 @@ c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timer
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
-applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
 });
 modalElements.cancelButton.onclick = function () { 
        modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 
@@ -10306,7 +10719,7 @@ c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timer
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
-applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
 });
 modalElements.cancelButton.onclick = function () { 
        modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 
@@ -10667,6 +11080,805 @@ okBtn.click();
 });
 }
 
+
+
+// ==========================================
+// AI Deduplication (Find Repeated Cards)
+// ==========================================
+function findDuplicatesAI() {
+    const btn = document.getElementById('aiDeduplicateBtn');
+    if(btn) btn.disabled = true;
+    showLoading();
+    
+    // Gather all active cards (not in trash, not completed)
+    const activeCards = allCards.filter(c => c.dataset.boardId !== 'board-trash' && c.dataset.completed !== 'true');
+    if(activeCards.length < 2) {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        showModal('Sem cartões', function(){ var d=el('div'); d.textContent='Não há cartões suficientes para unificar.'; return d; }, function(){});
+        return;
+    }
+    
+    const cardDataList = activeCards.map(c => {
+        const text = c.querySelector('.text');
+        return { id: c.dataset.id, text: text ? text.textContent.trim() : '' };
+    }).filter(c => c.text.length > 0);
+    
+    const systemPrompt = `Você é um assistente de organização inteligente.
+Abaixo está uma lista de tarefas (cartões) em formato JSON.
+Sua missão é agrupar os cartões que representam exatamente a mesma tarefa, ou a mesma anotação, feita em dias diferentes ou repetida acidentalmente.
+Responda APENAS com um array JSON contendo os grupos de duplicatas.
+Exemplo:
+[
+  { "theme": "Revisar relatório financeiro", "cardIds": ["id1", "id3"] },
+  { "theme": "Comprar leite", "cardIds": ["id5", "id9", "id12"] }
+]
+Se não houver nenhum cartão repetido, retorne []. Não inclua grupos com apenas 1 cartão.`;
+    
+    const userPrompt = JSON.stringify(cardDataList);
+    
+    callGemini(systemPrompt, userPrompt).then(response => {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        
+        let groups = [];
+        try {
+            const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
+            groups = JSON.parse(jsonStr);
+        } catch(e) {
+            console.error("Failed to parse dedup JSON", e, response);
+            showModal('Erro na IA', function(){ var d=el('div'); d.textContent='A IA não retornou um formato reconhecível.'; return d; }, function(){});
+            return;
+        }
+        
+        if (!groups || groups.length === 0) {
+            showModal('Tudo Limpo!', function(){ var d=el('div'); d.textContent='A IA não encontrou nenhum cartão repetido! Seu quadro está limpo.'; return d; }, function(){});
+            return;
+        }
+        
+        showModal('Unificar Repetidos (IA)', function() {
+            var wrap = el('div');
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
+            wrap.style.gap = '15px';
+            wrap.style.maxHeight = '400px';
+            wrap.style.overflowY = 'auto';
+            wrap.style.textAlign = 'left';
+            
+            var intro = el('div');
+            intro.innerHTML = 'A IA detectou <b>' + groups.length + '</b> temas repetidos. Selecione quais cartões você deseja <b>MANTAR</b> (os outros do grupo serão excluídos).';
+            intro.style.fontSize = '14px';
+            intro.style.color = 'var(--muted)';
+            wrap.appendChild(intro);
+            
+            groups.forEach((g, gIdx) => {
+                var groupCont = el('div');
+                groupCont.style.background = 'var(--panel)';
+                groupCont.style.border = '1px solid rgba(255,255,255,0.1)';
+                groupCont.style.borderRadius = '8px';
+                groupCont.style.padding = '12px';
+                
+                var gTitle = el('strong');
+                gTitle.textContent = g.theme;
+                gTitle.style.display = 'block';
+                gTitle.style.marginBottom = '10px';
+                groupCont.appendChild(gTitle);
+                
+                g.cardIds.forEach((id, idx) => {
+                    const cInfo = cardDataList.find(c => c.id === id);
+                    if (!cInfo) return;
+                    
+                    var row = el('label');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '8px';
+                    row.style.padding = '6px';
+                    row.style.background = 'var(--card)';
+                    row.style.borderRadius = '4px';
+                    row.style.marginBottom = '4px';
+                    row.style.cursor = 'pointer';
+                    
+                    var rBtn = el('input');
+                    rBtn.type = 'radio';
+                    rBtn.name = 'keepGroup_' + gIdx;
+                    rBtn.value = id;
+                    if (idx === 0) rBtn.checked = true;
+                    
+                    var txt = el('span');
+                    txt.textContent = cInfo.text;
+                    txt.style.fontSize = '13px';
+                    
+                    row.appendChild(rBtn);
+                    row.appendChild(txt);
+                    groupCont.appendChild(row);
+                });
+                
+                // Opção para não unificar este grupo
+                var rowSkip = el('label');
+                rowSkip.style.display = 'flex';
+                rowSkip.style.alignItems = 'center';
+                rowSkip.style.gap = '8px';
+                rowSkip.style.padding = '6px';
+                rowSkip.style.cursor = 'pointer';
+                rowSkip.style.color = 'var(--muted)';
+                rowSkip.style.fontSize = '12px';
+                
+                var rBtnSkip = el('input');
+                rBtnSkip.type = 'radio';
+                rBtnSkip.name = 'keepGroup_' + gIdx;
+                rBtnSkip.value = 'skip';
+                
+                var txtSkip = el('span');
+                txtSkip.textContent = 'Manter todos (Ignorar este grupo)';
+                
+                rowSkip.appendChild(rBtnSkip);
+                rowSkip.appendChild(txtSkip);
+                groupCont.appendChild(rowSkip);
+                
+                wrap.appendChild(groupCont);
+            });
+            
+            wrap._groups = groups;
+            return wrap;
+        }, function(body, wrap) {
+            let removedCount = 0;
+            body._groups.forEach((g, gIdx) => {
+                const keepRadio = body.querySelector('input[name="keepGroup_' + gIdx + '"]:checked');
+                if (keepRadio && keepRadio.value !== 'skip') {
+                    const keepId = keepRadio.value;
+                    g.cardIds.forEach(id => {
+                        if (id !== keepId) {
+                            const cardDOM = document.querySelector('.card[data-id="' + id + '"]');
+                            if (cardDOM) {
+                                removeCard(cardDOM, true);
+                                removedCount++;
+                            }
+                        }
+                    });
+                }
+            });
+            if(removedCount > 0) persist();
+        });
+        
+    }).catch(err => {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        console.error("AI Dedup failed", err);
+    });
+}
+
+
+
+// ===== MODULE: gamification.js =====
+// ============================================================
+// MÓDULO: gamification.js — Add-ons de Gamificação (Ciclo 4)
+// v1: Propósito Visual (foto + frase por quadro, check-in matinal)
+// Princípios: opt-in total, celebrativo, nunca punitivo, zero culpa.
+// Dados do propósito vivem em boardsMeta[i].proposito e pegam
+// carona no sync existente (saveBoardsMetadata -> Firebase /meta).
+// ============================================================
+
+var LS_ADDONS_KEY = 'tea-planner-addons';
+var LS_CHECKIN_LAST_KEY = 'tea-planner-checkin-last';
+var LS_CHECKIN_ROTATION_KEY = 'tea-planner-checkin-rotation';
+var GAMIFICATION_MAX_FOTOS = 3;
+var CHECKIN_DUR_MIN = 5;
+var CHECKIN_DUR_MAX = 30;
+var CHECKIN_DUR_PADRAO = 8;
+
+var addonsState = { propositoVisual: false, checkinDuracao: CHECKIN_DUR_PADRAO };
+var checkinAutoCloseTimer = null;
+
+// ---------- Estado dos add-ons ----------
+function loadAddonsState() {
+    try {
+        var raw = localStorage.getItem(LS_ADDONS_KEY);
+        if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                addonsState.propositoVisual = !!parsed.propositoVisual;
+                if (typeof parsed.checkinDuracao === 'number') {
+                    addonsState.checkinDuracao = clampCheckinDuracao(parsed.checkinDuracao);
+                }
+            }
+        }
+    } catch (e) { /* estado padrão: tudo OFF */ }
+}
+
+function saveAddonsState() {
+    try {
+        localStorage.setItem(LS_ADDONS_KEY, JSON.stringify(addonsState));
+    } catch (e) { console.error('Erro ao salvar estado dos add-ons:', e); }
+}
+
+function isPropositoVisualOn() {
+    return addonsState.propositoVisual === true;
+}
+
+function clampCheckinDuracao(v) {
+    v = parseInt(v, 10);
+    if (isNaN(v)) return CHECKIN_DUR_PADRAO;
+    if (v < CHECKIN_DUR_MIN) return CHECKIN_DUR_MIN;
+    if (v > CHECKIN_DUR_MAX) return CHECKIN_DUR_MAX;
+    return v;
+}
+
+function getCheckinDuracao() {
+    return clampCheckinDuracao(addonsState.checkinDuracao);
+}
+
+// ---------- Helpers de propósito ----------
+function getBoardMetaById(boardId) {
+    if (!boardsMeta || !Array.isArray(boardsMeta)) return null;
+    return boardsMeta.find(function (b) { return b.id === boardId; }) || null;
+}
+
+function boardHasProposito(meta) {
+    return !!(meta && meta.proposito && meta.proposito.fotos &&
+        meta.proposito.fotos.length > 0);
+}
+
+function getBoardsComProposito() {
+    if (!boardsMeta || !Array.isArray(boardsMeta)) return [];
+    return boardsMeta.filter(function (b) {
+        return b.id !== 'board-trash' && boardHasProposito(b);
+    });
+}
+
+// ---------- Compressão de foto (máx ~720px, JPEG 0.7) ----------
+function comprimirFotoProposito(file, callback) {
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+        var img = new Image();
+        img.onload = function () {
+            var MAX = 720;
+            var w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+                if (w >= h) { h = Math.round(h * (MAX / w)); w = MAX; }
+                else { w = Math.round(w * (MAX / h)); h = MAX; }
+            }
+            var canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(dataUrl);
+        };
+        img.onerror = function () { callback(null); };
+        img.src = ev.target.result;
+    };
+    reader.onerror = function () { callback(null); };
+    reader.readAsDataURL(file);
+}
+
+// ---------- UI: visibilidade do item de menu ----------
+function updatePropositoMenuVisibility() {
+    var btn = document.getElementById('menuBoardProposito');
+    if (btn) btn.style.display = isPropositoVisualOn() ? '' : 'none';
+}
+
+// ---------- UI: toggle do add-on ----------
+function initAddonToggle() {
+    var toggle = document.getElementById('addonPropositoToggle');
+    if (!toggle) return;
+    var btnLabel = toggle.parentElement.querySelector('.toggle-switch-button');
+
+    toggle.checked = isPropositoVisualOn();
+    if (btnLabel) btnLabel.textContent = toggle.checked ? 'ON' : 'OFF';
+
+    toggle.addEventListener('change', function () {
+        addonsState.propositoVisual = toggle.checked;
+        if (btnLabel) btnLabel.textContent = toggle.checked ? 'ON' : 'OFF';
+        saveAddonsState();
+        updatePropositoMenuVisibility();
+        if (toggle.checked) {
+            // Liga: se ainda não houve check-in hoje e existe propósito, mostra
+            maybeShowCheckinMatinal();
+        } else {
+            fecharCheckinMatinal();
+            fecharEditorProposito();
+        }
+    });
+}
+
+// ---------- Editor de Propósito (por quadro) ----------
+function abrirEditorProposito() {
+    if (!isPropositoVisualOn()) return;
+    var meta = getBoardMetaById(currentBoardId);
+    if (!meta) { alert('Selecione um quadro primeiro.'); return; }
+    if (meta.id === 'board-trash') { alert('A lixeira não pode ter propósito.'); return; }
+
+    var overlay = document.getElementById('propositoEditorOverlay');
+    if (!overlay) return;
+
+    document.getElementById('propositoEditorBoardName').textContent = meta.name || '';
+    document.getElementById('propositoFraseInput').value =
+        (meta.proposito && meta.proposito.frase) ? meta.proposito.frase : '';
+    renderPropositoThumbs(meta);
+    overlay.style.display = 'flex';
+}
+
+function fecharEditorProposito() {
+    var overlay = document.getElementById('propositoEditorOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function renderPropositoThumbs(meta) {
+    var wrap = document.getElementById('propositoThumbs');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    var fotos = (meta.proposito && meta.proposito.fotos) ? meta.proposito.fotos : [];
+    fotos.forEach(function (b64, idx) {
+        var item = document.createElement('div');
+        item.className = 'proposito-thumb';
+        var img = document.createElement('img');
+        img.src = b64;
+        img.alt = 'Foto do propósito ' + (idx + 1);
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'proposito-thumb-del';
+        del.textContent = '✕';
+        del.title = 'Remover esta foto';
+        del.onclick = function () {
+            meta.proposito.fotos.splice(idx, 1);
+            renderPropositoThumbs(meta);
+        };
+        item.appendChild(img);
+        item.appendChild(del);
+        wrap.appendChild(item);
+    });
+    var addBtn = document.getElementById('propositoAddFotoBtn');
+    if (addBtn) addBtn.disabled = fotos.length >= GAMIFICATION_MAX_FOTOS;
+}
+
+function salvarProposito() {
+    var meta = getBoardMetaById(currentBoardId);
+    if (!meta) return;
+    var frase = document.getElementById('propositoFraseInput').value.trim();
+    if (!meta.proposito) meta.proposito = { frase: '', fotos: [], indiceRotacao: 0 };
+    meta.proposito.frase = frase;
+    // Se ficou sem frase e sem fotos, remove o campo (retrocompatível)
+    if (!frase && meta.proposito.fotos.length === 0) {
+        delete meta.proposito;
+    }
+    saveBoardsMetadata(true); // persiste + sync Firebase (carona no fluxo existente)
+    fecharEditorProposito();
+}
+
+function initEditorProposito() {
+    var addBtn = document.getElementById('propositoAddFotoBtn');
+    var fileInput = document.getElementById('propositoFotoInput');
+    var saveBtn = document.getElementById('propositoSalvarBtn');
+    var cancelBtn = document.getElementById('propositoCancelarBtn');
+    if (!addBtn || !fileInput || !saveBtn || !cancelBtn) return;
+
+    addBtn.onclick = function () { fileInput.click(); };
+    fileInput.onchange = function () {
+        var file = fileInput.files && fileInput.files[0];
+        fileInput.value = '';
+        if (!file) return;
+        var meta = getBoardMetaById(currentBoardId);
+        if (!meta) return;
+        if (!meta.proposito) meta.proposito = { frase: '', fotos: [], indiceRotacao: 0 };
+        if (meta.proposito.fotos.length >= GAMIFICATION_MAX_FOTOS) {
+            alert('Máximo de ' + GAMIFICATION_MAX_FOTOS + ' fotos por quadro (para manter a sincronização leve).');
+            return;
+        }
+        comprimirFotoProposito(file, function (b64) {
+            if (!b64) { alert('Não foi possível processar a imagem.'); return; }
+            meta.proposito.fotos.push(b64);
+            renderPropositoThumbs(meta);
+        });
+    };
+    saveBtn.onclick = salvarProposito;
+    cancelBtn.onclick = fecharEditorProposito;
+}
+
+// ---------- Check-in Matinal ----------
+function getTodayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+}
+
+// Regra travada no PRD §8: quadro ativo; senão, rotação entre os que têm.
+function escolherPropositoParaCheckin() {
+    var ativo = getBoardMetaById(currentBoardId);
+    if (boardHasProposito(ativo)) return ativo;
+    var candidatos = getBoardsComProposito();
+    if (candidatos.length === 0) return null;
+    var rot = parseInt(localStorage.getItem(LS_CHECKIN_ROTATION_KEY) || '0', 10);
+    var escolhido = candidatos[rot % candidatos.length];
+    localStorage.setItem(LS_CHECKIN_ROTATION_KEY, String((rot + 1) % candidatos.length));
+    return escolhido;
+}
+
+function escolherFotoDoProposito(meta) {
+    var p = meta.proposito;
+    if (!p.fotos || p.fotos.length === 0) return null;
+    var idx = (typeof p.indiceRotacao === 'number') ? p.indiceRotacao : 0;
+    idx = idx % p.fotos.length;
+    var foto = p.fotos[idx];
+    p.indiceRotacao = (idx + 1) % p.fotos.length;
+    // Persiste rotação localmente sem forçar sync na nuvem (mudança cosmética)
+    try { localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta)); } catch (e) { }
+    return foto;
+}
+
+function maybeShowCheckinMatinal() {
+    if (!isPropositoVisualOn()) return;
+    var hoje = getTodayStr();
+    if (localStorage.getItem(LS_CHECKIN_LAST_KEY) === hoje) return;
+    mostrarCheckinMatinal(false);
+}
+
+function mostrarCheckinMatinal(sobDemanda) {
+    if (!isPropositoVisualOn()) return;
+    var meta = escolherPropositoParaCheckin();
+    if (!meta) {
+        if (sobDemanda) alert('Nenhum quadro tem propósito ainda. Use "🎯 Editar Propósito" no menu Quadros.');
+        return;
+    }
+    var overlay = document.getElementById('checkinOverlay');
+    if (!overlay) return;
+
+    var foto = escolherFotoDoProposito(meta);
+    var imgEl = document.getElementById('checkinFoto');
+    if (imgEl) {
+        if (foto) { imgEl.src = foto; imgEl.style.display = ''; }
+        else { imgEl.style.display = 'none'; }
+    }
+    var fraseEl = document.getElementById('checkinFrase');
+    if (fraseEl) fraseEl.textContent = (meta.proposito.frase || 'Seu propósito te espera.');
+    var boardEl = document.getElementById('checkinBoardName');
+    if (boardEl) boardEl.textContent = meta.name || '';
+
+    overlay.style.display = 'flex';
+    if (!sobDemanda) {
+        localStorage.setItem(LS_CHECKIN_LAST_KEY, getTodayStr());
+    }
+
+    // Fechamento automático configurável (5–30s): a foto nunca vira distração.
+    iniciarAutoFechamentoCheckin();
+}
+
+function iniciarAutoFechamentoCheckin() {
+    var dur = getCheckinDuracao();
+    // Barra de progresso calma que esvazia ao longo da duração.
+    var bar = document.getElementById('checkinProgressBar');
+    if (bar) {
+        bar.style.transition = 'none';
+        bar.style.width = '100%';
+        // força reflow para a animação recomeçar do zero
+        void bar.offsetWidth;
+        bar.style.transition = 'width ' + dur + 's linear';
+        bar.style.width = '0%';
+    }
+    if (checkinAutoCloseTimer) { clearTimeout(checkinAutoCloseTimer); }
+    checkinAutoCloseTimer = setTimeout(fecharCheckinMatinal, dur * 1000);
+}
+
+function fecharCheckinMatinal() {
+    if (checkinAutoCloseTimer) { clearTimeout(checkinAutoCloseTimer); checkinAutoCloseTimer = null; }
+    var overlay = document.getElementById('checkinOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function initCheckin() {
+    var startBtn = document.getElementById('checkinComecarBtn');
+    if (startBtn) startBtn.onclick = fecharCheckinMatinal;
+    var verBtn = document.getElementById('addonVerPropositoBtn');
+    if (verBtn) verBtn.onclick = function () { mostrarCheckinMatinal(true); };
+}
+
+function initCheckinDuracaoControl() {
+    var range = document.getElementById('checkinDuracaoRange');
+    var label = document.getElementById('checkinDuracaoLabel');
+    if (!range) return;
+    range.min = CHECKIN_DUR_MIN;
+    range.max = CHECKIN_DUR_MAX;
+    range.value = getCheckinDuracao();
+    if (label) label.textContent = getCheckinDuracao() + 's';
+    range.addEventListener('input', function () {
+        var v = clampCheckinDuracao(range.value);
+        addonsState.checkinDuracao = v;
+        if (label) label.textContent = v + 's';
+        saveAddonsState();
+    });
+}
+
+// ---------- Inicialização do módulo ----------
+function initGamification() {
+    loadAddonsState();
+    initAddonToggle();
+    initEditorProposito();
+    initCheckin();
+    initCheckinDuracaoControl();
+
+    var menuBtn = document.getElementById('menuBoardProposito');
+    if (menuBtn) menuBtn.onclick = abrirEditorProposito;
+    updatePropositoMenuVisibility();
+
+    // Check-in matinal: aguarda o boot (Firebase/boards) estabilizar
+    setTimeout(maybeShowCheckinMatinal, 1800);
+}
+
+
+// ===== MODULE: economy.js =====
+// ============================================================
+// MÓDULO: economy.js — M1 Carteira + Moedas (Ouro/Diamante)
+// Depende da Fundação (gamification.js): TEAEvents, registerAddon,
+// isAddonOn, addonsState, saveAddonsState, getTodayStr.
+// Sync ISOLADO: users/<uid>/gamification/wallet (nunca toca boards/meta).
+// Feedback: brilho proporcional ao quadrante + som "Cristal" opt-in.
+// ============================================================
+
+var LS_WALLET_KEY = 'tea-planner-wallet';
+var LS_PAID_TODAY_KEY = 'tea-planner-paid-today';
+var ECONOMY_VALORES = { Q1: 8, Q2: 12, Q3: 4, Q4: 2, none: 3 };
+
+var wallet = { v: 1, ouro: 0, diamante: 0, historico: [], lastUpdate: 0 };
+var _walletSubscribed = false;
+
+// ---------- Persistência local ----------
+function defaultWallet() { return { v: 1, ouro: 0, diamante: 0, historico: [], lastUpdate: 0 }; }
+
+function normalizeWallet(w) {
+    var d = defaultWallet();
+    if (w && typeof w === 'object') {
+        if (typeof w.ouro === 'number') d.ouro = w.ouro;
+        if (typeof w.diamante === 'number') d.diamante = w.diamante;
+        if (Array.isArray(w.historico)) d.historico = w.historico.slice(-500);
+        if (typeof w.lastUpdate === 'number') d.lastUpdate = w.lastUpdate;
+    }
+    return d;
+}
+
+function loadWallet() {
+    try {
+        var raw = localStorage.getItem(LS_WALLET_KEY);
+        wallet = raw ? normalizeWallet(JSON.parse(raw)) : defaultWallet();
+    } catch (e) { wallet = defaultWallet(); }
+}
+
+function saveWalletLocalOnly() {
+    try { localStorage.setItem(LS_WALLET_KEY, JSON.stringify(wallet)); } catch (e) { }
+}
+
+function saveWallet() {
+    wallet.lastUpdate = Date.now();
+    saveWalletLocalOnly();
+    var ref = gamRef('wallet');
+    if (ref) { try { ref.set(wallet); } catch (e) { } }
+}
+
+// ---------- Sync isolado (Firebase compat) ----------
+function gamRef(key) {
+    try {
+        if (window.firebase && firebase.auth && firebase.auth().currentUser) {
+            return firebase.database().ref('users/' + firebase.auth().currentUser.uid + '/gamification/' + key);
+        }
+    } catch (e) { }
+    return null;
+}
+
+function subscribeWalletRemote() {
+    if (_walletSubscribed) return;
+    var ref = gamRef('wallet');
+    if (!ref) return;
+    _walletSubscribed = true;
+    ref.on('value', function (snap) {
+        var remote = snap.val();
+        if (!remote || typeof remote.lastUpdate !== 'number') return;
+        if (remote.lastUpdate > (wallet.lastUpdate || 0)) {
+            wallet = normalizeWallet(remote);
+            saveWalletLocalOnly();
+            updateWalletUI();
+        }
+    });
+}
+
+// ---------- Anti-farming leve (não paga 2x a mesma tarefa no dia) ----------
+function paidTodayMap() {
+    try {
+        var raw = localStorage.getItem(LS_PAID_TODAY_KEY);
+        var obj = raw ? JSON.parse(raw) : null;
+        if (!obj || obj.data !== getTodayStr()) { obj = { data: getTodayStr(), ids: {} }; }
+        return obj;
+    } catch (e) { return { data: getTodayStr(), ids: {} }; }
+}
+function markPaidToday(cardId) {
+    var m = paidTodayMap(); m.ids[cardId] = 1;
+    try { localStorage.setItem(LS_PAID_TODAY_KEY, JSON.stringify(m)); } catch (e) { }
+}
+function alreadyPaidToday(cardId) {
+    return !!paidTodayMap().ids[cardId];
+}
+
+// ---------- Concessão ----------
+function pushHistorico(entry) {
+    wallet.historico.push(entry);
+    if (wallet.historico.length > 500) { wallet.historico = wallet.historico.slice(-500); }
+}
+
+function grantOuro(valor, motivo, extra) {
+    if (valor <= 0) return;
+    wallet.ouro += valor;
+    pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: valor, motivo: motivo,
+        cardId: extra && extra.cardId, boardId: extra && extra.boardId });
+    saveWallet();
+    updateWalletUI();
+    if (window.TEAEvents) TEAEvents.emit('coins:earned', { tipo: 'ouro', valor: valor, motivo: motivo });
+}
+
+function grantDiamante(valor, motivo, extra) {
+    if (valor <= 0) return;
+    wallet.diamante += valor;
+    pushHistorico({ ts: Date.now(), tipo: 'diamante', valor: valor, motivo: motivo,
+        cardId: extra && extra.cardId, boardId: extra && extra.boardId });
+    saveWallet();
+    updateWalletUI();
+    if (window.TEAEvents) TEAEvents.emit('coins:earned', { tipo: 'diamante', valor: valor, motivo: motivo });
+}
+
+// O M5 (Banco Central) sobrescreve isto para aplicar preços recalibrados.
+function getPrecoAtual(quadrant, base) { return base; }
+
+function onTaskCompleted(payload) {
+    if (!isAddonOn('economy')) return;
+    if (payload.isRecurring) return;                        // regra M2: recorrente não dá Ouro
+    if (payload.cardId && alreadyPaidToday(payload.cardId)) return;
+
+    var base = ECONOMY_VALORES[payload.quadrant] || ECONOMY_VALORES.none;
+    var timerBonus = (payload.timerSeconds >= 600);
+    if (timerBonus) base = Math.ceil(base * 1.5);
+    var valor = getPrecoAtual(payload.quadrant, base);
+
+    grantOuro(valor, 'task:' + payload.quadrant + (timerBonus ? '+timer' : ''), payload);
+    if (payload.cardId) markPaidToday(payload.cardId);
+
+    // Feedback dia a dia: brilho proporcional ao quadrante (sem número).
+    flashCardReward(payload.cardId, payload.quadrant);
+    // Som opt-in, só em ganho especial (Q2 ou bônus de timer).
+    if (isAddonOn('economySom') && (payload.quadrant === 'Q2' || timerBonus)) {
+        playRewardSound(payload.quadrant === 'Q2' ? 1.3 : 1.0);
+    }
+}
+
+function onTaskUncompleted(payload) {
+    // Princípio: nunca subtrai valor conquistado. (Sem alteração de saldo.)
+}
+
+// ---------- Feedback visual: brilho proporcional ----------
+function flashCardReward(cardId, quadrant) {
+    if (!cardId) return;
+    var map = {
+        Q2: { cor: '#ffca4a', size: '22px' },
+        Q1: { cor: '#3a8bff', size: '16px' },
+        Q3: { cor: '#6ea0d0', size: '12px' },
+        Q4: { cor: '#6ea0d0', size: '8px' },
+        none: { cor: '#6ea0d0', size: '8px' }
+    };
+    var conf = map[quadrant] || map.none;
+    var els = document.querySelectorAll('.card[data-id="' + cardId + '"]');
+    Array.prototype.forEach.call(els, function (el) {
+        el.style.setProperty('--rf-color', conf.cor);
+        el.style.setProperty('--rf-size', conf.size);
+        el.classList.remove('reward-flash');
+        void el.offsetWidth;
+        el.classList.add('reward-flash');
+        setTimeout(function () { el.classList.remove('reward-flash'); }, 950);
+    });
+}
+
+// ---------- Som "Cristal" (Web Audio, escala com o valor) ----------
+var _audioCtx = null;
+function getAudioCtx() {
+    try {
+        if (!_audioCtx) { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        if (_audioCtx.state === 'suspended') { _audioCtx.resume(); }
+        return _audioCtx;
+    } catch (e) { return null; }
+}
+function playRewardSound(f) {
+    var ctx = getAudioCtx();
+    if (!ctx) return;
+    var t = ctx.currentTime, vol = 0.28 * f;
+    [[880 * f, 0], [1318.51 * f, 0.075]].forEach(function (n) {
+        var freq = n[0], s = t + n[1];
+        var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+        var sh = ctx.createOscillator(); sh.type = 'sine'; sh.frequency.value = freq * 2.001;
+        var g = ctx.createGain(); g.gain.setValueAtTime(0.0001, s);
+        g.gain.exponentialRampToValueAtTime(vol, s + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, s + 0.30);
+        var gs = ctx.createGain(); gs.gain.setValueAtTime(0.0001, s);
+        gs.gain.exponentialRampToValueAtTime(vol * 0.25, s + 0.006);
+        gs.gain.exponentialRampToValueAtTime(0.0001, s + 0.18);
+        o.connect(g).connect(ctx.destination); sh.connect(gs).connect(ctx.destination);
+        o.start(s); sh.start(s); o.stop(s + 0.32); sh.stop(s + 0.2);
+    });
+}
+
+// ---------- UI da Carteira ----------
+function updateWalletButtonVisibility() {
+    var btn = document.getElementById('walletBtn');
+    if (btn) btn.style.display = isAddonOn('economy') ? '' : 'none';
+}
+function descreveMotivo(m) {
+    if (!m) return '';
+    if (m.indexOf('task:Q2') === 0) return 'Tarefa Q2 concluída';
+    if (m.indexOf('task:Q1') === 0) return 'Tarefa Q1 concluída';
+    if (m.indexOf('task:Q3') === 0) return 'Tarefa Q3 concluída';
+    if (m.indexOf('task:Q4') === 0) return 'Tarefa Q4 concluída';
+    if (m.indexOf('task:none') === 0) return 'Tarefa concluída';
+    return m;
+}
+function updateWalletUI() {
+    var o = document.getElementById('walletOuro'); if (o) o.textContent = wallet.ouro;
+    var d = document.getElementById('walletDiamante'); if (d) d.textContent = wallet.diamante;
+    var list = document.getElementById('walletHistorico');
+    if (!list) return;
+    list.innerHTML = '';
+    var ult = wallet.historico.slice(-20).reverse();
+    if (ult.length === 0) {
+        var vazio = document.createElement('div'); vazio.className = 'wallet-vazio';
+        vazio.textContent = 'Conclua tarefas para ganhar Ouro. Tarefas Q2 (importante, não urgente) rendem mais.';
+        list.appendChild(vazio); return;
+    }
+    ult.forEach(function (h) {
+        var row = document.createElement('div'); row.className = 'wallet-hist-row';
+        var icon = h.tipo === 'diamante' ? '💎' : '🪙';
+        var q = new Date(h.ts);
+        row.textContent = icon + ' +' + h.valor + '  ·  ' + descreveMotivo(h.motivo) + '  ·  ' +
+            String(q.getHours()).padStart(2, '0') + ':' + String(q.getMinutes()).padStart(2, '0');
+        list.appendChild(row);
+    });
+}
+function abrirCarteira() {
+    if (!isAddonOn('economy')) return;
+    updateWalletUI();
+    var ov = document.getElementById('walletOverlay'); if (ov) ov.style.display = 'flex';
+}
+function fecharCarteira() {
+    var ov = document.getElementById('walletOverlay'); if (ov) ov.style.display = 'none';
+}
+function initWalletUI() {
+    var btn = document.getElementById('walletBtn');
+    if (btn) btn.onclick = abrirCarteira;
+    var close = document.getElementById('walletFecharBtn');
+    if (close) close.onclick = fecharCarteira;
+    var som = document.getElementById('walletSomToggle');
+    if (som) {
+        som.checked = isAddonOn('economySom');
+        som.addEventListener('change', function () {
+            addonsState.economySom = som.checked; saveAddonsState();
+            if (som.checked) playRewardSound(1.3); // prévia ao ligar
+        });
+    }
+    updateWalletButtonVisibility();
+    updateWalletUI();
+}
+
+// ---------- Inicialização ----------
+function initEconomy() {
+    loadWallet();
+    registerAddon({
+        id: 'economy', nome: '💰 Carteira & Moedas',
+        descricao: 'Ganhe Ouro concluindo tarefas (Q2 rende mais). Diamante em marcos.',
+        onEnable: function () { updateWalletButtonVisibility(); },
+        onDisable: function () { updateWalletButtonVisibility(); fecharCarteira(); }
+    });
+    if (window.TEAEvents) {
+        TEAEvents.on('task:completed', onTaskCompleted);
+        TEAEvents.on('task:uncompleted', onTaskUncompleted);
+    }
+    initWalletUI();
+    try {
+        if (window.firebase && firebase.auth) {
+            firebase.auth().onAuthStateChanged(function (user) { if (user) subscribeWalletRemote(); });
+        }
+    } catch (e) { }
+}
 
 
 // ===== MODULE: init.js =====
@@ -12222,6 +13434,8 @@ function initApp() {
     setupFocusTreemapControls();
     if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
     startAlertCheck();
+    if (typeof initGamification === 'function') { initGamification(); }
+    if (typeof initEconomy === 'function') { initEconomy(); }
 }
 
 // Exposição para o Test Runner

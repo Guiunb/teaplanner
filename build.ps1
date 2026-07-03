@@ -28,6 +28,8 @@ $jsFiles = @(
     "kanban.js",
     "agenda.js",
     "ai.js",
+    "gamification.js",
+    "economy.js",
     "init.js"
 )
 

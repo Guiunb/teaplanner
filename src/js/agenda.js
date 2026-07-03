@@ -334,9 +334,9 @@
                     cards.forEach(function (c) {
                         var newTotal = (parseInt(timerMins, 10) || 0) * 60;
                         c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timerState = 'stopped';
-                        c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); paintCard(c);
+                        c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); paintCard(c); if(typeof updateTimerDisplay === \'function\') updateTimerDisplay(c);
                     });
-                    applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+                    applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
                 });
                 modalElements.cancelButton.onclick = function () { modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); document.body.removeChild(modalElements.wrap); persist(); }
             }
@@ -1623,7 +1623,7 @@ c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timer
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
-applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
 });
 modalElements.cancelButton.onclick = function () { 
        modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 

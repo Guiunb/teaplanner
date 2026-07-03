@@ -80,19 +80,11 @@
                             <span class="toggle-switch-button">OFF</span>
                         </label>
                     </div>
-                    <div class="addon-row" title="QuickCard: Ao criar um cartão, abrir pop-ups de timer e cor automaticamente.">
-                        <span class="addon-name">⏱️ QuickCard Automático</span>
-                        <label class="toggle-switch addon-toggle">
-                            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-                            <span class="toggle-switch-label"></span>
-                        </label>
-                    </div>
                     <div class="addon-subrow" title="Por quanto tempo o check-in matinal fica na tela antes de fechar sozinho.">
                         <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
                         <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
-                    <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
                 </div>
             </div>
 
@@ -125,6 +117,11 @@
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
+        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
+            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+            <span class="toggle-switch-label">⚙️</span>
+            <span class="toggle-switch-button">OFF</span>
+        </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">

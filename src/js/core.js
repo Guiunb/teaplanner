@@ -727,7 +727,9 @@ function cloneBoard() {
 function switchBoard(id) {
     if (id === currentBoardId && boardEl.children.length > 0) return;
 
-    saveImmediately();
+    if (boardEl.children.length > 0) {
+        saveImmediately();
+    }
 
     console.log("Switching to board: " + id);
     currentBoardId = id;

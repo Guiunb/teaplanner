@@ -2304,7 +2304,7 @@ c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timer
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
-applyFilters(); updateTotalTimerDisplay(); if (onOkCallback) onOkCallback();
+applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
 });
 modalElements.cancelButton.onclick = function () { 
        modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 
@@ -2663,5 +2663,172 @@ e.preventDefault();
 okBtn.click();
 }
 });
+}
+
+
+
+// ==========================================
+// AI Deduplication (Find Repeated Cards)
+// ==========================================
+function findDuplicatesAI() {
+    const btn = document.getElementById('aiDeduplicateBtn');
+    if(btn) btn.disabled = true;
+    showLoading();
+    
+    // Gather all active cards (not in trash, not completed)
+    const activeCards = allCards.filter(c => c.dataset.boardId !== 'board-trash' && c.dataset.completed !== 'true');
+    if(activeCards.length < 2) {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        showModal('Sem cartões', function(){ var d=el('div'); d.textContent='Não há cartões suficientes para unificar.'; return d; }, function(){});
+        return;
+    }
+    
+    const cardDataList = activeCards.map(c => {
+        const text = c.querySelector('.text');
+        return { id: c.dataset.id, text: text ? text.textContent.trim() : '' };
+    }).filter(c => c.text.length > 0);
+    
+    const systemPrompt = `Você é um assistente de organização inteligente.
+Abaixo está uma lista de tarefas (cartões) em formato JSON.
+Sua missão é agrupar os cartões que representam exatamente a mesma tarefa, ou a mesma anotação, feita em dias diferentes ou repetida acidentalmente.
+Responda APENAS com um array JSON contendo os grupos de duplicatas.
+Exemplo:
+[
+  { "theme": "Revisar relatório financeiro", "cardIds": ["id1", "id3"] },
+  { "theme": "Comprar leite", "cardIds": ["id5", "id9", "id12"] }
+]
+Se não houver nenhum cartão repetido, retorne []. Não inclua grupos com apenas 1 cartão.`;
+    
+    const userPrompt = JSON.stringify(cardDataList);
+    
+    callGemini(systemPrompt, userPrompt).then(response => {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        
+        let groups = [];
+        try {
+            const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
+            groups = JSON.parse(jsonStr);
+        } catch(e) {
+            console.error("Failed to parse dedup JSON", e, response);
+            showModal('Erro na IA', function(){ var d=el('div'); d.textContent='A IA não retornou um formato reconhecível.'; return d; }, function(){});
+            return;
+        }
+        
+        if (!groups || groups.length === 0) {
+            showModal('Tudo Limpo!', function(){ var d=el('div'); d.textContent='A IA não encontrou nenhum cartão repetido! Seu quadro está limpo.'; return d; }, function(){});
+            return;
+        }
+        
+        showModal('Unificar Repetidos (IA)', function() {
+            var wrap = el('div');
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
+            wrap.style.gap = '15px';
+            wrap.style.maxHeight = '400px';
+            wrap.style.overflowY = 'auto';
+            wrap.style.textAlign = 'left';
+            
+            var intro = el('div');
+            intro.innerHTML = 'A IA detectou <b>' + groups.length + '</b> temas repetidos. Selecione quais cartões você deseja <b>MANTAR</b> (os outros do grupo serão excluídos).';
+            intro.style.fontSize = '14px';
+            intro.style.color = 'var(--muted)';
+            wrap.appendChild(intro);
+            
+            groups.forEach((g, gIdx) => {
+                var groupCont = el('div');
+                groupCont.style.background = 'var(--panel)';
+                groupCont.style.border = '1px solid rgba(255,255,255,0.1)';
+                groupCont.style.borderRadius = '8px';
+                groupCont.style.padding = '12px';
+                
+                var gTitle = el('strong');
+                gTitle.textContent = g.theme;
+                gTitle.style.display = 'block';
+                gTitle.style.marginBottom = '10px';
+                groupCont.appendChild(gTitle);
+                
+                g.cardIds.forEach((id, idx) => {
+                    const cInfo = cardDataList.find(c => c.id === id);
+                    if (!cInfo) return;
+                    
+                    var row = el('label');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '8px';
+                    row.style.padding = '6px';
+                    row.style.background = 'var(--card)';
+                    row.style.borderRadius = '4px';
+                    row.style.marginBottom = '4px';
+                    row.style.cursor = 'pointer';
+                    
+                    var rBtn = el('input');
+                    rBtn.type = 'radio';
+                    rBtn.name = 'keepGroup_' + gIdx;
+                    rBtn.value = id;
+                    if (idx === 0) rBtn.checked = true;
+                    
+                    var txt = el('span');
+                    txt.textContent = cInfo.text;
+                    txt.style.fontSize = '13px';
+                    
+                    row.appendChild(rBtn);
+                    row.appendChild(txt);
+                    groupCont.appendChild(row);
+                });
+                
+                // Opção para não unificar este grupo
+                var rowSkip = el('label');
+                rowSkip.style.display = 'flex';
+                rowSkip.style.alignItems = 'center';
+                rowSkip.style.gap = '8px';
+                rowSkip.style.padding = '6px';
+                rowSkip.style.cursor = 'pointer';
+                rowSkip.style.color = 'var(--muted)';
+                rowSkip.style.fontSize = '12px';
+                
+                var rBtnSkip = el('input');
+                rBtnSkip.type = 'radio';
+                rBtnSkip.name = 'keepGroup_' + gIdx;
+                rBtnSkip.value = 'skip';
+                
+                var txtSkip = el('span');
+                txtSkip.textContent = 'Manter todos (Ignorar este grupo)';
+                
+                rowSkip.appendChild(rBtnSkip);
+                rowSkip.appendChild(txtSkip);
+                groupCont.appendChild(rowSkip);
+                
+                wrap.appendChild(groupCont);
+            });
+            
+            wrap._groups = groups;
+            return wrap;
+        }, function(body, wrap) {
+            let removedCount = 0;
+            body._groups.forEach((g, gIdx) => {
+                const keepRadio = body.querySelector('input[name="keepGroup_' + gIdx + '"]:checked');
+                if (keepRadio && keepRadio.value !== 'skip') {
+                    const keepId = keepRadio.value;
+                    g.cardIds.forEach(id => {
+                        if (id !== keepId) {
+                            const cardDOM = document.querySelector('.card[data-id="' + id + '"]');
+                            if (cardDOM) {
+                                removeCard(cardDOM, true);
+                                removedCount++;
+                            }
+                        }
+                    });
+                }
+            });
+            if(removedCount > 0) persist();
+        });
+        
+    }).catch(err => {
+        hideLoading();
+        if(btn) btn.disabled = false;
+        console.error("AI Dedup failed", err);
+    });
 }
 

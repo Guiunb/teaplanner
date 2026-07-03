@@ -1550,6 +1550,8 @@ function initApp() {
     setupFocusTreemapControls();
     if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
     startAlertCheck();
+    if (typeof initGamification === 'function') { initGamification(); }
+    if (typeof initEconomy === 'function') { initEconomy(); }
 }
 
 // Exposição para o Test Runner

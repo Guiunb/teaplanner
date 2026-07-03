@@ -93,3 +93,17 @@ Antes de consolidar qualquer alteração crítica no `index.html`, o desenvolved
 ### G. Gerenciamento de Tarefas em Segundo Plano e Evitar Alarme Falso de Pendência (Junho 2026)
 * **O Problema**: Manter servidores de teste locais (como o listener do `iniciar_servidor_testes.ps1`) ou scripts auxiliares rodando em segundo plano após a conclusão e publicação do deploy faz com que o usuário veja tarefas ativas no painel de controle do agente. Isso gera a falsa impressão de que ainda existem processos pendentes de execução ou de autorização no sistema local.
 * **A Solução**: Sempre monitorar e encerrar (`kill`) tarefas auxiliares locais e servidores de homologação/desenvolvimento em segundo plano assim que a compilação, verificação e deploy forem finalizados, garantindo que o console do chat fique limpo e sem falsos alertas de atividades ativas.
+
+### H. Incident D: Deleção de Listas no Quadro Kanban via Startup e Visão Consolidada "TODOS" (Junho 2026)
+* **O Problema**: O usuário perdeu todas as suas listas kanban em múltiplos quadros (principalmente no quadro "TEA TIMMER"). Duas causas raiz causaram essa perda:
+  1. **Gravação Prematura na Inicialização**: A função `switchBoard(id)` disparava a rotina `saveImmediately()` no início do carregamento do aplicativo. Como o DOM (`boardEl`) ainda estava completamente vazio (os dados ainda não haviam sido carregados e renderizados), isso serializava uma lista vazia e sobrescrevia os quadros locais com `[]`.
+  2. **Destruição de Listas Vazias no Quadro Consolidado**: Ao salvar a partir da visão `"board-todos"`, o método `distributeAndSaveTodos()` reinicializava o mapa de cada quadro como um array vazio (`[]`) e criava listas apenas a partir do que estava no DOM. Se uma lista kanban em um quadro estivesse vazia (0 cartões no DOM), ela era completamente deletada do quadro persistido.
+* **A Solução**:
+  1. **Filtro de Salvamento no switchBoard**: Adicionamos uma validação em `switchBoard(id)` para só invocar `saveImmediately()` se houver elementos renderizados na tela (`boardEl.children.length > 0`), impedindo salvamentos em branco.
+  2. **Preservação de Estrutura no distributeAndSaveTodos**: Ajustamos `distributeAndSaveTodos()` para pré-inicializar o mapa de quadros com a estrutura de listas existente no `localStorage` de cada quadro, limpando apenas o array interno de cartões (`cards: []`). Isso garante que listas vazias e customizadas criadas pelo usuário sejam 100% preservadas e não sofram deleção acidental.
+
+### I. Retenção de Cor em Arrastes de Matriz e QuickCard (Julho 2026)
+* **O Problema**: O sistema de drag and drop na matriz de Eisenhower não estava colorindo os cartões imediatamente ao passar (hover) sobre os quadrantes, frustrando a expectativa do usuário de que 'onde passou, pegou a cor'. Além disso, a funcionalidade do QuickCard (configuração rápida) falhava ao não salvar corretamente o timer inserido antes de abrir o seletor de cores, resultando em perda de dados.
+* **A Solução**:
+  1. **Update Visual Direto no DragOver**: Injetamos lógica em `handleDragOver` (quando detectado um quadrante da matriz) para definir o `labelColor` do cartão dinamicamente *antes* mesmo de soltar (drop). O cartão visualmente adquire a cor e mantém, reforçando a intuição do usuário.
+  2. **Persistência Explícita em Modais de Ciclo**: Corrigimos o `openTimerDialog` para disparar `updateTimerDisplay(c)` e forçar a gravação `persist()` garantida ao confirmar o timer, prevenindo descarte de dados nas execuções em lote ou transições para modais seguintes.

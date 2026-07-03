@@ -47,45 +47,49 @@ function addCardHistory(card, actionText) {
 
 function distributeAndSaveTodos(mergedBoardData, agendaData) {
     let boardsDataMap = {};
+    
+    // Inicializa o mapa com os dados já existentes em localStorage para cada quadro,
+    // preservando todas as listas vazias e estrutura de cada um deles.
     boardsMeta.forEach(b => {
-        if (b.id === 'board-trash') return;
-        boardsDataMap[b.id] = [];
+        if (b.id === 'board-trash' || b.id === 'board-todos') return;
+        let bData = [];
+        try {
+            const bStr = localStorage.getItem(LS_BOARD_PREFIX + b.id);
+            if (bStr) bData = JSON.parse(bStr);
+        } catch (e) {
+            console.error("Error loading board in distributeAndSaveTodos", b.id, e);
+        }
+        if (!Array.isArray(bData)) bData = [];
+        
+        boardsDataMap[b.id] = bData.map(item => {
+            if (item.type === 'kanban') {
+                return { type: 'kanban', title: item.title, cards: [], boardId: b.id };
+            } else if (item.type === 'quad') {
+                return { type: 'quad', quad: item.quad, cards: [] };
+            }
+            return item;
+        });
     });
+    
     if (!boardsDataMap['board-todos']) {
         boardsDataMap['board-todos'] = [];
     }
 
-    // First, initialize empty lists for boards associated with lists in DOM
+    // Garante que as listas e quadrantes presentes no DOM da visão agregada
+    // existam em seus respectivos quadros antes da redistribuição de cartões.
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
-            const associatedBoards = new Set();
-            if (list.boardId && list.boardId !== 'board-todos') {
-                associatedBoards.add(list.boardId);
-            }
-            (list.cards || []).forEach(card => {
-                if (card.boardId && card.boardId !== 'board-trash') {
-                    associatedBoards.add(card.boardId);
+            if (list.boardId && list.boardId !== 'board-todos' && boardsDataMap[list.boardId]) {
+                let targetList = boardsDataMap[list.boardId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
+                if (!targetList) {
+                    boardsDataMap[list.boardId].push({ type: 'kanban', title: title, cards: [], boardId: list.boardId });
                 }
-            });
-            if (associatedBoards.size === 0) {
-                associatedBoards.add('board-todos');
             }
-
-            associatedBoards.forEach(bId => {
-                if (boardsDataMap[bId]) {
-                    boardsDataMap[bId].push({ type: 'kanban', title: title, cards: [] });
-                }
-            });
-        } else if (list.type === 'quad') {
-            const quad = list.quad;
-            Object.keys(boardsDataMap).forEach(bId => {
-                boardsDataMap[bId].push({ type: 'quad', quad: quad, cards: [] });
-            });
         }
     });
 
-    // Then, populate the cards in the corresponding lists
+    // Popula os cartões distribuindo-os para os quadros e listas correspondentes
     mergedBoardData.forEach(list => {
         if (list.type === 'kanban') {
             const title = list.title;
@@ -97,7 +101,7 @@ function distributeAndSaveTodos(mergedBoardData, agendaData) {
                 }
                 let targetList = boardsDataMap[bId].find(l => l.type === 'kanban' && l.title.toLowerCase().trim() === title.toLowerCase().trim());
                 if (!targetList) {
-                    targetList = { type: 'kanban', title: title, cards: [] };
+                    targetList = { type: 'kanban', title: title, cards: [], boardId: bId };
                     boardsDataMap[bId].push(targetList);
                 }
                 targetList.cards.push(card);
@@ -301,6 +305,19 @@ function toggleCardCompletion(e) {
     persist();
     updateTimerDisplay(card);
     syncMirrors();
+
+    // Ponte kanban -> gamificação (Fundação 0.5). Inerte se nada escutar.
+    if (window.TEAEvents) {
+        var _gpayload = {
+            cardId: card.dataset.id,
+            boardId: card.dataset.boardId || (typeof currentBoardId !== 'undefined' ? currentBoardId : ''),
+            quadrant: (typeof detectCardQuadrant === 'function') ? detectCardQuadrant(card) : 'none',
+            isRecurring: !!(card.dataset.recurrence && card.dataset.recurrence !== 'none'),
+            timerSeconds: (typeof getCardFocusSeconds === 'function') ? getCardFocusSeconds(card) : 0
+        };
+        if (card.dataset.completed === 'true') { TEAEvents.emit('task:completed', _gpayload); }
+        else { TEAEvents.emit('task:uncompleted', _gpayload); }
+    }
 }
 
 function paintCard(c) {
@@ -868,6 +885,25 @@ function wireDropZone(container) {
         if (!after) cardsContainer.appendChild(ph);
         else cardsContainer.insertBefore(ph, after);
         if (isSlot) container.classList.add('hover');
+        
+        // Matrix Color Drop (Hover over quadrant)
+        if (container.dataset.type === 'quad' && dragState.block) {
+            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const qColor = EISENHOWER_COLORS[container.dataset.quad];
+            if (qColor) {
+                var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
+                block.forEach(function(n) {
+                    if (n._originalReference) n = n._originalReference;
+                    n.dataset.labelColor = qColor;
+                    paintCard(n);
+                    const cardInCache = allCards.find(card => card === n);
+                    if (cardInCache && cardInCache !== n) {
+                        cardInCache.dataset.labelColor = qColor;
+                        paintCard(cardInCache);
+                    }
+                });
+            }
+        }
     }
 
     container.addEventListener('dragover', handleDragOver);

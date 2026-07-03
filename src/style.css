@@ -2293,3 +2293,307 @@ padding: 6px 2px;
     }
 }
 
+
+/* ============================================================
+   Add-on: Propósito Visual (Ciclo 4) — gamification.js
+   Estilo calmo e celebrativo. Nada pisca, nada cobra.
+   ============================================================ */
+
+.addons-dropdown-content {
+    min-width: 240px;
+}
+
+.addon-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+}
+
+.addon-name {
+    font-size: 14px;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.addon-toggle {
+    flex-shrink: 0;
+}
+
+.proposito-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 12, 24, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10050;
+    padding: 16px;
+}
+
+.proposito-modal {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+    width: min(440px, 94vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.proposito-modal h3 {
+    margin: 0 0 6px 0;
+    color: var(--ink);
+    font-size: 17px;
+}
+
+.proposito-hint {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.proposito-modal input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.proposito-thumbs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    min-height: 8px;
+}
+
+.proposito-thumb {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.proposito-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.proposito-thumb-del {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.65);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.proposito-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.proposito-actions button {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--card);
+    color: var(--ink);
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.proposito-btn-pri {
+    background: var(--brand) !important;
+    border-color: var(--brand) !important;
+}
+
+.proposito-btn-sec {
+    opacity: 0.8;
+}
+
+/* ---- Check-in Matinal ---- */
+.checkin-overlay {
+    background: rgba(5, 12, 24, 0.9);
+}
+
+.checkin-card {
+    background: linear-gradient(180deg, #122a4d 0%, var(--panel) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    padding: 26px 24px;
+    width: min(400px, 92vw);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    animation: checkinFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes checkinFadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.checkin-saudacao {
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+
+.checkin-foto {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 16px;
+}
+
+.checkin-frase {
+    color: var(--ink);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 6px;
+}
+
+.checkin-board {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-bottom: 18px;
+}
+
+.checkin-comecar {
+    width: 100%;
+    background: var(--brand);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 12px;
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.checkin-comecar:hover {
+    filter: brightness(1.12);
+}
+
+/* ---- Add-on: controle de duração do check-in + barra de progresso ---- */
+.addon-subrow {
+    padding: 4px 12px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.addon-subrow label {
+    font-size: 12.5px;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.addon-subrow label strong {
+    color: var(--ink);
+}
+
+.addon-range {
+    width: 100%;
+    accent-color: var(--brand);
+    cursor: pointer;
+}
+
+.checkin-progress {
+    margin-top: 14px;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.checkin-progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: var(--brand);
+    opacity: 0.65;
+}
+
+/* ============================================================
+   M1 — Carteira & Moedas (economy.js)
+   ============================================================ */
+.wallet-header-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin: 0 2px;
+}
+.wallet-header-btn:hover { border-color: var(--brand); }
+
+.wallet-card {
+    background: var(--panel);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    width: min(420px, 94vw);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.wallet-card h3 { margin: 0 0 14px; color: var(--ink); font-size: 17px; }
+.wallet-saldos { display: flex; gap: 12px; margin-bottom: 16px; }
+.wallet-saldo {
+    flex: 1; background: var(--card); border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; padding: 14px; text-align: center;
+}
+.wallet-num { display: block; font-size: 26px; font-weight: 700; color: var(--ink); }
+.wallet-lbl { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.wallet-hist-titulo { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.wallet-historico {
+    max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 14px;
+}
+.wallet-hist-row {
+    font-size: 13px; color: var(--ink); padding: 7px 10px;
+    background: var(--card); border-radius: 8px; opacity: 0.92;
+}
+.wallet-vazio { font-size: 13px; color: var(--muted); padding: 10px; line-height: 1.5; }
+.wallet-som-row {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+    margin-bottom: 14px; cursor: pointer;
+}
+.wallet-fechar {
+    width: 100%; background: var(--brand); border: none; border-radius: 10px;
+    color: #fff; font-size: 15px; font-weight: 600; padding: 11px; cursor: pointer;
+}
+.wallet-fechar:hover { filter: brightness(1.12); }
+
+/* Feedback: brilho proporcional ao quadrante (dia a dia, sem número) */
+.reward-flash { animation: rewardFlash 0.9s ease-out; }
+@keyframes rewardFlash {
+    0%   { box-shadow: 0 0 0 0 transparent; }
+    25%  { box-shadow: 0 0 var(--rf-size, 10px) 2px var(--rf-color, #3a8bff); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
