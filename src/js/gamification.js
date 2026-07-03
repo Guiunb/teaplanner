@@ -17,6 +17,81 @@ var CHECKIN_DUR_PADRAO = 8;
 var addonsState = { propositoVisual: false, checkinDuracao: CHECKIN_DUR_PADRAO };
 var checkinAutoCloseTimer = null;
 
+// ============================================================
+// EVENT BUS GLOBAL (TEAEvents) - Desacoplamento de Módulos
+// ============================================================
+window.TEAEvents = {
+    _listeners: {},
+    on: function (event, callback) {
+        if (!this._listeners[event]) this._listeners[event] = [];
+        this._listeners[event].push(callback);
+    },
+    emit: function (event, payload) {
+        if (!this._listeners[event]) return;
+        this._listeners[event].forEach(function (cb) { cb(payload); });
+    }
+};
+
+// ============================================================
+// REGISTRO GENÉRICO DE ADD-ONS
+// ============================================================
+var ADDON_REGISTRY = [];
+window.registerAddon = function(def) {
+    // def: { id, nome, descricao, onEnable, onDisable }
+    ADDON_REGISTRY.push(def);
+    renderAddonRow(def);
+};
+window.isAddonOn = function(id) { return addonsState[id] === true; };
+window.setAddonOn = function(id, on) {
+    addonsState[id] = !!on; 
+    saveAddonsState();
+    var def = ADDON_REGISTRY.find(function (d) { return d.id === id; });
+    if (def) { on ? def.onEnable() : def.onDisable(); }
+};
+
+function renderAddonRow(def) {
+    var container = document.querySelector('.addons-dropdown-content');
+    if (!container) return;
+    
+    var row = document.createElement('div');
+    row.className = 'addon-row';
+    
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'addon-name';
+    nameSpan.textContent = def.nome;
+    if (def.descricao) nameSpan.title = def.descricao;
+    
+    var toggleLabel = document.createElement('label');
+    toggleLabel.className = 'toggle-switch addon-toggle';
+    
+    var input = document.createElement('input');
+    input.type = 'checkbox';
+    input.id = 'addon_' + def.id + '_toggle';
+    input.checked = isAddonOn(def.id);
+    input.addEventListener('change', function() {
+        var btnLabel = toggleLabel.querySelector('.toggle-switch-button');
+        if (btnLabel) btnLabel.textContent = input.checked ? 'ON' : 'OFF';
+        setAddonOn(def.id, input.checked);
+    });
+    
+    var btnSpan = document.createElement('span');
+    btnSpan.className = 'toggle-switch-button';
+    btnSpan.textContent = input.checked ? 'ON' : 'OFF';
+    
+    toggleLabel.appendChild(input);
+    toggleLabel.appendChild(btnSpan);
+    
+    row.appendChild(nameSpan);
+    row.appendChild(toggleLabel);
+    
+    var checkinBtn = document.getElementById('addonVerPropositoBtn');
+    if (checkinBtn) {
+        container.insertBefore(row, checkinBtn);
+    } else {
+        container.appendChild(row);
+    }
+}
+
 // ---------- Estado dos add-ons ----------
 function loadAddonsState() {
     try {
@@ -24,9 +99,16 @@ function loadAddonsState() {
         if (raw) {
             var parsed = JSON.parse(raw);
             if (parsed && typeof parsed === 'object') {
-                addonsState.propositoVisual = !!parsed.propositoVisual;
-                if (typeof parsed.checkinDuracao === 'number') {
-                    addonsState.checkinDuracao = clampCheckinDuracao(parsed.checkinDuracao);
+                for (var key in parsed) {
+                    if (parsed.hasOwnProperty(key)) {
+                        if (key === 'checkinDuracao') {
+                            if (typeof parsed[key] === 'number') {
+                                addonsState[key] = clampCheckinDuracao(parsed[key]);
+                            }
+                        } else {
+                            addonsState[key] = !!parsed[key];
+                        }
+                    }
                 }
             }
         }

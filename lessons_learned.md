@@ -107,3 +107,8 @@ Antes de consolidar qualquer alteraÃ§Ã£o crÃ­tica no `index.html`, o desenvolved
 * **A SoluÃ§Ã£o**:
   1. **Update Visual Direto no DragOver**: Injetamos lÃ³gica em `handleDragOver` (quando detectado um quadrante da matriz) para definir o `labelColor` do cartÃ£o dinamicamente *antes* mesmo de soltar (drop). O cartÃ£o visualmente adquire a cor e mantÃ©m, reforÃ§ando a intuiÃ§Ã£o do usuÃ¡rio.
   2. **PersistÃªncia ExplÃ­cita em Modais de Ciclo**: Corrigimos o `openTimerDialog` para disparar `updateTimerDisplay(c)` e forÃ§ar a gravaÃ§Ã£o `persist()` garantida ao confirmar o timer, prevenindo descarte de dados nas execuÃ§Ãµes em lote ou transiÃ§Ãµes para modais seguintes.
+
+### II. Erro de Referência em Funções de Callbacks (Julho 2026)
+* **O Problema**: Um erro ReferenceError: renderWeeklyView is not defined causou o travamento completo das transições de quadros do sistema durante a carga do Firebase. Isso aconteceu porque o Firebase aciona assincronamente os listeners e a renderização do DOM ocorria em uma ordem inesperada em certas sessões.
+* **A Solução**: Em vez de invocar a função cegamente na raiz do script Kanban, agora amarramos a função globalmente (window.renderWeeklyView = renderWeeklyView;) e colocamos verificações defensivas (if (typeof renderWeeklyView === function)) em chamadas críticas. Além disso, foi alertada a importância de não corrompermos scripts durante edições via Powershell, já que isso corta o arquivo pela metade gerando bugs invisíveis.
+* **Regra Dourada**: Funções que são chamadas atravessando módulos (ex: kanban.js chamando uma função do genda.js em um callback) precisam ter fallback defensivo se a dependência falhar, para que não derrubem as rotinas de carga de dados principais (como switchBoard).
