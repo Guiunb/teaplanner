@@ -2304,7 +2304,7 @@ c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timer
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
-applyFilters(); updateTotalTimerDisplay(); if (typeof persist === \'function\') persist(); if (onOkCallback) onOkCallback();
+applyFilters(); updateTotalTimerDisplay(); if (typeof persist === 'function') persist(); if (onOkCallback) onOkCallback();
 });
 modalElements.cancelButton.onclick = function () { 
        modalElements.wrap.removeEventListener('keydown', modalElements.modalKeyListener); 
