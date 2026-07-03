@@ -225,7 +225,7 @@ function duplicateCards(cards) {
     updateSlotsHasItems();
     updateTotalTimerDisplay();
     if (typeof renderWeeklyView === 'function') {
-        renderWeeklyView();
+        if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
     }
 }
 
@@ -643,7 +643,7 @@ function removeCard(c, bypassTrash = false) {
             }
             
             persist();
-            renderWeeklyView();
+            if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
             applyFilters();
         });
         return;
@@ -1241,7 +1241,7 @@ function updateSlotsHasItems() {
     });
     updateTotalTimerDisplay();
     updateListHeaderTooltips();
-    renderWeeklyView();
+    if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
 }
 
 var selectedColors = new Set();

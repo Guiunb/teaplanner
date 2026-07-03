@@ -1985,3 +1985,5 @@ okBtn.click();
 }
 
 
+
+window.renderWeeklyView = renderWeeklyView;
