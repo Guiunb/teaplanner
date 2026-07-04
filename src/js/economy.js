@@ -80,9 +80,16 @@ function paidTodayMap() {
         return obj;
     } catch (e) { return { data: getTodayStr(), ids: {} }; }
 }
-function markPaidToday(cardId) {
-    var m = paidTodayMap(); m.ids[cardId] = 1;
+function markPaidToday(cardId, valor) {
+    var m = paidTodayMap(); m.ids[cardId] = valor || 1;
     try { localStorage.setItem(LS_PAID_TODAY_KEY, JSON.stringify(m)); } catch (e) { }
+}
+function unmarkPaidToday(cardId) {
+    var m = paidTodayMap();
+    var valor = m.ids[cardId] || 0;
+    delete m.ids[cardId];
+    try { localStorage.setItem(LS_PAID_TODAY_KEY, JSON.stringify(m)); } catch (e) { }
+    return valor;
 }
 function alreadyPaidToday(cardId) {
     return !!paidTodayMap().ids[cardId];
@@ -128,18 +135,55 @@ function onTaskCompleted(payload) {
     var valor = getPrecoAtual(payload.quadrant, base);
 
     grantOuro(valor, 'task:' + payload.quadrant + (timerBonus ? '+timer' : ''), payload);
-    if (payload.cardId) markPaidToday(payload.cardId);
+    if (payload.cardId) markPaidToday(payload.cardId, valor);
 
     // Feedback dia a dia: brilho proporcional ao quadrante (sem número).
     flashCardReward(payload.cardId, payload.quadrant);
-    // Som opt-in, só em ganho especial (Q2 ou bônus de timer).
-    if (isAddonOn('economySom') && (payload.quadrant === 'Q2' || timerBonus)) {
-        playRewardSound(payload.quadrant === 'Q2' ? 1.3 : 1.0);
+    // Som (opt-in): toca em TODA conclusão, escalando com o valor da tarefa.
+    if (isAddonOn('economySom')) {
+        var f = (payload.quadrant === 'Q2' || timerBonus) ? 1.3 : (payload.quadrant === 'Q1' ? 1.0 : 0.85);
+        playRewardSound(f);
     }
 }
 
 function onTaskUncompleted(payload) {
-    // Princípio: nunca subtrai valor conquistado. (Sem alteração de saldo.)
+    // Desmarcar = CORREÇÃO de engano (não punição): estorna o que foi pago hoje.
+    if (!isAddonOn('economy') || !payload.cardId) return;
+    var pago = unmarkPaidToday(payload.cardId);
+    if (pago > 0) {
+        wallet.ouro = Math.max(0, wallet.ouro - pago);
+        pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: -pago,
+            motivo: 'correcao:desmarcado', cardId: payload.cardId, boardId: payload.boardId });
+        saveWallet();
+        updateWalletUI();
+    }
+}
+
+// ---------- Zerar e Gastar ----------
+function zerarCarteira() {
+    if (!confirm('Zerar a carteira? Ouro e Diamante voltam a 0. O histórico é mantido.')) return;
+    pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: -wallet.ouro, motivo: 'zerada' });
+    wallet.ouro = 0;
+    wallet.diamante = 0;
+    saveWallet();
+    updateWalletUI();
+}
+
+function resgatarRecompensa() {
+    var descEl = document.getElementById('walletResgateDesc');
+    var custoEl = document.getElementById('walletResgateCusto');
+    if (!descEl || !custoEl) return;
+    var desc = (descEl.value || '').trim();
+    var custo = parseInt(custoEl.value, 10);
+    if (!desc) { alert('Descreva a recompensa (ex.: 1h de videogame).'); return; }
+    if (isNaN(custo) || custo <= 0) { alert('Informe um custo em Ouro (número positivo).'); return; }
+    if (custo > wallet.ouro) { alert('Ouro insuficiente. Você tem ' + wallet.ouro + ' 🪙.'); return; }
+    wallet.ouro -= custo;
+    pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: -custo, motivo: 'resgate:' + desc });
+    saveWallet();
+    updateWalletUI();
+    descEl.value = ''; custoEl.value = '';
+    if (isAddonOn('economySom')) playRewardSound(1.15); // celebrar o resgate também
 }
 
 // ---------- Feedback visual: brilho proporcional ----------
@@ -204,6 +248,10 @@ function descreveMotivo(m) {
     if (m.indexOf('task:Q3') === 0) return 'Tarefa Q3 concluída';
     if (m.indexOf('task:Q4') === 0) return 'Tarefa Q4 concluída';
     if (m.indexOf('task:none') === 0) return 'Tarefa concluída';
+    if (m.indexOf('correcao:') === 0) return 'Correção (tarefa desmarcada)';
+    if (m.indexOf('resgate:') === 0) return '🎁 ' + m.slice(8);
+    if (m.indexOf('streak:') === 0) return 'Marco de sequência (' + m.slice(7) + ')';
+    if (m === 'zerada') return 'Carteira zerada';
     return m;
 }
 function updateWalletUI() {
@@ -221,8 +269,9 @@ function updateWalletUI() {
     ult.forEach(function (h) {
         var row = document.createElement('div'); row.className = 'wallet-hist-row';
         var icon = h.tipo === 'diamante' ? '💎' : '🪙';
+        var sinal = h.valor >= 0 ? '+' : '';
         var q = new Date(h.ts);
-        row.textContent = icon + ' +' + h.valor + '  ·  ' + descreveMotivo(h.motivo) + '  ·  ' +
+        row.textContent = icon + ' ' + sinal + h.valor + '  ·  ' + descreveMotivo(h.motivo) + '  ·  ' +
             String(q.getHours()).padStart(2, '0') + ':' + String(q.getMinutes()).padStart(2, '0');
         list.appendChild(row);
     });
@@ -240,6 +289,10 @@ function initWalletUI() {
     if (btn) btn.onclick = abrirCarteira;
     var close = document.getElementById('walletFecharBtn');
     if (close) close.onclick = fecharCarteira;
+    var zerar = document.getElementById('walletZerarBtn');
+    if (zerar) zerar.onclick = zerarCarteira;
+    var resg = document.getElementById('walletResgatarBtn');
+    if (resg) resg.onclick = resgatarRecompensa;
     var som = document.getElementById('walletSomToggle');
     if (som) {
         som.checked = isAddonOn('economySom');

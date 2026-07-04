@@ -750,6 +750,9 @@ function switchBoard(id) {
     if (isFirebaseReady && auth && auth.currentUser) {
         subscribeToCurrentBoard(auth.currentUser.uid, id);
     }
+
+    // Ponte para gamificacao: proposito por quadro (inerte se nada escutar)
+    if (window.TEAEvents) { TEAEvents.emit('board:switched', { boardId: id }); }
 }
 
 // ===== THEMES & CROSS-BOARD =====

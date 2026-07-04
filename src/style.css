@@ -2635,3 +2635,25 @@ padding: 6px 2px;
 }
 .milestone-toast.show { opacity: 1; transform: translate(-50%, 0); }
 .dormant-toast { border-color: rgba(110, 200, 140, 0.4); }
+
+/* ---- Carteira: gastar e zerar ---- */
+.wallet-resgate { margin-bottom: 12px; }
+.wallet-resgate-row { display: flex; gap: 6px; }
+.wallet-resgate-row input[type="text"] {
+    flex: 1; min-width: 0; background: var(--card); color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 10px; font-size: 13px;
+}
+.wallet-resgate-row input[type="number"] {
+    width: 70px; background: var(--card); color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 6px; font-size: 13px;
+}
+.wallet-resgate-row button {
+    background: var(--brand); border: none; border-radius: 8px; color: #fff;
+    font-size: 13px; font-weight: 600; padding: 8px 12px; cursor: pointer;
+}
+.wallet-zerar {
+    width: 100%; background: transparent; border: 1px solid rgba(255,120,120,0.35);
+    border-radius: 8px; color: #ff9d9d; font-size: 12.5px; padding: 8px; cursor: pointer;
+    margin-top: 8px; opacity: 0.85;
+}
+.wallet-zerar:hover { opacity: 1; }

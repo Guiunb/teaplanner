@@ -365,16 +365,41 @@ function escolherFotoDoProposito(meta) {
     return foto;
 }
 
+var LS_CHECKIN_PERBOARD_KEY = 'tea-planner-checkin-perboard';
+
+function checkinPerBoardMap() {
+    try {
+        var raw = localStorage.getItem(LS_CHECKIN_PERBOARD_KEY);
+        var obj = raw ? JSON.parse(raw) : null;
+        return (obj && typeof obj === 'object') ? obj : {};
+    } catch (e) { return {}; }
+}
+
+function onBoardSwitchedCheckin(payload) {
+    if (!isPropositoVisualOn() || !payload || !payload.boardId) return;
+    var meta = getBoardMetaById(payload.boardId);
+    if (!boardHasProposito(meta)) return;
+    var map = checkinPerBoardMap();
+    var hoje = getTodayStr();
+    if (map[payload.boardId] === hoje) return;      // 1x por dia POR QUADRO
+    map[payload.boardId] = hoje;
+    try { localStorage.setItem(LS_CHECKIN_PERBOARD_KEY, JSON.stringify(map)); } catch (e) { }
+    mostrarCheckinMatinal(true, meta);              // mostra o propósito DESTE quadro
+}
+
 function maybeShowCheckinMatinal() {
     if (!isPropositoVisualOn()) return;
+    // Se o quadro ativo tem propósito, o fluxo por-quadro (board:switched) cuida.
+    var ativo = getBoardMetaById(typeof currentBoardId !== 'undefined' ? currentBoardId : null);
+    if (boardHasProposito(ativo)) return;
     var hoje = getTodayStr();
     if (localStorage.getItem(LS_CHECKIN_LAST_KEY) === hoje) return;
     mostrarCheckinMatinal(false);
 }
 
-function mostrarCheckinMatinal(sobDemanda) {
+function mostrarCheckinMatinal(sobDemanda, metaForcada) {
     if (!isPropositoVisualOn()) return;
-    var meta = escolherPropositoParaCheckin();
+    var meta = metaForcada || escolherPropositoParaCheckin();
     if (!meta) {
         if (sobDemanda) alert('Nenhum quadro tem propósito ainda. Use "🎯 Editar Propósito" no menu Quadros.');
         return;
@@ -457,7 +482,15 @@ function initGamification() {
 
     var menuBtn = document.getElementById('menuBoardProposito');
     if (menuBtn) menuBtn.onclick = abrirEditorProposito;
+    var editBtn2 = document.getElementById('addonEditarPropositoBtn');
+    if (editBtn2) editBtn2.onclick = function () {
+        if (!isPropositoVisualOn()) { alert('Ligue o Propósito Visual primeiro.'); return; }
+        abrirEditorProposito();
+    };
     updatePropositoMenuVisibility();
+
+    // Propósito por quadro: ao trocar de quadro, mostra o propósito dele (1x/dia por quadro)
+    if (window.TEAEvents) { TEAEvents.on('board:switched', onBoardSwitchedCheckin); }
 
     // Check-in matinal: aguarda o boot (Firebase/boards) estabilizar
     setTimeout(maybeShowCheckinMatinal, 1800);

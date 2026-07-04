@@ -85,6 +85,7 @@
                         <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
+                    <button type="button" id="addonEditarPropositoBtn">🎯 Editar propósito deste quadro</button>
                 </div>
             </div>
 
@@ -343,9 +344,18 @@
             </div>
             <div class="wallet-hist-titulo">Últimos ganhos</div>
             <div id="walletHistorico" class="wallet-historico"></div>
-            <label class="wallet-som-row" title="Som curto só em ganhos especiais (Q2 / foco). Desligado por padrão.">
-                <input type="checkbox" id="walletSomToggle"> 🔊 Som de recompensa (Q2 e foco)
+            <div class="wallet-resgate" title="Troque seu Ouro por uma recompensa da vida real que você define.">
+                <div class="wallet-hist-titulo">🎁 Gastar Ouro (recompensa sua)</div>
+                <div class="wallet-resgate-row">
+                    <input type="text" id="walletResgateDesc" maxlength="60" placeholder="Ex.: 1h de videogame">
+                    <input type="number" id="walletResgateCusto" min="1" placeholder="custo">
+                    <button type="button" id="walletResgatarBtn">Resgatar</button>
+                </div>
+            </div>
+            <label class="wallet-som-row" title="Som curto e elegante a cada conclusão, mais forte em tarefas valiosas. Desligado por padrão.">
+                <input type="checkbox" id="walletSomToggle"> 🔊 Som de recompensa
             </label>
+            <button type="button" id="walletZerarBtn" class="wallet-zerar">Zerar carteira</button>
             <button type="button" id="walletFecharBtn" class="wallet-fechar">Fechar</button>
         </div>
     </div>

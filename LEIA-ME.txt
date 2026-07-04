@@ -1,9 +1,12 @@
-PACOTE M1 + M2 (v2 - correcao do crash "allCards") 
-====================================================
+PACOTE v3 - 6 lapidacoes do teste real
+=======================================
 1. Extraia DENTRO da pasta "- TEA PLANNER 2.0", SUBSTITUINDO tudo.
-2. NAO precisa rodar build.ps1 - o index.html da raiz ja vem pronto.
-3. Apague da src\js o arquivo "gamification (Cópia em conflito...).js" se ainda existir.
-4. Teste: iniciar_servidor.bat -> http://localhost:8080/index.html
-   -> Add-ons deve listar: Proposito Visual, Carteira & Moedas, Sequencias.
-   -> Console (F12) NAO deve ter o erro "allCards".
-5. OK? Deploy (deploy.bat ou upload manual do index.html da raiz).
+   (Agora inclui tambem o core.js - proposito por quadro)
+2. NAO precisa rodar build.ps1 - index.html da raiz ja vem pronto.
+3. Teste rapido:
+   - Carteira aberta: ligue "Som de recompensa", conclua tarefa -> som Cristal
+   - Desmarque a tarefa -> Ouro estornado (veja o historico: "Correcao")
+   - Botao "Zerar carteira" e secao "Gastar Ouro" na Carteira
+   - Add-ons: "Editar proposito deste quadro"
+   - Troque para um quadro COM proposito -> check-in daquele quadro (1x/dia por quadro)
+4. OK? Deploy.
