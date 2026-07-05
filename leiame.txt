@@ -1,0 +1,19 @@
+PACOTE v6 + REVISAO SEMANAL
+============================
+1. Extraia DENTRO da pasta "- TEA PLANNER 2.0", SUBSTITUINDO tudo.
+   (Contem: index.html raiz, build.ps1, src/index.html, src/js/revisao.js)
+2. NAO precisa rodar o build agora: o index.html raiz ja vem com a Revisao injetada.
+3. Feche servidores antigos, abra iniciar_servidor.bat, acesse
+   http://localhost:8080/index.html e pressione CTRL+F5.
+
+COMO SABER QUE INSTALOU (5 segundos):
+- Botao "🧹 Revisao" aparece na barra superior, ao lado do "🎯 Foco".
+- F12 -> Console -> digite: RevisaoSemanal  (deve mostrar um objeto, nao "undefined")
+
+PRIMEIRO USO:
+- Clique em 🧹 Revisao -> configure o ritual (sexta 17:00 ja vem sugerido) -> revisao roda.
+- Quadros "🌙 Talvez um Dia" e "🏆 Historico" sao criados na primeira vez que forem usados.
+
+IMPORTANTE:
+- Quando voce rodar o build.ps1 de novo, a Revisao ja entra automatica (virou modulo).
+- NAO use o index.html do pacote anterior (feito sobre a versao antiga do projeto).

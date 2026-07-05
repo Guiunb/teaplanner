@@ -1553,6 +1553,8 @@ function initApp() {
     if (typeof initGamification === 'function') { initGamification(); }
     if (typeof initEconomy === 'function') { initEconomy(); }
     if (typeof initStreaks === 'function') { initStreaks(); }
+    if (typeof initWellbeing === 'function') { initWellbeing(); }
+    if (typeof initCentralBank === 'function') { initCentralBank(); }
 }
 
 // Exposição para o Test Runner

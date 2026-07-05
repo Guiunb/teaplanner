@@ -84,12 +84,23 @@
                         <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
                         <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
+                    <div class="addon-row" title="QuickCard: ao criar um cartão, abrir pop-ups de timer e cor automaticamente.">
+                        <span class="addon-name">⏱️ QuickCard Automático</span>
+                        <label class="toggle-switch addon-toggle">
+                            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+                            <span class="toggle-switch-label"></span>
+                            <span class="toggle-switch-button">OFF</span>
+                        </label>
+                    </div>
+                    <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
+                    <div class="addon-versao">pacote v6</div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
                     <button type="button" id="addonEditarPropositoBtn">🎯 Editar propósito deste quadro</button>
                 </div>
             </div>
 
             <button id="walletBtn" class="wallet-header-btn" title="Carteira" style="display:none;">💰</button>
+            <button id="wellbeingPill" class="wellbeing-pill" title="Seu bem-estar (clique para detalhes)" style="display:none;"><span id="wellbeingScore">–</span></button>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
             <!-- Ocultos para manter compatibilidade de IDs legados -->
             <button id="newBoardBtn" style="display:none"></button>
@@ -118,11 +129,6 @@
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
-            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-            <span class="toggle-switch-label">⚙️</span>
-            <span class="toggle-switch-button">OFF</span>
-        </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
@@ -329,6 +335,16 @@
             <img id="checkinFoto" class="checkin-foto" alt="Foto do seu propósito">
             <div id="checkinFrase" class="checkin-frase"></div>
             <div id="checkinBoardName" class="checkin-board"></div>
+            <div id="energiaRow" class="energia-row" style="display:none;">
+                <span class="energia-label">Como está sua energia?</span>
+                <div class="energia-botoes">
+                    <button type="button" class="energia-btn" data-nivel="1">😩</button>
+                    <button type="button" class="energia-btn" data-nivel="2">😕</button>
+                    <button type="button" class="energia-btn" data-nivel="3">😐</button>
+                    <button type="button" class="energia-btn" data-nivel="4">🙂</button>
+                    <button type="button" class="energia-btn" data-nivel="5">😄</button>
+                </div>
+            </div>
             <button type="button" id="checkinComecarBtn" class="checkin-comecar">Começar o dia ✨</button>
             <div class="checkin-progress"><div class="checkin-progress-bar" id="checkinProgressBar"></div></div>
         </div>
@@ -344,19 +360,44 @@
             </div>
             <div class="wallet-hist-titulo">Últimos ganhos</div>
             <div id="walletHistorico" class="wallet-historico"></div>
-            <div class="wallet-resgate" title="Troque seu Ouro por uma recompensa da vida real que você define.">
-                <div class="wallet-hist-titulo">🎁 Gastar Ouro (recompensa sua)</div>
+            <div id="cbSection" class="cb-section" style="display:none;">
+                <div class="wallet-hist-titulo">🏦 Banco Central — Temporada <span id="cbTemporada">0</span></div>
+                <div class="cb-linha" id="cbPrecos">Q2: 12 · Q1: 8 · Q3: 4 · Q4: 2</div>
+                <div class="cb-linha">Próxima recalibração: <span id="cbProxima">—</span>
+                    <button type="button" id="cbVerCartaBtn" class="cb-carta-btn">ver carta</button></div>
+            </div>
+            <div class="wallet-resgate" title="Cadastre recompensas da vida real e resgate com Ouro. A IA (✨) sugere o preço justo.">
+                <div class="wallet-hist-titulo">🎁 Suas recompensas</div>
+                <div id="walletRewardsList" class="wallet-rewards-list"></div>
                 <div class="wallet-resgate-row">
-                    <input type="text" id="walletResgateDesc" maxlength="60" placeholder="Ex.: 1h de videogame">
+                    <input type="text" id="walletResgateDesc" maxlength="60" placeholder="Nova: ex. 1h de videogame">
                     <input type="number" id="walletResgateCusto" min="1" placeholder="custo">
-                    <button type="button" id="walletResgatarBtn">Resgatar</button>
+                    <button type="button" id="walletSugerirPrecoBtn" title="A IA avalia o valor justo com base no seu ganho diário">✨</button>
+                    <button type="button" id="walletSalvarRecompensaBtn">Salvar</button>
                 </div>
+                <div id="walletPrecoHint" class="wallet-preco-hint"></div>
             </div>
             <label class="wallet-som-row" title="Som curto e elegante a cada conclusão, mais forte em tarefas valiosas. Desligado por padrão.">
                 <input type="checkbox" id="walletSomToggle"> 🔊 Som de recompensa
             </label>
             <button type="button" id="walletZerarBtn" class="wallet-zerar">Zerar carteira</button>
             <button type="button" id="walletFecharBtn" class="wallet-fechar">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Bem-estar (M3) -->
+    <div id="wellbeingPopover" class="wellbeing-popover" style="display:none;">
+        <div class="wellbeing-pop-titulo">🌿 Seu bem-estar hoje</div>
+        <div id="wellbeingFatores" class="wellbeing-fatores"></div>
+    </div>
+
+    <!-- Carta de Reajuste (M5) -->
+    <div id="cartaOverlay" class="proposito-overlay" style="display:none;">
+        <div class="checkin-card carta-card">
+            <div class="checkin-saudacao" id="cartaTitulo">🏦 Carta de Reajuste</div>
+            <div id="cartaCorpo" class="carta-corpo"></div>
+            <div id="cartaMudancas" class="carta-mudancas"></div>
+            <button type="button" id="cartaFecharBtn" class="checkin-comecar">Entendi ✔</button>
         </div>
     </div>
 
@@ -371,6 +412,9 @@
     <script src="js/gamification.js"></script>
     <script src="js/economy.js"></script>
     <script src="js/streaks.js"></script>
+    <script src="js/wellbeing.js"></script>
+    <script src="js/centralbank.js"></script>
+    <script src="js/revisao.js"></script>
     <script src="js/init.js"></script>
     <!-- BUILD_JS_END -->
     </script>

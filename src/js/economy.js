@@ -129,10 +129,15 @@ function onTaskCompleted(payload) {
     if (payload.isRecurring) return;                        // regra M2: recorrente não dá Ouro
     if (payload.cardId && alreadyPaidToday(payload.cardId)) return;
 
-    var base = ECONOMY_VALORES[payload.quadrant] || ECONOMY_VALORES.none;
+    var base = getPrecoAtual(payload.quadrant, ECONOMY_VALORES[payload.quadrant] || ECONOMY_VALORES.none);
     var timerBonus = (payload.timerSeconds >= 600);
     if (timerBonus) base = Math.ceil(base * 1.5);
-    var valor = getPrecoAtual(payload.quadrant, base);
+    var valor = base;
+    // Anti-cheat do Banco Central (M5): tarefa importante SEM lastro de tempo paga 50%
+    if (isAddonOn('centralbank') && (payload.quadrant === 'Q1' || payload.quadrant === 'Q2') && (!payload.timerSeconds || payload.timerSeconds === 0)) {
+        valor = Math.max(1, Math.ceil(valor * 0.5));
+        if (typeof cbDicaTimerUmaVez === 'function') cbDicaTimerUmaVez();
+    }
 
     grantOuro(valor, 'task:' + payload.quadrant + (timerBonus ? '+timer' : ''), payload);
     if (payload.cardId) markPaidToday(payload.cardId, valor);
@@ -184,6 +189,138 @@ function resgatarRecompensa() {
     updateWalletUI();
     descEl.value = ''; custoEl.value = '';
     if (isAddonOn('economySom')) playRewardSound(1.15); // celebrar o resgate também
+}
+
+
+// ---------- Catálogo de Recompensas (várias, salvas, com preço por IA) ----------
+var LS_REWARDS_KEY = 'tea-planner-rewards';
+var rewardsCat = { v: 1, itens: [], lastUpdate: 0 };
+
+function loadRewards() {
+    try {
+        var raw = localStorage.getItem(LS_REWARDS_KEY);
+        var r = raw ? JSON.parse(raw) : null;
+        if (r && Array.isArray(r.itens)) rewardsCat = r;
+    } catch (e) { }
+}
+function saveRewards() {
+    rewardsCat.lastUpdate = Date.now();
+    try { localStorage.setItem(LS_REWARDS_KEY, JSON.stringify(rewardsCat)); } catch (e) { }
+    if (typeof gamRef === 'function') {
+        var ref = gamRef('rewards');
+        if (ref) { try { ref.set(rewardsCat); } catch (e) { } }
+    }
+}
+
+function ouroMedioPorDia() {
+    // média de ganho diário (últimos 14 dias de histórico positivo)
+    var corte = Date.now() - 14 * 86400000;
+    var porDia = {};
+    wallet.historico.forEach(function (h) {
+        if (h.ts >= corte && h.tipo === 'ouro' && h.valor > 0 && String(h.motivo).indexOf('task:') === 0) {
+            var d = new Date(h.ts); var k = d.toISOString().slice(0, 10);
+            porDia[k] = (porDia[k] || 0) + h.valor;
+        }
+    });
+    var dias = Object.keys(porDia);
+    if (!dias.length) return 30; // estimativa neutra sem histórico
+    var soma = 0; dias.forEach(function (k) { soma += porDia[k]; });
+    return Math.max(5, Math.round(soma / dias.length));
+}
+
+function precoHeuristico(desc) {
+    // Sem IA: recompensa média custa ~1 dia de ganho; palavras de peso ajustam
+    var base = ouroMedioPorDia();
+    var d = (desc || '').toLowerCase();
+    var fator = 1;
+    if (/(viagem|compra|jantar fora|show|presente)/.test(d)) fator = 3;
+    else if (/(filme|serie|episodio|sobremesa|doce|cafe|pausa)/.test(d)) fator = 0.5;
+    return Math.max(3, Math.round(base * fator));
+}
+
+function sugerirPrecoIA(desc, callback) {
+    var contexto = 'Ganho medio diario do usuario: ' + ouroMedioPorDia() + ' Ouro. ' +
+        'Referencia de valores por tarefa: Q2=12, Q1=8, Q3=4, Q4=2.';
+    var prompt = 'Voce e o Banco Central de um app de produtividade gamificado. ' + contexto +
+        ' Precifique em Ouro a recompensa pessoal: "' + desc + '". ' +
+        'Regras: recompensa pequena (pausa, cafe, 1 episodio) = ~meio dia de ganho; ' +
+        'media (1h de lazer, sobremesa especial) = ~1 dia; grande (compra, jantar fora, passeio) = 2 a 4 dias. ' +
+        'Responda APENAS JSON: {"custo": <inteiro>, "razao": "<1 frase curta pt-BR>"}';
+    if (typeof callAI !== 'function') { callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (IA indisponível).' }); return; }
+    callAI(prompt).then(function (resp) {
+        try {
+            var txt = String(resp).replace(/```json|```/g, '').trim();
+            var j = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+            var c = parseInt(j.custo, 10);
+            if (isNaN(c) || c <= 0) throw new Error('custo invalido');
+            callback({ custo: Math.min(9999, c), razao: j.razao || '' });
+        } catch (e) { callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (resposta da IA inválida).' }); }
+    }).catch(function () {
+        callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (IA indisponível ou sem chave).' });
+    });
+}
+
+function renderRewardsList() {
+    var list = document.getElementById('walletRewardsList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!rewardsCat.itens.length) {
+        var v = document.createElement('div'); v.className = 'wallet-vazio';
+        v.textContent = 'Cadastre recompensas suas (ex.: 1h de videogame) e resgate com Ouro.';
+        list.appendChild(v); return;
+    }
+    rewardsCat.itens.forEach(function (item) {
+        var row = document.createElement('div'); row.className = 'reward-item';
+        var nome = document.createElement('span'); nome.className = 'reward-nome';
+        nome.textContent = item.desc;
+        var custo = document.createElement('span'); custo.className = 'reward-custo';
+        custo.textContent = item.custo + ' 🪙';
+        var btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Resgatar';
+        btn.onclick = function () { resgatarItem(item.id); };
+        var del = document.createElement('button'); del.type = 'button'; del.className = 'reward-del';
+        del.textContent = '✕'; del.title = 'Remover recompensa';
+        del.onclick = function () {
+            rewardsCat.itens = rewardsCat.itens.filter(function (x) { return x.id !== item.id; });
+            saveRewards(); renderRewardsList();
+        };
+        row.appendChild(nome); row.appendChild(custo); row.appendChild(btn); row.appendChild(del);
+        list.appendChild(row);
+    });
+}
+
+function resgatarItem(id) {
+    var item = rewardsCat.itens.find(function (x) { return x.id === id; });
+    if (!item) return;
+    if (item.custo > wallet.ouro) { alert('Ouro insuficiente. Você tem ' + wallet.ouro + ' 🪙 e precisa de ' + item.custo + '.'); return; }
+    wallet.ouro -= item.custo;
+    pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: -item.custo, motivo: 'resgate:' + item.desc });
+    saveWallet(); updateWalletUI();
+    if (isAddonOn('economySom')) playRewardSound(1.15);
+}
+
+function salvarNovaRecompensa() {
+    var descEl = document.getElementById('walletResgateDesc');
+    var custoEl = document.getElementById('walletResgateCusto');
+    var desc = (descEl.value || '').trim();
+    var custo = parseInt(custoEl.value, 10);
+    if (!desc) { alert('Descreva a recompensa.'); return; }
+    if (isNaN(custo) || custo <= 0) { alert('Defina um custo (ou use ✨ para a IA sugerir).'); return; }
+    rewardsCat.itens.push({ id: 'rw_' + Date.now(), desc: desc, custo: custo });
+    saveRewards(); renderRewardsList();
+    descEl.value = ''; custoEl.value = '';
+}
+
+function acionarSugestaoIA() {
+    var descEl = document.getElementById('walletResgateDesc');
+    var custoEl = document.getElementById('walletResgateCusto');
+    var hint = document.getElementById('walletPrecoHint');
+    var desc = (descEl.value || '').trim();
+    if (!desc) { alert('Escreva a recompensa primeiro, aí a IA sugere o preço.'); return; }
+    if (hint) hint.textContent = '✨ Avaliando...';
+    sugerirPrecoIA(desc, function (r) {
+        custoEl.value = r.custo;
+        if (hint) hint.textContent = '✨ ' + r.custo + ' 🪙 — ' + r.razao;
+    });
 }
 
 // ---------- Feedback visual: brilho proporcional ----------
@@ -279,6 +416,7 @@ function updateWalletUI() {
 function abrirCarteira() {
     if (!isAddonOn('economy')) return;
     updateWalletUI();
+    renderRewardsList();
     var ov = document.getElementById('walletOverlay'); if (ov) ov.style.display = 'flex';
 }
 function fecharCarteira() {
@@ -291,8 +429,10 @@ function initWalletUI() {
     if (close) close.onclick = fecharCarteira;
     var zerar = document.getElementById('walletZerarBtn');
     if (zerar) zerar.onclick = zerarCarteira;
-    var resg = document.getElementById('walletResgatarBtn');
-    if (resg) resg.onclick = resgatarRecompensa;
+    var resg = document.getElementById('walletSalvarRecompensaBtn');
+    if (resg) resg.onclick = salvarNovaRecompensa;
+    var ia = document.getElementById('walletSugerirPrecoBtn');
+    if (ia) ia.onclick = acionarSugestaoIA;
     var som = document.getElementById('walletSomToggle');
     if (som) {
         som.checked = isAddonOn('economySom');
@@ -308,6 +448,7 @@ function initWalletUI() {
 // ---------- Inicialização ----------
 function initEconomy() {
     loadWallet();
+    loadRewards();
     registerAddon({
         id: 'economy', nome: '💰 Carteira & Moedas',
         descricao: 'Ganhe Ouro concluindo tarefas (Q2 rende mais). Diamante em marcos.',
@@ -319,6 +460,7 @@ function initEconomy() {
         TEAEvents.on('task:uncompleted', onTaskUncompleted);
     }
     initWalletUI();
+    renderRewardsList();
     try {
         if (window.firebase && firebase.auth) {
             firebase.auth().onAuthStateChanged(function (user) { if (user) subscribeWalletRemote(); });

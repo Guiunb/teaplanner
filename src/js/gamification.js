@@ -151,6 +151,27 @@ function getCardFocusSeconds(cardEl) {
     return 0;
 }
 
+
+// ---- Cores por quadrante: pintor retroativo (complementa o drag do kanban) ----
+var QUAD_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+
+function paintQuadrantColors() {
+    var cards = document.querySelectorAll('.card');
+    Array.prototype.forEach.call(cards, function (el) {
+        var q = detectCardQuadrant(el);
+        if (q === 'none') return; // nao mexe em cor manual de cards fora da matriz
+        var cor = QUAD_COLORS[q];
+        if (!cor || el.dataset.labelColor === cor) return;
+        el.dataset.labelColor = cor;
+        var header = el.querySelector('.card-header');
+        if (header) {
+            header.style.backgroundColor = cor;
+            header.style.setProperty('--label-color', cor);
+            header.style.borderBottom = 'none';
+        }
+    });
+}
+
 function isPropositoVisualOn() {
     return addonsState.propositoVisual === true;
 }
@@ -494,4 +515,15 @@ function initGamification() {
 
     // Check-in matinal: aguarda o boot (Firebase/boards) estabilizar
     setTimeout(maybeShowCheckinMatinal, 1800);
+
+    // Cores por quadrante: retroativo e continuo (cards ja posicionados tambem pintam)
+    if (window.TEAEvents) {
+        TEAEvents.on('task:completed', function(){ setTimeout(paintQuadrantColors, 300); });
+        TEAEvents.on('board:switched', function(){ setTimeout(paintQuadrantColors, 600); });
+    }
+    setTimeout(paintQuadrantColors, 2500);
+    setInterval(paintQuadrantColors, 4000);
+
+    // Marcador de versao: confirmacao inequivoca de que o pacote carregou
+    console.log('[TEA Planner] Gamification PACOTE v6 carregada (M0+M1+M2+M3+M5).');
 }

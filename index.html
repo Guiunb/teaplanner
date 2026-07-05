@@ -2679,6 +2679,55 @@ padding: 6px 2px;
 }
 .wallet-zerar:hover { opacity: 1; }
 
+/* ============================================================
+   M3 — Bem-estar (wellbeing.js) + catálogo de recompensas
+   ============================================================ */
+.wellbeing-pill {
+    background: transparent;
+    border: 2px solid #3ddc84;
+    border-radius: 999px;
+    min-width: 34px; height: 28px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; padding: 0 8px; margin: 0 2px;
+}
+.wellbeing-pill span { color: #3ddc84; }
+.wellbeing-popover {
+    position: fixed; z-index: 10070;
+    width: 260px; background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 12px;
+    padding: 12px 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+}
+.wellbeing-pop-titulo { font-size: 13px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; }
+.wellbeing-fator { font-size: 13px; color: var(--ink); padding: 5px 0; line-height: 1.4; }
+.energia-row { margin: 4px 0 14px; }
+.energia-label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.energia-botoes { display: flex; gap: 6px; justify-content: center; }
+.energia-btn {
+    background: var(--card); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; font-size: 18px; padding: 6px 10px; cursor: pointer;
+    transition: transform .1s, border-color .15s;
+}
+.energia-btn:hover { transform: scale(1.08); }
+.energia-btn.sel { border-color: var(--brand); background: rgba(58,139,255,0.18); }
+.wallet-rewards-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; max-height: 150px; overflow-y: auto; }
+.reward-item { display: flex; align-items: center; gap: 8px; background: var(--card); border-radius: 8px; padding: 7px 10px; }
+.reward-nome { flex: 1; font-size: 13px; color: var(--ink); }
+.reward-custo { font-size: 12.5px; color: #ffca4a; white-space: nowrap; }
+.reward-item button { background: var(--brand); border: none; border-radius: 7px; color: #fff; font-size: 12px; padding: 5px 10px; cursor: pointer; }
+.reward-item .reward-del { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--muted); padding: 5px 8px; }
+.wallet-preco-hint { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 15px; line-height: 1.4; }
+
+/* ---- M5: Banco Central ---- */
+.cb-section { margin-bottom: 12px; background: var(--card); border-radius: 10px; padding: 10px 12px; }
+.cb-linha { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.cb-carta-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: var(--ink);
+    border-radius: 6px; font-size: 11px; padding: 2px 8px; margin-left: 8px; cursor: pointer; }
+.carta-card { text-align: left; }
+.carta-corpo { color: var(--ink); font-size: 14.5px; line-height: 1.55; margin-bottom: 12px; }
+.carta-mudancas { color: #ffca4a; font-size: 13px; line-height: 1.7; margin-bottom: 16px; }
+
+.addon-versao { font-size: 10.5px; color: var(--muted); opacity: 0.7; padding: 2px 12px 6px; text-align: right; }
+
     </style>
 </head>
 
@@ -2743,12 +2792,23 @@ padding: 6px 2px;
                         <label for="checkinDuracaoRange">⏳ Tempo do check-in: <strong id="checkinDuracaoLabel">8s</strong></label>
                         <input type="range" id="checkinDuracaoRange" min="5" max="30" step="1" value="8" class="addon-range">
                     </div>
+                    <div class="addon-row" title="QuickCard: ao criar um cartão, abrir pop-ups de timer e cor automaticamente.">
+                        <span class="addon-name">⏱️ QuickCard Automático</span>
+                        <label class="toggle-switch addon-toggle">
+                            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
+                            <span class="toggle-switch-label"></span>
+                            <span class="toggle-switch-button">OFF</span>
+                        </label>
+                    </div>
+                    <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
+                    <div class="addon-versao">pacote v6</div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
                     <button type="button" id="addonEditarPropositoBtn">🎯 Editar propósito deste quadro</button>
                 </div>
             </div>
 
             <button id="walletBtn" class="wallet-header-btn" title="Carteira" style="display:none;">💰</button>
+            <button id="wellbeingPill" class="wellbeing-pill" title="Seu bem-estar (clique para detalhes)" style="display:none;"><span id="wellbeingScore">–</span></button>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; display: none;"></div>
             <!-- Ocultos para manter compatibilidade de IDs legados -->
             <button id="newBoardBtn" style="display:none"></button>
@@ -2777,11 +2837,6 @@ padding: 6px 2px;
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <label class="toggle-switch" title="Configuração Rápida: Ao criar um cartão, abrir pop-ups de timer e cor.">
-            <input type="checkbox" id="quickConfigToggle" class="toggle-switch-input">
-            <span class="toggle-switch-label">⚙️</span>
-            <span class="toggle-switch-button">OFF</span>
-        </label>
         <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
@@ -2988,6 +3043,16 @@ padding: 6px 2px;
             <img id="checkinFoto" class="checkin-foto" alt="Foto do seu propósito">
             <div id="checkinFrase" class="checkin-frase"></div>
             <div id="checkinBoardName" class="checkin-board"></div>
+            <div id="energiaRow" class="energia-row" style="display:none;">
+                <span class="energia-label">Como está sua energia?</span>
+                <div class="energia-botoes">
+                    <button type="button" class="energia-btn" data-nivel="1">😩</button>
+                    <button type="button" class="energia-btn" data-nivel="2">😕</button>
+                    <button type="button" class="energia-btn" data-nivel="3">😐</button>
+                    <button type="button" class="energia-btn" data-nivel="4">🙂</button>
+                    <button type="button" class="energia-btn" data-nivel="5">😄</button>
+                </div>
+            </div>
             <button type="button" id="checkinComecarBtn" class="checkin-comecar">Começar o dia ✨</button>
             <div class="checkin-progress"><div class="checkin-progress-bar" id="checkinProgressBar"></div></div>
         </div>
@@ -3003,19 +3068,44 @@ padding: 6px 2px;
             </div>
             <div class="wallet-hist-titulo">Últimos ganhos</div>
             <div id="walletHistorico" class="wallet-historico"></div>
-            <div class="wallet-resgate" title="Troque seu Ouro por uma recompensa da vida real que você define.">
-                <div class="wallet-hist-titulo">🎁 Gastar Ouro (recompensa sua)</div>
+            <div id="cbSection" class="cb-section" style="display:none;">
+                <div class="wallet-hist-titulo">🏦 Banco Central — Temporada <span id="cbTemporada">0</span></div>
+                <div class="cb-linha" id="cbPrecos">Q2: 12 · Q1: 8 · Q3: 4 · Q4: 2</div>
+                <div class="cb-linha">Próxima recalibração: <span id="cbProxima">—</span>
+                    <button type="button" id="cbVerCartaBtn" class="cb-carta-btn">ver carta</button></div>
+            </div>
+            <div class="wallet-resgate" title="Cadastre recompensas da vida real e resgate com Ouro. A IA (✨) sugere o preço justo.">
+                <div class="wallet-hist-titulo">🎁 Suas recompensas</div>
+                <div id="walletRewardsList" class="wallet-rewards-list"></div>
                 <div class="wallet-resgate-row">
-                    <input type="text" id="walletResgateDesc" maxlength="60" placeholder="Ex.: 1h de videogame">
+                    <input type="text" id="walletResgateDesc" maxlength="60" placeholder="Nova: ex. 1h de videogame">
                     <input type="number" id="walletResgateCusto" min="1" placeholder="custo">
-                    <button type="button" id="walletResgatarBtn">Resgatar</button>
+                    <button type="button" id="walletSugerirPrecoBtn" title="A IA avalia o valor justo com base no seu ganho diário">✨</button>
+                    <button type="button" id="walletSalvarRecompensaBtn">Salvar</button>
                 </div>
+                <div id="walletPrecoHint" class="wallet-preco-hint"></div>
             </div>
             <label class="wallet-som-row" title="Som curto e elegante a cada conclusão, mais forte em tarefas valiosas. Desligado por padrão.">
                 <input type="checkbox" id="walletSomToggle"> 🔊 Som de recompensa
             </label>
             <button type="button" id="walletZerarBtn" class="wallet-zerar">Zerar carteira</button>
             <button type="button" id="walletFecharBtn" class="wallet-fechar">Fechar</button>
+        </div>
+    </div>
+
+    <!-- Bem-estar (M3) -->
+    <div id="wellbeingPopover" class="wellbeing-popover" style="display:none;">
+        <div class="wellbeing-pop-titulo">🌿 Seu bem-estar hoje</div>
+        <div id="wellbeingFatores" class="wellbeing-fatores"></div>
+    </div>
+
+    <!-- Carta de Reajuste (M5) -->
+    <div id="cartaOverlay" class="proposito-overlay" style="display:none;">
+        <div class="checkin-card carta-card">
+            <div class="checkin-saudacao" id="cartaTitulo">🏦 Carta de Reajuste</div>
+            <div id="cartaCorpo" class="carta-corpo"></div>
+            <div id="cartaMudancas" class="carta-mudancas"></div>
+            <button type="button" id="cartaFecharBtn" class="checkin-comecar">Entendi ✔</button>
         </div>
     </div>
 
@@ -5090,7 +5180,7 @@ function duplicateCards(cards) {
     updateSlotsHasItems();
     updateTotalTimerDisplay();
     if (typeof renderWeeklyView === 'function') {
-        renderWeeklyView();
+        if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
     }
 }
 
@@ -5173,14 +5263,12 @@ function toggleCardCompletion(e) {
 
     // Ponte kanban -> gamificação (Fundação 0.5). Inerte se nada escutar.
     if (window.TEAEvents) {
-        var _isChild = !!(card.dataset.recurrenceParent);
-        var _isParentRec = !!(card.dataset.recurrence && card.dataset.recurrence !== 'none');
         var _gpayload = {
             cardId: card.dataset.id,
             boardId: card.dataset.boardId || (typeof currentBoardId !== 'undefined' ? currentBoardId : ''),
             quadrant: (typeof detectCardQuadrant === 'function') ? detectCardQuadrant(card) : 'none',
-            isRecurring: _isChild || _isParentRec,
-            seriesId: _isChild ? card.dataset.recurrenceParent : (_isParentRec ? card.dataset.id : ''),
+            isRecurring: (!!(card.dataset.recurrenceParent)) || (!!(card.dataset.recurrence && card.dataset.recurrence !== 'none')),
+            seriesId: card.dataset.recurrenceParent ? card.dataset.recurrenceParent : ((card.dataset.recurrence && card.dataset.recurrence !== 'none') ? card.dataset.id : ''),
             timerSeconds: (typeof getCardFocusSeconds === 'function') ? getCardFocusSeconds(card) : 0
         };
         if (card.dataset.completed === 'true') { TEAEvents.emit('task:completed', _gpayload); }
@@ -5511,7 +5599,7 @@ function removeCard(c, bypassTrash = false) {
             }
             
             persist();
-            renderWeeklyView();
+            if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
             applyFilters();
         });
         return;
@@ -5753,6 +5841,25 @@ function wireDropZone(container) {
         if (!after) cardsContainer.appendChild(ph);
         else cardsContainer.insertBefore(ph, after);
         if (isSlot) container.classList.add('hover');
+        
+        // Matrix Color Drop (Hover over quadrant)
+        if (container.dataset.type === 'quad' && dragState.block) {
+            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const qColor = EISENHOWER_COLORS[container.dataset.quad];
+            if (qColor) {
+                var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
+                block.forEach(function(n) {
+                    if (n._originalReference) n = n._originalReference;
+                    n.dataset.labelColor = qColor;
+                    paintCard(n);
+                    const cardInCache = allCards.find(card => card === n);
+                    if (cardInCache && cardInCache !== n) {
+                        cardInCache.dataset.labelColor = qColor;
+                        paintCard(cardInCache);
+                    }
+                });
+            }
+        }
     }
 
     container.addEventListener('dragover', handleDragOver);
@@ -6090,7 +6197,7 @@ function updateSlotsHasItems() {
     });
     updateTotalTimerDisplay();
     updateListHeaderTooltips();
-    renderWeeklyView();
+    if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
 }
 
 var selectedColors = new Set();
@@ -11459,6 +11566,27 @@ function getCardFocusSeconds(cardEl) {
     return 0;
 }
 
+
+// ---- Cores por quadrante: pintor retroativo (complementa o drag do kanban) ----
+var QUAD_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+
+function paintQuadrantColors() {
+    var cards = document.querySelectorAll('.card');
+    Array.prototype.forEach.call(cards, function (el) {
+        var q = detectCardQuadrant(el);
+        if (q === 'none') return; // nao mexe em cor manual de cards fora da matriz
+        var cor = QUAD_COLORS[q];
+        if (!cor || el.dataset.labelColor === cor) return;
+        el.dataset.labelColor = cor;
+        var header = el.querySelector('.card-header');
+        if (header) {
+            header.style.backgroundColor = cor;
+            header.style.setProperty('--label-color', cor);
+            header.style.borderBottom = 'none';
+        }
+    });
+}
+
 function isPropositoVisualOn() {
     return addonsState.propositoVisual === true;
 }
@@ -11802,6 +11930,17 @@ function initGamification() {
 
     // Check-in matinal: aguarda o boot (Firebase/boards) estabilizar
     setTimeout(maybeShowCheckinMatinal, 1800);
+
+    // Cores por quadrante: retroativo e continuo (cards ja posicionados tambem pintam)
+    if (window.TEAEvents) {
+        TEAEvents.on('task:completed', function(){ setTimeout(paintQuadrantColors, 300); });
+        TEAEvents.on('board:switched', function(){ setTimeout(paintQuadrantColors, 600); });
+    }
+    setTimeout(paintQuadrantColors, 2500);
+    setInterval(paintQuadrantColors, 4000);
+
+    // Marcador de versao: confirmacao inequivoca de que o pacote carregou
+    console.log('[TEA Planner] Gamification PACOTE v6 carregada (M0+M1+M2+M3+M5).');
 }
 
 
@@ -11937,10 +12076,15 @@ function onTaskCompleted(payload) {
     if (payload.isRecurring) return;                        // regra M2: recorrente não dá Ouro
     if (payload.cardId && alreadyPaidToday(payload.cardId)) return;
 
-    var base = ECONOMY_VALORES[payload.quadrant] || ECONOMY_VALORES.none;
+    var base = getPrecoAtual(payload.quadrant, ECONOMY_VALORES[payload.quadrant] || ECONOMY_VALORES.none);
     var timerBonus = (payload.timerSeconds >= 600);
     if (timerBonus) base = Math.ceil(base * 1.5);
-    var valor = getPrecoAtual(payload.quadrant, base);
+    var valor = base;
+    // Anti-cheat do Banco Central (M5): tarefa importante SEM lastro de tempo paga 50%
+    if (isAddonOn('centralbank') && (payload.quadrant === 'Q1' || payload.quadrant === 'Q2') && (!payload.timerSeconds || payload.timerSeconds === 0)) {
+        valor = Math.max(1, Math.ceil(valor * 0.5));
+        if (typeof cbDicaTimerUmaVez === 'function') cbDicaTimerUmaVez();
+    }
 
     grantOuro(valor, 'task:' + payload.quadrant + (timerBonus ? '+timer' : ''), payload);
     if (payload.cardId) markPaidToday(payload.cardId, valor);
@@ -11992,6 +12136,138 @@ function resgatarRecompensa() {
     updateWalletUI();
     descEl.value = ''; custoEl.value = '';
     if (isAddonOn('economySom')) playRewardSound(1.15); // celebrar o resgate também
+}
+
+
+// ---------- Catálogo de Recompensas (várias, salvas, com preço por IA) ----------
+var LS_REWARDS_KEY = 'tea-planner-rewards';
+var rewardsCat = { v: 1, itens: [], lastUpdate: 0 };
+
+function loadRewards() {
+    try {
+        var raw = localStorage.getItem(LS_REWARDS_KEY);
+        var r = raw ? JSON.parse(raw) : null;
+        if (r && Array.isArray(r.itens)) rewardsCat = r;
+    } catch (e) { }
+}
+function saveRewards() {
+    rewardsCat.lastUpdate = Date.now();
+    try { localStorage.setItem(LS_REWARDS_KEY, JSON.stringify(rewardsCat)); } catch (e) { }
+    if (typeof gamRef === 'function') {
+        var ref = gamRef('rewards');
+        if (ref) { try { ref.set(rewardsCat); } catch (e) { } }
+    }
+}
+
+function ouroMedioPorDia() {
+    // média de ganho diário (últimos 14 dias de histórico positivo)
+    var corte = Date.now() - 14 * 86400000;
+    var porDia = {};
+    wallet.historico.forEach(function (h) {
+        if (h.ts >= corte && h.tipo === 'ouro' && h.valor > 0 && String(h.motivo).indexOf('task:') === 0) {
+            var d = new Date(h.ts); var k = d.toISOString().slice(0, 10);
+            porDia[k] = (porDia[k] || 0) + h.valor;
+        }
+    });
+    var dias = Object.keys(porDia);
+    if (!dias.length) return 30; // estimativa neutra sem histórico
+    var soma = 0; dias.forEach(function (k) { soma += porDia[k]; });
+    return Math.max(5, Math.round(soma / dias.length));
+}
+
+function precoHeuristico(desc) {
+    // Sem IA: recompensa média custa ~1 dia de ganho; palavras de peso ajustam
+    var base = ouroMedioPorDia();
+    var d = (desc || '').toLowerCase();
+    var fator = 1;
+    if (/(viagem|compra|jantar fora|show|presente)/.test(d)) fator = 3;
+    else if (/(filme|serie|episodio|sobremesa|doce|cafe|pausa)/.test(d)) fator = 0.5;
+    return Math.max(3, Math.round(base * fator));
+}
+
+function sugerirPrecoIA(desc, callback) {
+    var contexto = 'Ganho medio diario do usuario: ' + ouroMedioPorDia() + ' Ouro. ' +
+        'Referencia de valores por tarefa: Q2=12, Q1=8, Q3=4, Q4=2.';
+    var prompt = 'Voce e o Banco Central de um app de produtividade gamificado. ' + contexto +
+        ' Precifique em Ouro a recompensa pessoal: "' + desc + '". ' +
+        'Regras: recompensa pequena (pausa, cafe, 1 episodio) = ~meio dia de ganho; ' +
+        'media (1h de lazer, sobremesa especial) = ~1 dia; grande (compra, jantar fora, passeio) = 2 a 4 dias. ' +
+        'Responda APENAS JSON: {"custo": <inteiro>, "razao": "<1 frase curta pt-BR>"}';
+    if (typeof callAI !== 'function') { callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (IA indisponível).' }); return; }
+    callAI(prompt).then(function (resp) {
+        try {
+            var txt = String(resp).replace(/```json|```/g, '').trim();
+            var j = JSON.parse(txt.slice(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+            var c = parseInt(j.custo, 10);
+            if (isNaN(c) || c <= 0) throw new Error('custo invalido');
+            callback({ custo: Math.min(9999, c), razao: j.razao || '' });
+        } catch (e) { callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (resposta da IA inválida).' }); }
+    }).catch(function () {
+        callback({ custo: precoHeuristico(desc), razao: 'Estimativa local (IA indisponível ou sem chave).' });
+    });
+}
+
+function renderRewardsList() {
+    var list = document.getElementById('walletRewardsList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!rewardsCat.itens.length) {
+        var v = document.createElement('div'); v.className = 'wallet-vazio';
+        v.textContent = 'Cadastre recompensas suas (ex.: 1h de videogame) e resgate com Ouro.';
+        list.appendChild(v); return;
+    }
+    rewardsCat.itens.forEach(function (item) {
+        var row = document.createElement('div'); row.className = 'reward-item';
+        var nome = document.createElement('span'); nome.className = 'reward-nome';
+        nome.textContent = item.desc;
+        var custo = document.createElement('span'); custo.className = 'reward-custo';
+        custo.textContent = item.custo + ' 🪙';
+        var btn = document.createElement('button'); btn.type = 'button'; btn.textContent = 'Resgatar';
+        btn.onclick = function () { resgatarItem(item.id); };
+        var del = document.createElement('button'); del.type = 'button'; del.className = 'reward-del';
+        del.textContent = '✕'; del.title = 'Remover recompensa';
+        del.onclick = function () {
+            rewardsCat.itens = rewardsCat.itens.filter(function (x) { return x.id !== item.id; });
+            saveRewards(); renderRewardsList();
+        };
+        row.appendChild(nome); row.appendChild(custo); row.appendChild(btn); row.appendChild(del);
+        list.appendChild(row);
+    });
+}
+
+function resgatarItem(id) {
+    var item = rewardsCat.itens.find(function (x) { return x.id === id; });
+    if (!item) return;
+    if (item.custo > wallet.ouro) { alert('Ouro insuficiente. Você tem ' + wallet.ouro + ' 🪙 e precisa de ' + item.custo + '.'); return; }
+    wallet.ouro -= item.custo;
+    pushHistorico({ ts: Date.now(), tipo: 'ouro', valor: -item.custo, motivo: 'resgate:' + item.desc });
+    saveWallet(); updateWalletUI();
+    if (isAddonOn('economySom')) playRewardSound(1.15);
+}
+
+function salvarNovaRecompensa() {
+    var descEl = document.getElementById('walletResgateDesc');
+    var custoEl = document.getElementById('walletResgateCusto');
+    var desc = (descEl.value || '').trim();
+    var custo = parseInt(custoEl.value, 10);
+    if (!desc) { alert('Descreva a recompensa.'); return; }
+    if (isNaN(custo) || custo <= 0) { alert('Defina um custo (ou use ✨ para a IA sugerir).'); return; }
+    rewardsCat.itens.push({ id: 'rw_' + Date.now(), desc: desc, custo: custo });
+    saveRewards(); renderRewardsList();
+    descEl.value = ''; custoEl.value = '';
+}
+
+function acionarSugestaoIA() {
+    var descEl = document.getElementById('walletResgateDesc');
+    var custoEl = document.getElementById('walletResgateCusto');
+    var hint = document.getElementById('walletPrecoHint');
+    var desc = (descEl.value || '').trim();
+    if (!desc) { alert('Escreva a recompensa primeiro, aí a IA sugere o preço.'); return; }
+    if (hint) hint.textContent = '✨ Avaliando...';
+    sugerirPrecoIA(desc, function (r) {
+        custoEl.value = r.custo;
+        if (hint) hint.textContent = '✨ ' + r.custo + ' 🪙 — ' + r.razao;
+    });
 }
 
 // ---------- Feedback visual: brilho proporcional ----------
@@ -12087,6 +12363,7 @@ function updateWalletUI() {
 function abrirCarteira() {
     if (!isAddonOn('economy')) return;
     updateWalletUI();
+    renderRewardsList();
     var ov = document.getElementById('walletOverlay'); if (ov) ov.style.display = 'flex';
 }
 function fecharCarteira() {
@@ -12099,8 +12376,10 @@ function initWalletUI() {
     if (close) close.onclick = fecharCarteira;
     var zerar = document.getElementById('walletZerarBtn');
     if (zerar) zerar.onclick = zerarCarteira;
-    var resg = document.getElementById('walletResgatarBtn');
-    if (resg) resg.onclick = resgatarRecompensa;
+    var resg = document.getElementById('walletSalvarRecompensaBtn');
+    if (resg) resg.onclick = salvarNovaRecompensa;
+    var ia = document.getElementById('walletSugerirPrecoBtn');
+    if (ia) ia.onclick = acionarSugestaoIA;
     var som = document.getElementById('walletSomToggle');
     if (som) {
         som.checked = isAddonOn('economySom');
@@ -12116,6 +12395,7 @@ function initWalletUI() {
 // ---------- Inicialização ----------
 function initEconomy() {
     loadWallet();
+    loadRewards();
     registerAddon({
         id: 'economy', nome: '💰 Carteira & Moedas',
         descricao: 'Ganhe Ouro concluindo tarefas (Q2 rende mais). Diamante em marcos.',
@@ -12127,6 +12407,7 @@ function initEconomy() {
         TEAEvents.on('task:uncompleted', onTaskUncompleted);
     }
     initWalletUI();
+    renderRewardsList();
     try {
         if (window.firebase && firebase.auth) {
             firebase.auth().onAuthStateChanged(function (user) { if (user) subscribeWalletRemote(); });
@@ -12383,6 +12664,1340 @@ function initStreaks() {
         }
     } catch (e) { }
 }
+
+
+// ===== MODULE: wellbeing.js =====
+// ============================================================
+// MÓDULO: wellbeing.js — M3 Medidor de Bem-estar
+// PRD §3: visível quando ligado, CALMO (sem piscar, sem vermelho),
+// dados mistos observados+declarados, arquitetura plugável,
+// desencoraja mas NUNCA bloqueia, descanso reconhecido sem moeda.
+// ============================================================
+
+var LS_WELLBEING_KEY = 'tea-planner-wellbeing';
+var LS_WELLBEING_TODAY_KEY = 'tea-planner-wellbeing-today';
+
+var wellbeingData = { v: 1, score: 50, historico7d: [], diasSeguidosUso: 0, ultimoDiaUso: '', lastUpdate: 0 };
+var wellbeingFontesExternas = []; // arquitetura plugável (futuro: sono, passos...)
+
+// ---------- Dia "efetivo": madrugada 0h-4h conta para o dia anterior ----------
+function wbDiaEfetivo() {
+    var d = new Date();
+    if (d.getHours() < 4) { d = new Date(d.getTime() - 86400000); }
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// ---------- Persistência ----------
+function loadWellbeing() {
+    try {
+        var raw = localStorage.getItem(LS_WELLBEING_KEY);
+        var w = raw ? JSON.parse(raw) : null;
+        if (w && typeof w === 'object') {
+            wellbeingData.score = (typeof w.score === 'number') ? w.score : 50;
+            wellbeingData.historico7d = Array.isArray(w.historico7d) ? w.historico7d.slice(-7) : [];
+            wellbeingData.diasSeguidosUso = w.diasSeguidosUso || 0;
+            wellbeingData.ultimoDiaUso = w.ultimoDiaUso || '';
+            wellbeingData.lastUpdate = w.lastUpdate || 0;
+        }
+    } catch (e) { }
+}
+function saveWellbeing() {
+    wellbeingData.lastUpdate = Date.now();
+    try { localStorage.setItem(LS_WELLBEING_KEY, JSON.stringify(wellbeingData)); } catch (e) { }
+    if (typeof gamRef === 'function') {
+        var ref = gamRef('wellbeing');
+        if (ref) { try { ref.set(wellbeingData); } catch (e) { } }
+    }
+}
+
+// ---------- Acumulador do dia (observado) ----------
+function wbToday() {
+    try {
+        var raw = localStorage.getItem(LS_WELLBEING_TODAY_KEY);
+        var t = raw ? JSON.parse(raw) : null;
+        if (!t || t.data !== wbDiaEfetivo()) {
+            t = { data: wbDiaEfetivo(), tarefas: 0, minutosFoco: 0, energia: 0, horaUltimaAtividade: 0, ids: {} };
+        }
+        if (!t.ids) t.ids = {};
+        return t;
+    } catch (e) { return { data: wbDiaEfetivo(), tarefas: 0, minutosFoco: 0, energia: 0, horaUltimaAtividade: 0, ids: {} }; }
+}
+function wbSaveToday(t) {
+    try { localStorage.setItem(LS_WELLBEING_TODAY_KEY, JSON.stringify(t)); } catch (e) { }
+}
+
+function wbRegistrarAtividade(payload) {
+    var t = wbToday();
+    var id = payload && payload.cardId;
+    if (id && t.ids[id]) return; // mesma tarefa nao conta 2x no dia (anti-farm)
+    var mins = (payload && payload.timerSeconds) ? Math.round(payload.timerSeconds / 60) : 0;
+    if (id) t.ids[id] = { m: mins };
+    t.tarefas += 1;
+    t.minutosFoco += mins;
+    t.horaUltimaAtividade = new Date().getHours();
+    wbSaveToday(t);
+    recalcWellbeing();
+}
+
+function wbEstornarAtividade(payload) {
+    // Desmarcar = correcao: o bem-estar tambem desconta (simetrico ao ganho)
+    var t = wbToday();
+    var id = payload && payload.cardId;
+    if (!id || !t.ids[id]) return;
+    t.tarefas = Math.max(0, t.tarefas - 1);
+    t.minutosFoco = Math.max(0, t.minutosFoco - (t.ids[id].m || 0));
+    delete t.ids[id];
+    wbSaveToday(t);
+    recalcWellbeing();
+}
+
+function wbRegistrarEnergia(nivel) {
+    var t = wbToday();
+    t.energia = Math.min(5, Math.max(1, parseInt(nivel, 10) || 3));
+    wbSaveToday(t);
+    recalcWellbeing();
+}
+
+// ---------- Fontes externas plugáveis (implementado já, fontes no futuro) ----------
+function registerWellbeingSource(def) {
+    // def: { id, nome, peso (-15..+15), getDelta: function() -> number }
+    if (def && def.id && typeof def.getDelta === 'function') { wellbeingFontesExternas.push(def); }
+}
+
+// ---------- Cálculo (determinístico, PRD §3.3) ----------
+function calcularScoreBruto(t, diasSeguidos) {
+    var score = 50;
+    score += Math.min(20, (t.tarefas || 0) * 3);
+    score += Math.min(15, Math.floor((t.minutosFoco || 0) / 10));
+    var energia = t.energia || 3; // pular a pergunta não penaliza (neutro)
+    score += (energia - 3) * 5;
+    if ((t.horaUltimaAtividade || 0) >= 23) score -= 10;
+    if (diasSeguidos > 13) score -= 8;
+    wellbeingFontesExternas.forEach(function (f) {
+        try { score += Math.max(-15, Math.min(15, f.getDelta() || 0)); } catch (e) { }
+    });
+    return Math.max(0, Math.min(100, score));
+}
+
+function recalcWellbeing() {
+    if (!isAddonOn('wellbeing')) return;
+    var t = wbToday();
+    var bruto = calcularScoreBruto(t, wellbeingData.diasSeguidosUso);
+    // Suavização: nunca varia mais que 15 pontos por recálculo (sem sustos)
+    var atual = wellbeingData.score;
+    var novo = Math.max(atual - 15, Math.min(atual + 15, bruto));
+    wellbeingData.score = novo;
+    // histórico do dia
+    var hoje = wbDiaEfetivo();
+    var h = wellbeingData.historico7d;
+    if (h.length && h[h.length - 1].data === hoje) { h[h.length - 1].score = novo; }
+    else { h.push({ data: hoje, score: novo }); if (h.length > 7) h.shift(); }
+    saveWellbeing();
+    updateWellbeingUI(t);
+    if (window.TEAEvents) TEAEvents.emit('wellbeing:changed', { score: novo });
+}
+
+// ---------- Uso/descanso ----------
+function wbRegistrarDiaDeUso() {
+    var hoje = wbDiaEfetivo();
+    if (wellbeingData.ultimoDiaUso === hoje) return;
+    var descansou = false;
+    if (wellbeingData.ultimoDiaUso) {
+        var gap = Math.round((new Date(hoje + 'T12:00:00') - new Date(wellbeingData.ultimoDiaUso + 'T12:00:00')) / 86400000);
+        if (gap === 1) { wellbeingData.diasSeguidosUso += 1; }
+        else if (gap > 1) { wellbeingData.diasSeguidosUso = 1; descansou = true; }
+    } else { wellbeingData.diasSeguidosUso = 1; }
+    wellbeingData.ultimoDiaUso = hoje;
+    saveWellbeing();
+    if (descansou) mostrarSeloDescanso();
+}
+
+function mostrarSeloDescanso() {
+    // Descanso NUNCA gera moeda, mas recebe reconhecimento visível (princípio Ciclo 1/3)
+    var tEl = document.createElement('div');
+    tEl.className = 'milestone-toast dormant-toast';
+    tEl.textContent = '🌿 Você descansou — isso conta. Bem-vindo de volta.';
+    document.body.appendChild(tEl);
+    setTimeout(function () { tEl.classList.add('show'); }, 30);
+    setTimeout(function () { tEl.classList.remove('show'); setTimeout(function () { tEl.remove(); }, 400); }, 5000);
+}
+
+// ---------- UI: pílula calma + popover humano ----------
+function corDaFaixa(score) {
+    if (score >= 70) return '#3ddc84';       // verde
+    if (score >= 40) return '#ffb84d';       // âmbar
+    return '#6ea8dc';                        // azul-calmo (NUNCA vermelho)
+}
+
+function updateWellbeingUI(t) {
+    var pill = document.getElementById('wellbeingPill');
+    var num = document.getElementById('wellbeingScore');
+    if (!pill || !num) return;
+    var on = isAddonOn('wellbeing');
+    pill.style.display = on ? '' : 'none';
+    if (!on) return;
+    num.textContent = wellbeingData.score;
+    pill.style.borderColor = corDaFaixa(wellbeingData.score);
+    num.style.color = corDaFaixa(wellbeingData.score);
+
+    var fat = document.getElementById('wellbeingFatores');
+    if (fat) {
+        t = t || wbToday();
+        var linhas = [];
+        if (t.tarefas > 0) linhas.push('✔ ' + t.tarefas + ' tarefa' + (t.tarefas > 1 ? 's' : '') + ' concluída' + (t.tarefas > 1 ? 's' : '') + ' hoje');
+        if (t.minutosFoco >= 10) linhas.push('🎯 ' + t.minutosFoco + ' min de foco real 👏');
+        if (t.energia) linhas.push('⚡ Energia declarada: ' + t.energia + '/5');
+        if ((t.horaUltimaAtividade || 0) >= 23) linhas.push('🌙 Atividade tarde da noite — que tal encerrar mais cedo?');
+        if (wellbeingData.diasSeguidosUso > 13) linhas.push('🌿 ' + wellbeingData.diasSeguidosUso + ' dias seguidos — um descanso faria bem');
+        if (!linhas.length) linhas.push('Um dia de cada vez. Conclua algo pequeno para começar.');
+        fat.innerHTML = '';
+        linhas.slice(0, 3).forEach(function (l) {
+            var d = document.createElement('div'); d.className = 'wellbeing-fator'; d.textContent = l;
+            fat.appendChild(d);
+        });
+    }
+}
+
+function toggleWellbeingPopover() {
+    var pop = document.getElementById('wellbeingPopover');
+    if (!pop) return;
+    if (pop.style.display === 'none' || !pop.style.display) {
+        updateWellbeingUI();
+        var pill = document.getElementById('wellbeingPill');
+        if (pill) {
+            var r = pill.getBoundingClientRect();
+            pop.style.top = (r.bottom + 8) + 'px';
+            pop.style.left = Math.max(8, r.right - 260) + 'px';
+        }
+        pop.style.display = 'block';
+    } else { pop.style.display = 'none'; }
+}
+
+function initEnergiaRow() {
+    var row = document.getElementById('energiaRow');
+    if (!row) return;
+    row.style.display = isAddonOn('wellbeing') ? '' : 'none';
+    var botoes = row.querySelectorAll('.energia-btn');
+    Array.prototype.forEach.call(botoes, function (b) {
+        b.onclick = function () {
+            wbRegistrarEnergia(b.dataset.nivel);
+            Array.prototype.forEach.call(botoes, function (x) { x.classList.remove('sel'); });
+            b.classList.add('sel');
+        };
+    });
+}
+
+// ---------- Inicialização ----------
+function initWellbeing() {
+    loadWellbeing();
+    registerAddon({
+        id: 'wellbeing', nome: '🌿 Bem-estar',
+        descricao: 'Um medidor calmo do seu dia: produtividade saudável, foco, energia e descanso. Nunca bloqueia nada.',
+        onEnable: function () { updateWellbeingUI(); initEnergiaRow(); recalcWellbeing(); },
+        onDisable: function () {
+            var pill = document.getElementById('wellbeingPill'); if (pill) pill.style.display = 'none';
+            var pop = document.getElementById('wellbeingPopover'); if (pop) pop.style.display = 'none';
+            var row = document.getElementById('energiaRow'); if (row) row.style.display = 'none';
+        }
+    });
+    var pill = document.getElementById('wellbeingPill');
+    if (pill) pill.onclick = toggleWellbeingPopover;
+    document.addEventListener('click', function (ev) {
+        var pop = document.getElementById('wellbeingPopover');
+        var p2 = document.getElementById('wellbeingPill');
+        if (pop && pop.style.display === 'block' && !pop.contains(ev.target) && ev.target !== p2 && (!p2 || !p2.contains(ev.target))) {
+            pop.style.display = 'none';
+        }
+    });
+    if (window.TEAEvents) {
+        TEAEvents.on('task:completed', wbRegistrarAtividade);
+        TEAEvents.on('task:uncompleted', wbEstornarAtividade);
+    }
+    initEnergiaRow();
+    setTimeout(function () {
+        if (!isAddonOn('wellbeing')) return;
+        wbRegistrarDiaDeUso();
+        recalcWellbeing();
+    }, 2200);
+}
+
+
+// ===== MODULE: centralbank.js =====
+// ============================================================
+// MÓDULO: centralbank.js — M5 Banco Central de IA
+// PRD §5: recalibra os preços por quadrante a cada 14 dias com
+// teto de ±20%. O ALGORITMO decide o preço (estabilidade);
+// a IA apenas ESCREVE a Carta de Reajuste (transparência).
+// Q2 >= Q1 é INVIOLÁVEL (Eisenhower invertido). Piso 1.
+// Anti-cheat ancorado no TEA Timer. Ausência longa: 1 recalibração só.
+// ============================================================
+
+var LS_CB_KEY = 'tea-planner-centralbank';
+var LS_CB_TOGGLES_KEY = 'tea-planner-cb-toggles-today';
+var CB_CICLO_DIAS = 14;
+var CB_TETO = 0.20; // ±20%
+
+var cbData = {
+    v: 1, temporada: 0,
+    precos: { Q1: 8, Q2: 12, Q3: 4, Q4: 2, none: 3 },
+    proximaRecalibracao: '',
+    cartas: [],
+    metricas: { conclusoes: { Q1: 0, Q2: 0, Q3: 0, Q4: 0, none: 0 }, somaTimerSeg: 0, nTimer: 0, desfeitosSuspeitos: 0, quadranteAbusado: '' },
+    dicaTimerMostrada: false,
+    lastUpdate: 0
+};
+
+// ---------- Persistência (padrão isolado) ----------
+function cbDefault() {
+    return JSON.parse(JSON.stringify({
+        v: 1, temporada: 0, precos: { Q1: 8, Q2: 12, Q3: 4, Q4: 2, none: 3 },
+        proximaRecalibracao: '', cartas: [],
+        metricas: { conclusoes: { Q1: 0, Q2: 0, Q3: 0, Q4: 0, none: 0 }, somaTimerSeg: 0, nTimer: 0, desfeitosSuspeitos: 0, quadranteAbusado: '' },
+        dicaTimerMostrada: false, lastUpdate: 0
+    }));
+}
+function loadCB() {
+    try {
+        var raw = localStorage.getItem(LS_CB_KEY);
+        var d = raw ? JSON.parse(raw) : null;
+        if (d && d.precos) { cbData = d; }
+        else { cbData = cbDefault(); }
+        if (!cbData.metricas) cbData.metricas = cbDefault().metricas;
+        if (!Array.isArray(cbData.cartas)) cbData.cartas = [];
+    } catch (e) { cbData = cbDefault(); }
+}
+function saveCB() {
+    cbData.lastUpdate = Date.now();
+    try { localStorage.setItem(LS_CB_KEY, JSON.stringify(cbData)); } catch (e) { }
+    if (typeof gamRef === 'function') {
+        var ref = gamRef('centralbank');
+        if (ref) { try { ref.set(cbData); } catch (e) { } }
+    }
+}
+
+// ---------- Datas ----------
+function cbAddDias(dataStr, dias) {
+    var d = dataStr ? new Date(dataStr + 'T12:00:00') : new Date();
+    d = new Date(d.getTime() + dias * 86400000);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// ---------- Preço vigente (SOBRESCREVE a versão do economy.js no bundle) ----------
+function getPrecoAtual(quadrant, base) {
+    if (typeof isAddonOn === 'function' && isAddonOn('centralbank') && cbData && cbData.precos) {
+        var p = cbData.precos[quadrant];
+        if (typeof p === 'number' && p >= 1) return p;
+    }
+    return base;
+}
+
+// ---------- Coleta de métricas do ciclo ----------
+function cbOnCompleted(payload) {
+    if (!isAddonOn('centralbank')) return;
+    var q = payload.quadrant || 'none';
+    if (cbData.metricas.conclusoes[q] === undefined) q = 'none';
+    cbData.metricas.conclusoes[q] += 1;
+    if (payload.timerSeconds > 0) { cbData.metricas.somaTimerSeg += payload.timerSeconds; cbData.metricas.nTimer += 1; }
+    // detector de farm concluir->desfazer->concluir (>3 idas no dia no mesmo card)
+    var t = cbTogglesToday();
+    t.ids[payload.cardId] = (t.ids[payload.cardId] || 0) + 1;
+    if (t.ids[payload.cardId] > 3) {
+        cbData.metricas.desfeitosSuspeitos += 1;
+        cbData.metricas.quadranteAbusado = q;
+    }
+    cbSaveToggles(t);
+    saveCB();
+}
+function cbTogglesToday() {
+    try {
+        var raw = localStorage.getItem(LS_CB_TOGGLES_KEY);
+        var t = raw ? JSON.parse(raw) : null;
+        if (!t || t.data !== getTodayStr()) t = { data: getTodayStr(), ids: {} };
+        return t;
+    } catch (e) { return { data: getTodayStr(), ids: {} }; }
+}
+function cbSaveToggles(t) {
+    try { localStorage.setItem(LS_CB_TOGGLES_KEY, JSON.stringify(t)); } catch (e) { }
+}
+
+// ---------- Dica de timer (anti-cheat pedagógico, 1x) ----------
+function cbDicaTimerUmaVez() {
+    if (cbData.dicaTimerMostrada) return;
+    cbData.dicaTimerMostrada = true;
+    saveCB();
+    var t = document.createElement('div');
+    t.className = 'milestone-toast';
+    t.textContent = '🏦 Dica do Banco Central: use o TEA Timer (Alt+T) em tarefas importantes para ganho cheio.';
+    document.body.appendChild(t);
+    setTimeout(function () { t.classList.add('show'); }, 30);
+    setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 6000);
+}
+
+// ---------- Recalibração (ALGORÍTMICA e determinística) ----------
+function cbCalcularNovosPrecos(precos, conclusoes, quadranteAbusado) {
+    var qs = ['Q1', 'Q2', 'Q3', 'Q4'];
+    var total = 0;
+    qs.forEach(function (q) { total += (conclusoes[q] || 0); });
+    var novos = { Q1: precos.Q1, Q2: precos.Q2, Q3: precos.Q3, Q4: precos.Q4, none: precos.none };
+    if (total < 8) return novos; // amostra pequena demais: não mexe (estabilidade)
+
+    var menosFeito = qs[0], maisFeito = qs[0];
+    qs.forEach(function (q) {
+        if ((conclusoes[q] || 0) < (conclusoes[menosFeito] || 0)) menosFeito = q;
+        if ((conclusoes[q] || 0) > (conclusoes[maisFeito] || 0)) maisFeito = q;
+    });
+    if (menosFeito !== maisFeito) {
+        // sobe o negligenciado (incentivo), desce o farmado — dentro do teto
+        var tetoSubida = (menosFeito === quadranteAbusado) ? 0 : CB_TETO; // abuso zera a subida
+        novos[menosFeito] = Math.max(1, Math.round(precos[menosFeito] * (1 + tetoSubida)));
+        novos[maisFeito] = Math.max(1, Math.round(precos[maisFeito] * (1 - CB_TETO)));
+    }
+    // INVIOLÁVEL: Q2 >= Q1 (Eisenhower invertido)
+    if (novos.Q2 < novos.Q1) novos.Q2 = novos.Q1;
+    return novos;
+}
+
+function cbGerarCarta(mudancas, callback) {
+    var mudou = Object.keys(mudancas).length > 0;
+    var fallback = mudou
+        ? 'Ajustamos os valores para incentivar o que você tem deixado de lado e equilibrar o que já flui bem. Pequenos ajustes, mesmo rumo: te ajudar a focar no que importa.'
+        : 'Nesta temporada os valores ficaram como estavam: seu ritmo está equilibrado entre os quadrantes. Seguimos observando com carinho.';
+    if (typeof callAI !== 'function') { callback(fallback); return; }
+    var resumo = Object.keys(mudancas).map(function (q) {
+        return q + ': ' + mudancas[q].de + '->' + mudancas[q].para;
+    }).join(', ') || 'sem mudancas';
+    var prompt = 'Voce e o Banco Central gentil de um app de produtividade. Explique em ATE 3 frases, tom amigavel pt-BR, SEM jargao economico e SEM culpa, por que os valores de Ouro mudaram nesta temporada. Mudancas: ' + resumo + '. Contexto: quadrantes menos praticados valorizam para incentivar; os mais praticados ajustam para baixo; Q2 (importante/nao urgente) nunca vale menos que Q1.';
+    callAI(prompt).then(function (r) {
+        var txt = String(r).replace(/```/g, '').trim();
+        callback(txt && txt.length > 20 ? txt.slice(0, 400) : fallback);
+    }).catch(function () { callback(fallback); });
+}
+
+function cbRecalibrarSePreciso() {
+    if (!isAddonOn('centralbank')) return;
+    var hoje = getTodayStr();
+    if (!cbData.proximaRecalibracao) { cbData.proximaRecalibracao = cbAddDias(hoje, CB_CICLO_DIAS); saveCB(); return; }
+    if (hoje < cbData.proximaRecalibracao) return;
+
+    // Ausência longa: NÃO acumula recalibrações/cartas — faz UMA e segue (culpa zero)
+    var antigos = cbData.precos;
+    var novos = cbCalcularNovosPrecos(antigos, cbData.metricas.conclusoes, cbData.metricas.quadranteAbusado);
+    var mudancas = {};
+    ['Q1', 'Q2', 'Q3', 'Q4'].forEach(function (q) {
+        if (novos[q] !== antigos[q]) mudancas[q] = { de: antigos[q], para: novos[q] };
+    });
+    var suspeitas = cbData.metricas.desfeitosSuspeitos;
+
+    cbGerarCarta(mudancas, function (texto) {
+        if (suspeitas > 0) { texto += ' (Notamos idas e vindas em algumas conclusões — o Timer é seu aliado para ganho cheio.)'; }
+        cbData.precos = novos;
+        cbData.temporada += 1;
+        cbData.cartas.push({ data: getTodayStr(), mudancas: mudancas, justificativa: texto, aceitaEm: null });
+        if (cbData.cartas.length > 6) cbData.cartas = cbData.cartas.slice(-6);
+        cbData.metricas = cbDefault().metricas;
+        cbData.proximaRecalibracao = cbAddDias(getTodayStr(), CB_CICLO_DIAS);
+        saveCB();
+        updateCBUI();
+        mostrarCartaOverlay(cbData.cartas[cbData.cartas.length - 1]);
+    });
+}
+
+// ---------- UI: Carta de Reajuste ----------
+function mostrarCartaOverlay(carta) {
+    var ov = document.getElementById('cartaOverlay');
+    if (!ov || !carta) return;
+    var titulo = document.getElementById('cartaTitulo');
+    var corpo = document.getElementById('cartaCorpo');
+    var mud = document.getElementById('cartaMudancas');
+    if (titulo) titulo.textContent = '🏦 Carta de Reajuste — Temporada ' + cbData.temporada;
+    if (corpo) corpo.textContent = carta.justificativa;
+    if (mud) {
+        mud.innerHTML = '';
+        var ks = Object.keys(carta.mudancas || {});
+        if (!ks.length) { mud.textContent = 'Valores mantidos nesta temporada.'; }
+        else ks.forEach(function (q) {
+            var d = document.createElement('div');
+            var m = carta.mudancas[q];
+            d.textContent = q + ': ' + m.de + ' 🪙 → ' + m.para + ' 🪙' + (m.para > m.de ? ' ▲' : ' ▼');
+            mud.appendChild(d);
+        });
+    }
+    ov.style.display = 'flex';
+    var dur = (typeof getCheckinDuracao === 'function') ? Math.max(10, getCheckinDuracao()) : 12;
+    setTimeout(function () { fecharCartaOverlay(true); }, dur * 1000);
+}
+function fecharCartaOverlay(auto) {
+    var ov = document.getElementById('cartaOverlay');
+    if (ov) ov.style.display = 'none';
+    if (!auto && cbData.cartas.length) {
+        cbData.cartas[cbData.cartas.length - 1].aceitaEm = Date.now();
+        saveCB();
+    }
+}
+
+// ---------- UI: seção Banco Central na Carteira ----------
+function updateCBUI() {
+    var sec = document.getElementById('cbSection');
+    if (!sec) return;
+    sec.style.display = isAddonOn('centralbank') ? '' : 'none';
+    var temp = document.getElementById('cbTemporada');
+    if (temp) temp.textContent = cbData.temporada;
+    var prox = document.getElementById('cbProxima');
+    if (prox) prox.textContent = cbData.proximaRecalibracao || '—';
+    var tab = document.getElementById('cbPrecos');
+    if (tab) {
+        tab.textContent = 'Q2: ' + cbData.precos.Q2 + ' · Q1: ' + cbData.precos.Q1 +
+            ' · Q3: ' + cbData.precos.Q3 + ' · Q4: ' + cbData.precos.Q4;
+    }
+}
+
+// ---------- Inicialização ----------
+function initCentralBank() {
+    loadCB();
+    registerAddon({
+        id: 'centralbank', nome: '🏦 Banco Central (IA)',
+        descricao: 'A cada 14 dias os valores se ajustam (máx ±20%) para incentivar o que você negligencia — com uma Carta explicando tudo. Exige a Carteira ligada.',
+        onEnable: function () {
+            if (!isAddonOn('economy')) {
+                // dependência dura do PRD: liga a Carteira junto, avisando
+                setAddonOn('economy', true);
+                var tg = document.getElementById('addon_economy_toggle');
+                if (tg) { tg.checked = true; var b = tg.parentElement.querySelector('.toggle-switch-button'); if (b) b.textContent = 'ON'; }
+                alert('O Banco Central precisa da Carteira & Moedas — liguei as duas para você.');
+            }
+            if (!cbData.proximaRecalibracao) { cbData.proximaRecalibracao = cbAddDias(getTodayStr(), CB_CICLO_DIAS); saveCB(); }
+            updateCBUI();
+        },
+        onDisable: function () { updateCBUI(); fecharCartaOverlay(true); }
+    });
+    if (window.TEAEvents) { TEAEvents.on('task:completed', cbOnCompleted); }
+    var fechar = document.getElementById('cartaFecharBtn');
+    if (fechar) fechar.onclick = function () { fecharCartaOverlay(false); };
+    var verCarta = document.getElementById('cbVerCartaBtn');
+    if (verCarta) verCarta.onclick = function () {
+        if (cbData.cartas.length) mostrarCartaOverlay(cbData.cartas[cbData.cartas.length - 1]);
+        else alert('Ainda não há cartas. A primeira sai na recalibração (' + (cbData.proximaRecalibracao || 'em 14 dias') + ').');
+    };
+    updateCBUI();
+    setTimeout(cbRecalibrarSePreciso, 3000);
+}
+
+
+// ===== MODULE: revisao.js =====
+/* =====================================================================
+   TEA PLANNER 3.0 — MÓDULO DE REVISÃO SEMANAL (v1)
+   ---------------------------------------------------------------------
+   Módulo autônomo. Integração com o app via:
+     - localStorage (mesmas chaves do TEA Planner)
+     - função global persist() (flush do estado antes do scan)
+   Regras do projeto respeitadas:
+     - Nenhuma função existente é alterada
+     - Nada é apagado de verdade (Lixeira / Talvez um Dia / Histórico)
+     - Sistema SUGERE, usuário APROVA (aprendizado por exemplo)
+     - Máx. 10 sugestões por grupo por revisão (anti-overwhelm)
+     - UI em português, código em inglês/camelCase, UTF-8 sem BOM
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  // ===== 1. CONSTANTES =====
+  var KEYS = {
+    CONFIG: 'tea-planner-revisao-config',
+    REGISTRY: 'tea-planner-revisao-registry',
+    LOG: 'tea-planner-revisao-log'
+  };
+  var LS_META = 'tea-planner-boards-meta';
+  var LS_PREFIX = 'tea-planner-board-';
+
+  var TALVEZ_ID = 'board-talvez-um-dia';
+  var TALVEZ_NAME = '\uD83C\uDF19 Talvez um Dia'; // 🌙
+  var HIST_ID = 'board-historico';
+  var HIST_NAME = '\uD83C\uDFC6 Hist\u00F3rico';  // 🏆
+  var TRASH_ID = 'board-trash';
+  var TODOS_ID = 'board-todos';
+
+  var WEEK_MS = 7 * 24 * 3600 * 1000;
+  var STALE_MS = 3 * WEEK_MS;    // parado há 3+ semanas => sugerir arquivar
+  var SOMEDAY_MS = 4 * WEEK_MS;  // 4+ semanas no Talvez => sugerir decidir
+  var SKIP_COOLDOWN_MS = 2 * WEEK_MS; // "deixar como está" silencia por 2 semanas
+  var BATCH_SIZE = 10;           // máx. de sugestões por grupo por revisão
+
+  var DAY_NAMES = ['Domingo', 'Segunda', 'Ter\u00E7a', 'Quarta', 'Quinta', 'Sexta', 'S\u00E1bado'];
+
+  // ===== 2. HELPERS DE ARMAZENAMENTO =====
+  function lsGet(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function lsSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* quota */ }
+  }
+  function loadMeta() { return lsGet(LS_META, []); }
+  function saveMeta(meta) { lsSet(LS_META, meta); }
+  function loadBoard(id) { return lsGet(LS_PREFIX + id, null); }
+  function saveBoard(id, data) { lsSet(LS_PREFIX + id, data); }
+
+  function getConfig() { return lsGet(KEYS.CONFIG, null); }
+  function saveConfig(cfg) { lsSet(KEYS.CONFIG, cfg); }
+  function getRegistry() { return lsGet(KEYS.REGISTRY, {}); }
+  function saveRegistry(reg) { lsSet(KEYS.REGISTRY, reg); }
+  function getLog() { return lsGet(KEYS.LOG, []); }
+  function saveLog(log) { lsSet(KEYS.LOG, log); }
+
+  // ===== 3. LEITURA DO ESTADO DO APP =====
+  function flushAppState() {
+    // Garante que o quadro atual (DOM) foi salvo no localStorage antes do scan
+    try { if (typeof window.persist === 'function') window.persist(); } catch (e) { }
+  }
+
+  function parseHistory(card) {
+    try { return JSON.parse(card.history || '[]'); } catch (e) { return []; }
+  }
+
+  function lastTouch(card, regEntry) {
+    var hist = parseHistory(card);
+    var t = 0;
+    for (var i = 0; i < hist.length; i++) {
+      if (hist[i] && hist[i].time && hist[i].time > t) t = hist[i].time;
+    }
+    if (regEntry && regEntry.firstSeen && (t === 0 || regEntry.firstSeen > t)) {
+      if (t === 0) t = regEntry.firstSeen;
+    }
+    return t; // 0 = idade desconhecida
+  }
+
+  function eachActiveBoard(meta, fn) {
+    // Quadros "de trabalho": exclui agregado, lixeira, histórico e talvez
+    meta.forEach(function (b) {
+      if (!b || !b.id) return;
+      if (b.id === TODOS_ID || b.id === TRASH_ID || b.id === HIST_ID || b.id === TALVEZ_ID) return;
+      var data = loadBoard(b.id);
+      if (Array.isArray(data)) fn(b, data);
+    });
+  }
+
+  function eachCard(boardData, fn) {
+    boardData.forEach(function (list) {
+      if (list && Array.isArray(list.cards)) {
+        list.cards.forEach(function (c) { if (c && c.id) fn(c, list); });
+      }
+    });
+  }
+
+  // ===== 4. REGISTRO DE IDADE (fica mais preciso a cada semana) =====
+  function updateRegistry() {
+    var now = Date.now();
+    var reg = getRegistry();
+    var seen = {};
+    var meta = loadMeta();
+
+    function track(card) {
+      seen[card.id] = true;
+      var entry = reg[card.id];
+      if (!entry) { entry = { firstSeen: now }; reg[card.id] = entry; }
+      var isDone = card.completed === 'true';
+      if (isDone && !entry.completedAt) entry.completedAt = now;
+      if (!isDone && entry.completedAt) entry.completedAt = null;
+    }
+
+    eachActiveBoard(meta, function (b, data) { eachCard(data, track); });
+    var talvez = loadBoard(TALVEZ_ID);
+    if (Array.isArray(talvez)) eachCard(talvez, track);
+
+    // Remove do registro cartões que não existem mais
+    Object.keys(reg).forEach(function (id) { if (!seen[id]) delete reg[id]; });
+    saveRegistry(reg);
+    return reg;
+  }
+
+  // ===== 5. SCAN: DIAGNÓSTICO E GRUPOS DE SUGESTÃO =====
+  function scan() {
+    flushAppState();
+    var reg = updateRegistry();
+    var meta = loadMeta();
+    var now = Date.now();
+
+    var result = {
+      activeCount: 0,
+      completedOnBoard: [],   // completados ainda ocupando quadros ativos
+      staleCards: [],         // parados 3+ semanas (ou idade desconhecida)
+      somedayOld: [],         // no Talvez um Dia há 4+ semanas
+      completedThisWeek: 0,
+      boardNames: {}
+    };
+    meta.forEach(function (b) { if (b && b.id) result.boardNames[b.id] = b.name || b.id; });
+
+    eachActiveBoard(meta, function (b, data) {
+      eachCard(data, function (card, list) {
+        var entry = reg[card.id] || {};
+        if (card.completed === 'true') {
+          result.completedOnBoard.push(makeItem(card, b.id, list.title, 'completed', entry));
+          if (entry.completedAt && (now - entry.completedAt) <= WEEK_MS) result.completedThisWeek++;
+          return;
+        }
+        result.activeCount++;
+        if (entry.skippedUntil && entry.skippedUntil > now) return; // respeita "deixar como está"
+        if (card.recurrence && card.recurrence !== 'none') return; // recorrentes não são "fantasmas"
+        if (hasRecentSchedule(card, now)) return; // agendado para agora/futuro => vivo
+        var hist = parseHistory(card);
+        var histTime = 0;
+        for (var h = 0; h < hist.length; h++) {
+          if (hist[h] && hist[h].time && hist[h].time > histTime) histTime = hist[h].time;
+        }
+        if (histTime === 0 && entry.firstSeen && (now - entry.firstSeen) < WEEK_MS) {
+          // Primeiro contato com cartão sem nenhum registro de movimento: triagem
+          result.staleCards.push(makeItem(card, b.id, list.title, 'unknownAge', entry));
+          return;
+        }
+        var t = histTime || entry.firstSeen || 0;
+        if (t > 0 && (now - t) > STALE_MS) {
+          var it = makeItem(card, b.id, list.title, 'stale', entry);
+          it.weeks = Math.floor((now - t) / WEEK_MS);
+          result.staleCards.push(it);
+        }
+      });
+    });
+
+    var talvez = loadBoard(TALVEZ_ID);
+    if (Array.isArray(talvez)) {
+      eachCard(talvez, function (card, list) {
+        var entry = reg[card.id] || {};
+        if (entry.skippedUntil && entry.skippedUntil > now) return;
+        var t = lastTouch(card, entry);
+        if (t > 0 && (now - t) > SOMEDAY_MS) {
+          var it = makeItem(card, TALVEZ_ID, list.title, 'somedayOld', entry);
+          it.weeks = Math.floor((now - t) / WEEK_MS);
+          result.somedayOld.push(it);
+        }
+      });
+    }
+
+    // Mais antigos primeiro (fantasmas mais velhos são resolvidos antes)
+    result.staleCards.sort(function (a, b) { return (b.weeks || 99) - (a.weeks || 99); });
+    return result;
+  }
+
+  function makeItem(card, boardId, listTitle, kind, regEntry) {
+    return { card: card, boardId: boardId, listTitle: listTitle || '', kind: kind, reg: regEntry };
+  }
+
+  function hasRecentSchedule(card, now) {
+    // Cartão com data marcada para os últimos 7 dias ou futuro está "vivo"
+    var floor = now - WEEK_MS;
+    var fields = [card.when, card.due];
+    for (var i = 0; i < fields.length; i++) {
+      var v = fields[i];
+      if (!v) continue;
+      var t = Date.parse(v);
+      if (!isNaN(t) && t >= floor) return true;
+    }
+    return false;
+  }
+
+  // ===== 6. APLICAÇÃO DAS DECISÕES =====
+  function ensureSpecialBoard(meta, id, name, color) {
+    var exists = meta.some(function (b) { return b && b.id === id; });
+    if (!exists) {
+      meta.push({ id: id, name: name, lastModified: Date.now(), color: color });
+    }
+    var data = loadBoard(id);
+    if (!Array.isArray(data) || data.length === 0) {
+      data = [{ type: 'kanban', title: name, cards: [] }];
+      saveBoard(id, data);
+    }
+    return data;
+  }
+
+  function appendCardHistory(card, actionText) {
+    var hist = parseHistory(card);
+    hist.push({ action: actionText, time: Date.now() });
+    card.history = JSON.stringify(hist);
+  }
+
+  function removeCardById(boardData, cardId) {
+    for (var i = 0; i < boardData.length; i++) {
+      var list = boardData[i];
+      if (!list || !Array.isArray(list.cards)) continue;
+      for (var j = 0; j < list.cards.length; j++) {
+        if (list.cards[j] && list.cards[j].id === cardId) {
+          return list.cards.splice(j, 1)[0];
+        }
+      }
+    }
+    return null;
+  }
+
+  function applyDecisions(decisions) {
+    var meta = loadMeta();
+    var boardCache = {};
+    var now = Date.now();
+    var reg = getRegistry();
+
+    function board(id) {
+      if (!boardCache[id]) boardCache[id] = loadBoard(id) || [];
+      return boardCache[id];
+    }
+
+    // Garante quadros especiais quando necessários
+    var needTalvez = decisions.some(function (d) { return d.action === 'talvez'; });
+    var needHist = decisions.some(function (d) { return d.action === 'historico'; });
+    if (needTalvez) boardCache[TALVEZ_ID] = ensureSpecialBoard(meta, TALVEZ_ID, TALVEZ_NAME, '#3a3560');
+    if (needHist) boardCache[HIST_ID] = ensureSpecialBoard(meta, HIST_ID, HIST_NAME, '#2e5339');
+
+    var movedIds = [];
+
+    decisions.forEach(function (d) {
+      var src = board(d.boardId);
+      if (d.action === 'keep') {
+        var entry = reg[d.card.id] || (reg[d.card.id] = { firstSeen: now });
+        entry.skippedUntil = now + SKIP_COOLDOWN_MS;
+        return;
+      }
+      if (d.action === 'reactivate') {
+        // Cartão fica onde está, mas ganha um "toque" (zera a contagem de parado)
+        eachCard(src, function (c) {
+          if (c.id === d.card.id) appendCardHistory(c, 'Reativado na revis\u00E3o semanal');
+        });
+        return;
+      }
+      var cardObj = removeCardById(src, d.card.id);
+      if (!cardObj) return;
+      movedIds.push(cardObj.id);
+
+      var targetId, actionText;
+      if (d.action === 'talvez') {
+        targetId = TALVEZ_ID;
+        actionText = 'Arquivado em "' + TALVEZ_NAME + '" na revis\u00E3o semanal';
+      } else if (d.action === 'historico') {
+        targetId = HIST_ID;
+        actionText = 'Movido para "' + HIST_NAME + '" na revis\u00E3o semanal';
+      } else { // trash
+        targetId = TRASH_ID;
+        actionText = 'Enviado para a lixeira na revis\u00E3o semanal';
+      }
+      var target = board(targetId);
+      if (!Array.isArray(target) || target.length === 0) {
+        target = [{ type: 'kanban', title: targetId === TRASH_ID ? 'Apagados' : 'Cart\u00F5es', cards: [] }];
+        boardCache[targetId] = target;
+      }
+      appendCardHistory(cardObj, actionText);
+      cardObj.boardId = targetId;
+      target[0].cards.push(cardObj);
+    });
+
+    // Evita ressurreição via quadro agregado "TODOS"
+    var todosData = loadBoard(TODOS_ID);
+    if (Array.isArray(todosData) && movedIds.length) {
+      movedIds.forEach(function (id) { removeCardById(todosData, id); });
+      saveBoard(TODOS_ID, todosData);
+    }
+
+    Object.keys(boardCache).forEach(function (id) { saveBoard(id, boardCache[id]); });
+    meta.forEach(function (b) {
+      if (boardCache[b.id]) b.lastModified = now;
+    });
+    saveMeta(meta);
+    saveRegistry(reg);
+  }
+
+  // ===== 7. UI — ESTILOS =====
+  function injectStyles() {
+    if (document.getElementById('rv-styles')) return;
+    var css = '' +
+      '.rv-overlay{position:fixed;inset:0;background:rgba(5,10,20,.72);backdrop-filter:blur(3px);' +
+      'z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;}' +
+      '.rv-panel{background:linear-gradient(180deg,#13253f 0%,#0f1e33 100%);border:1px solid rgba(232,161,61,.25);' +
+      'border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;padding:26px 26px 22px;' +
+      'box-shadow:0 18px 60px rgba(0,0,0,.55);color:#e8eef7;font-size:15px;line-height:1.5;}' +
+      '.rv-eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#e8a13d;margin:0 0 6px;}' +
+      '.rv-panel h2{margin:0 0 4px;font-size:22px;font-weight:600;color:#fff;}' +
+      '.rv-sub{color:#9db2cc;font-size:13.5px;margin:0 0 18px;}' +
+      '.rv-diag{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 20px;}' +
+      '.rv-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;}' +
+      '.rv-stat b{display:block;font-size:26px;font-weight:700;color:#e8a13d;line-height:1.1;}' +
+      '.rv-stat.rv-ok b{color:#7fc98b;}' +
+      '.rv-stat span{font-size:12px;color:#9db2cc;}' +
+      '.rv-progress{height:5px;background:rgba(255,255,255,.08);border-radius:3px;margin:0 0 16px;overflow:hidden;}' +
+      '.rv-progress i{display:block;height:100%;background:linear-gradient(90deg,#e8a13d,#f2c078);border-radius:3px;transition:width .35s ease;}' +
+      '.rv-cardbox{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-left:4px solid #e8a13d;' +
+      'border-radius:10px;padding:14px 16px;margin:0 0 12px;transition:transform .3s ease,opacity .3s ease;}' +
+      '.rv-cardbox.rv-out{transform:translateX(46px);opacity:0;}' +
+      '.rv-cardtext{font-size:16px;font-weight:600;color:#fff;margin:0 0 4px;word-break:break-word;}' +
+      '.rv-cardmeta{font-size:12px;color:#9db2cc;margin:0;}' +
+      '.rv-reason{display:flex;gap:8px;align-items:flex-start;background:rgba(232,161,61,.08);border-radius:8px;' +
+      'padding:10px 12px;margin:0 0 14px;font-size:13.5px;color:#f2d9ae;}' +
+      '.rv-actions{display:flex;flex-direction:column;gap:8px;}' +
+      '.rv-btn{appearance:none;border:1px solid rgba(255,255,255,.15);background:#152c4e;color:#e8eef7;' +
+      'border-radius:9px;padding:12px 16px;font-size:14.5px;cursor:pointer;text-align:left;transition:background .15s,border-color .15s;}' +
+      '.rv-btn:hover{background:#1b3760;border-color:rgba(255,255,255,.3);}' +
+      '.rv-btn.rv-primary{background:linear-gradient(180deg,#e8a13d,#d18a26);border-color:#e8a13d;color:#1a1206;font-weight:700;}' +
+      '.rv-btn.rv-primary:hover{filter:brightness(1.08);}' +
+      '.rv-btn.rv-ghost{background:transparent;border-color:rgba(255,255,255,.12);color:#9db2cc;}' +
+      '.rv-btn:disabled{opacity:.45;cursor:default;}' +
+      '.rv-row{display:flex;gap:8px;flex-wrap:wrap;}' +
+      '.rv-row .rv-btn{flex:1;min-width:130px;text-align:center;}' +
+      '.rv-counter{font-size:12.5px;color:#9db2cc;text-align:right;margin:0 0 8px;}' +
+      '.rv-counter b{color:#e8a13d;}' +
+      '.rv-more{margin-top:6px;}' +
+      '.rv-summary-line{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px dashed rgba(255,255,255,.08);font-size:14px;}' +
+      '.rv-summary-line b{color:#e8a13d;}' +
+      '.rv-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#9db2cc;font-size:20px;cursor:pointer;}' +
+      '.rv-panel{position:relative;}' +
+      '.rv-field{margin:0 0 14px;}' +
+      '.rv-field label{display:block;font-size:12.5px;color:#9db2cc;margin:0 0 5px;}' +
+      '.rv-field select,.rv-field input{width:100%;background:#0d1e36;border:1px solid rgba(255,255,255,.15);' +
+      'border-radius:8px;color:#e8eef7;padding:10px 12px;font-size:14.5px;}' +
+      '.rv-tip{font-size:12.5px;color:#7f95b3;margin:14px 0 0;}' +
+      '#rvHeaderBtn.rv-today{border-color:rgba(232,161,61,.7)!important;box-shadow:0 0 10px rgba(232,161,61,.35);}' +
+      '@media (prefers-reduced-motion: reduce){.rv-cardbox,.rv-progress i{transition:none;}}' +
+      '@media (max-width:520px){.rv-diag{grid-template-columns:1fr;}.rv-panel{padding:20px 16px;}}';
+    var style = document.createElement('style');
+    style.id = 'rv-styles';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  // ===== 8. UI — COMPONENTES BÁSICOS =====
+  var overlayEl = null;
+
+  function closeOverlay() {
+    if (overlayEl && overlayEl.parentNode) overlayEl.parentNode.removeChild(overlayEl);
+    overlayEl = null;
+    document.removeEventListener('keydown', escListener);
+  }
+  function escListener(e) { if (e.key === 'Escape') requestClose(); }
+
+  var session = null; // estado da revisão em andamento
+
+  function requestClose() {
+    if (session && session.decisions.length > 0 && !session.finished) {
+      var n = session.decisions.filter(function (d) { return d.action !== 'keep'; }).length;
+      if (n > 0) {
+        openPanel(function (panel) {
+          panel.appendChild(elH('p', 'rv-eyebrow', 'Revis\u00E3o Semanal'));
+          panel.appendChild(elH('h2', '', 'Sair da revis\u00E3o?'));
+          panel.appendChild(elH('p', 'rv-sub', 'Voc\u00EA j\u00E1 tomou ' + n + ' decis' + (n === 1 ? '\u00E3o' : '\u00F5es') + '. Quer aplicar antes de sair?'));
+          var row = elH('div', 'rv-actions');
+          row.appendChild(btn('Aplicar decis\u00F5es e sair', 'rv-btn rv-primary', function () { finishReview(); }));
+          row.appendChild(btn('Descartar e sair', 'rv-btn rv-ghost', function () { session = null; closeOverlay(); }));
+          row.appendChild(btn('Voltar para a revis\u00E3o', 'rv-btn', function () { renderCurrentStep(); }));
+          panel.appendChild(row);
+        });
+        return;
+      }
+    }
+    session = null;
+    closeOverlay();
+  }
+
+  function openPanel(builder) {
+    injectStyles();
+    if (!overlayEl) {
+      overlayEl = document.createElement('div');
+      overlayEl.className = 'rv-overlay';
+      overlayEl.addEventListener('mousedown', function (e) { if (e.target === overlayEl) requestClose(); });
+      document.body.appendChild(overlayEl);
+      document.addEventListener('keydown', escListener);
+    }
+    overlayEl.innerHTML = '';
+    var panel = document.createElement('div');
+    panel.className = 'rv-panel';
+    var x = btn('\u00D7', 'rv-close', requestClose);
+    panel.appendChild(x);
+    builder(panel);
+    overlayEl.appendChild(panel);
+    return panel;
+  }
+
+  function elH(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(text, cls, onClick) {
+    var b = elH('button', cls, text);
+    b.type = 'button';
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  // ===== 9. UI — CONFIGURAÇÃO DO RITUAL =====
+  function renderSetup(afterSave) {
+    var cfg = getConfig() || { day: 5, time: '17:00' };
+    openPanel(function (panel) {
+      panel.appendChild(elH('p', 'rv-eyebrow', 'Revis\u00E3o Semanal'));
+      panel.appendChild(elH('h2', '', 'Quando \u00E9 o seu ritual?'));
+      panel.appendChild(elH('p', 'rv-sub', 'Escolha o dia e a hora da sua revis\u00E3o. \u00C9 flex\u00EDvel: voc\u00EA pode mudar quando quiser, e pode revisar em qualquer outro momento tamb\u00E9m.'));
+
+      var fDay = elH('div', 'rv-field');
+      fDay.appendChild(elH('label', '', 'Dia da semana'));
+      var sel = document.createElement('select');
+      DAY_NAMES.forEach(function (name, i) {
+        var opt = document.createElement('option');
+        opt.value = String(i);
+        opt.textContent = name + (i === 5 ? ' (fim de tarde \u2014 sua escolha atual)' : '');
+        if (i === cfg.day) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      fDay.appendChild(sel);
+      panel.appendChild(fDay);
+
+      var fTime = elH('div', 'rv-field');
+      fTime.appendChild(elH('label', '', 'Hor\u00E1rio'));
+      var inp = document.createElement('input');
+      inp.type = 'time';
+      inp.value = cfg.time || '17:00';
+      fTime.appendChild(inp);
+      panel.appendChild(fTime);
+
+      var row = elH('div', 'rv-actions');
+      row.appendChild(btn('Salvar ritual', 'rv-btn rv-primary', function () {
+        saveConfig({ day: parseInt(sel.value, 10), time: inp.value || '17:00', createdAt: cfg.createdAt || Date.now() });
+        updateHeaderBadge();
+        if (typeof afterSave === 'function') afterSave();
+        else closeOverlay();
+      }));
+      panel.appendChild(row);
+      panel.appendChild(elH('p', 'rv-tip', 'No dia do ritual, o bot\u00E3o \uD83E\uDDF9 Revis\u00E3o ganha um brilho suave para lembrar voc\u00EA \u2014 sem alarme, sem culpa.'));
+    });
+  }
+
+  // ===== 10. UI — FLUXO DA REVISÃO =====
+  function startReview() {
+    var data = scan();
+    session = {
+      data: data,
+      queue: buildQueue(data),
+      queueIndex: 0,
+      decisions: [],
+      resolvedCount: 0,
+      finished: false,
+      startedAt: Date.now()
+    };
+    renderDiagnostics();
+  }
+
+  function buildQueue(data) {
+    // Ordem pedagógica: vitórias fáceis primeiro (dopamina), depois fantasmas, depois Talvez antigo
+    var q = [];
+    data.completedOnBoard.slice(0, BATCH_SIZE).forEach(function (it) { q.push(it); });
+    data.staleCards.slice(0, BATCH_SIZE).forEach(function (it) { q.push(it); });
+    data.somedayOld.slice(0, BATCH_SIZE).forEach(function (it) { q.push(it); });
+    return q;
+  }
+
+  function remainingBeyondBatch(data) {
+    var extra = 0;
+    extra += Math.max(0, data.completedOnBoard.length - BATCH_SIZE);
+    extra += Math.max(0, data.staleCards.length - BATCH_SIZE);
+    extra += Math.max(0, data.somedayOld.length - BATCH_SIZE);
+    return extra;
+  }
+
+  function renderCurrentStep() {
+    if (!session) return;
+    if (session.queueIndex >= session.queue.length) renderSummary();
+    else renderSuggestion();
+  }
+
+  function renderDiagnostics() {
+    var d = session.data;
+    var cfg = getConfig();
+    openPanel(function (panel) {
+      panel.appendChild(elH('p', 'rv-eyebrow', 'Etapa 1 \u00B7 Diagn\u00F3stico'));
+      panel.appendChild(elH('h2', '', 'Como est\u00E1 o seu quadro'));
+      var log = getLog();
+      var subText = log.length === 0
+        ? 'Sua primeira revis\u00E3o. Vamos com calma: hoje resolvemos no m\u00E1ximo ' + BATCH_SIZE + ' cart\u00F5es por grupo.'
+        : 'Revis\u00E3o n\u00BA ' + (log.length + 1) + '. O sistema sugere, voc\u00EA decide.';
+      panel.appendChild(elH('p', 'rv-sub', subText));
+
+      var grid = elH('div', 'rv-diag');
+      grid.appendChild(stat(d.completedThisWeek, 'conclu\u00EDdos nos \u00FAltimos 7 dias', true));
+      grid.appendChild(stat(d.activeCount, 'cart\u00F5es ativos no total'));
+      grid.appendChild(stat(d.completedOnBoard.length, 'conclu\u00EDdos ocupando espa\u00E7o'));
+      grid.appendChild(stat(d.staleCards.length, 'parados h\u00E1 3+ semanas'));
+      if (d.somedayOld.length > 0) {
+        grid.appendChild(stat(d.somedayOld.length, 'no Talvez um Dia h\u00E1 1+ m\u00EAs'));
+      }
+      panel.appendChild(grid);
+
+      var row = elH('div', 'rv-actions');
+      if (session.queue.length === 0) {
+        panel.appendChild(elH('p', 'rv-sub', '\u2728 Tudo em ordem! Nenhum cart\u00E3o precisa de decis\u00E3o hoje.'));
+        row.appendChild(btn('Ver resumo da semana', 'rv-btn rv-primary', function () { renderSummary(); }));
+      } else {
+        row.appendChild(btn('Come\u00E7ar a limpeza \u2192 (' + session.queue.length + ' sugest' + (session.queue.length === 1 ? '\u00E3o' : '\u00F5es') + ')', 'rv-btn rv-primary', function () { renderSuggestion(); }));
+      }
+      row.appendChild(btn('\u2699 Mudar dia/hora do ritual', 'rv-btn rv-ghost', function () {
+        renderSetup(function () { renderDiagnostics(); });
+      }));
+      panel.appendChild(row);
+      if (cfg) {
+        panel.appendChild(elH('p', 'rv-tip', 'Seu ritual: toda ' + DAY_NAMES[cfg.day] + ' \u00E0s ' + cfg.time + '. Flex\u00EDvel \u2014 revise quando fizer sentido para voc\u00EA.'));
+      }
+    });
+
+    function stat(num, label, ok) {
+      var s = elH('div', 'rv-stat' + (ok ? ' rv-ok' : ''));
+      s.appendChild(elH('b', '', String(num)));
+      s.appendChild(elH('span', '', label));
+      return s;
+    }
+  }
+
+  function suggestionCopy(item) {
+    var boardName = session.data.boardNames[item.boardId] || item.boardId;
+    if (item.kind === 'completed') {
+      return {
+        reason: '\u2705 Este cart\u00E3o j\u00E1 foi conclu\u00EDdo, mas continua no quadro "' + boardName + '".',
+        lesson: 'Cart\u00E3o conclu\u00EDdo a gente celebra e guarda: ele vai para o ' + HIST_NAME + ', onde sua hist\u00F3ria de vit\u00F3rias fica registrada.',
+        primary: { label: '\u2713 Mover para o ' + HIST_NAME, action: 'historico' }
+      };
+    }
+    if (item.kind === 'somedayOld') {
+      return {
+        reason: '\uD83C\uDF19 Este cart\u00E3o est\u00E1 no Talvez um Dia h\u00E1 ' + (item.weeks || 4) + ' semanas sem movimento.',
+        lesson: 'Uma vez por m\u00EAs vale perguntar: isso ainda faz sentido? Voltar, guardar mais um pouco ou soltar \u2014 qualquer resposta \u00E9 v\u00E1lida.',
+        primary: { label: '\u2713 Manter guardado por enquanto', action: 'keep' },
+        extra: { label: '\u21A9 Voltar para um quadro ativo? Use "Reativar"', action: null }
+      };
+    }
+    if (item.kind === 'unknownAge') {
+      return {
+        reason: '\uD83D\uDC7B N\u00E3o sei h\u00E1 quanto tempo este cart\u00E3o est\u00E1 parado em "' + boardName + '" \u2014 ele n\u00E3o tem registro de movimento.',
+        lesson: 'Cart\u00E3o parado a gente arquiva: ele vai para o ' + TALVEZ_NAME + ', sem sumir. Se um dia fizer sentido, \u00E9 s\u00F3 trazer de volta.',
+        primary: { label: '\u2713 Arquivar em ' + TALVEZ_NAME, action: 'talvez' }
+      };
+    }
+    return {
+      reason: '\uD83D\uDC7B Este cart\u00E3o est\u00E1 parado h\u00E1 ' + (item.weeks || 3) + ' semanas em "' + boardName + '".',
+      lesson: 'Cart\u00E3o parado a gente arquiva: ele vai para o ' + TALVEZ_NAME + ', sem sumir. Quadro limpo \u00E9 quadro que anda.',
+      primary: { label: '\u2713 Arquivar em ' + TALVEZ_NAME, action: 'talvez' }
+    };
+  }
+
+  function renderSuggestion() {
+    var item = session.queue[session.queueIndex];
+    if (!item) { renderSummary(); return; }
+    var copy = suggestionCopy(item);
+    var total = session.queue.length;
+    var pos = session.queueIndex + 1;
+
+    openPanel(function (panel) {
+      panel.appendChild(elH('p', 'rv-eyebrow', 'Etapa 2 \u00B7 Sugest\u00F5es'));
+      var counter = elH('p', 'rv-counter', '');
+      counter.innerHTML = 'Cart\u00E3o ' + pos + ' de ' + total + ' \u00B7 resolvidos: <b>' + session.resolvedCount + '</b>';
+      panel.appendChild(counter);
+      var prog = elH('div', 'rv-progress');
+      var bar = elH('i', '', '');
+      bar.style.width = Math.round(((pos - 1) / total) * 100) + '%';
+      prog.appendChild(bar);
+      panel.appendChild(prog);
+
+      var box = elH('div', 'rv-cardbox');
+      box.appendChild(elH('p', 'rv-cardtext', item.card.text || '(cart\u00E3o sem texto)'));
+      var metaTxt = (session.data.boardNames[item.boardId] || item.boardId) + (item.listTitle ? ' \u00B7 lista "' + item.listTitle + '"' : '');
+      box.appendChild(elH('p', 'rv-cardmeta', metaTxt));
+      panel.appendChild(box);
+
+      var reason = elH('div', 'rv-reason');
+      var rTxt = elH('div', '', '');
+      rTxt.appendChild(elH('div', '', copy.reason));
+      var lesson = elH('div', '', copy.lesson);
+      lesson.style.marginTop = '6px';
+      lesson.style.opacity = '.85';
+      rTxt.appendChild(lesson);
+      reason.appendChild(rTxt);
+      panel.appendChild(reason);
+
+      var actions = elH('div', 'rv-actions');
+      actions.appendChild(btn(copy.primary.label, 'rv-btn rv-primary', function () {
+        decide(item, copy.primary.action, box);
+      }));
+
+      var row = elH('div', 'rv-row');
+      row.appendChild(btn('\u23ED Deixar como est\u00E1', 'rv-btn rv-ghost', function () {
+        decide(item, 'keep', box);
+      }));
+      row.appendChild(btn('\u21A9 Reativar (mexo essa semana)', 'rv-btn', function () {
+        decide(item, 'reactivate', box);
+      }));
+      actions.appendChild(row);
+
+      var row2 = elH('div', 'rv-row');
+      if (item.kind !== 'completed') {
+        row2.appendChild(btn('\uD83C\uDFC6 Foi conclu\u00EDdo, na verdade', 'rv-btn', function () {
+          item.card.completed = 'true';
+          decide(item, 'historico', box);
+        }));
+      }
+      if (copy.primary.action !== 'talvez' && item.kind !== 'somedayOld') {
+        row2.appendChild(btn('\uD83C\uDF19 Arquivar em Talvez um Dia', 'rv-btn', function () {
+          decide(item, 'talvez', box);
+        }));
+      }
+      row2.appendChild(btn('\uD83D\uDDD1 Lixeira', 'rv-btn', function () {
+        decide(item, 'trash', box);
+      }));
+      actions.appendChild(row2);
+      panel.appendChild(actions);
+    });
+  }
+
+  function decide(item, action, boxEl) {
+    session.decisions.push({ card: item.card, boardId: item.boardId, action: action });
+    if (action !== 'keep') session.resolvedCount++;
+    if (boxEl) boxEl.classList.add('rv-out');
+    setTimeout(function () {
+      if (!session) return;
+      session.queueIndex++;
+      renderCurrentStep();
+    }, 240);
+  }
+
+  function renderSummary() {
+    var d = session.data;
+    var extra = remainingBeyondBatch(d);
+    var counts = { historico: 0, talvez: 0, trash: 0, reactivate: 0, keep: 0 };
+    session.decisions.forEach(function (dec) { counts[dec.action] = (counts[dec.action] || 0) + 1; });
+    var activeAfter = d.activeCount - counts.talvez - counts.trash;
+    var log = getLog();
+
+    openPanel(function (panel) {
+      panel.appendChild(elH('p', 'rv-eyebrow', 'Etapa 3 \u00B7 Resumo'));
+      panel.appendChild(elH('h2', '', session.resolvedCount > 0 ? 'Quadro respirando de novo \uD83C\uDF05' : 'Revis\u00E3o feita \uD83C\uDF05'));
+      panel.appendChild(elH('p', 'rv-sub', 'O que aconteceu nesta revis\u00E3o:'));
+
+      addLine(panel, 'Conclu\u00EDdos nos \u00FAltimos 7 dias', d.completedThisWeek);
+      if (counts.historico) addLine(panel, 'Guardados no ' + HIST_NAME, counts.historico);
+      if (counts.talvez) addLine(panel, 'Arquivados no ' + TALVEZ_NAME, counts.talvez);
+      if (counts.reactivate) addLine(panel, 'Reativados para esta semana', counts.reactivate);
+      if (counts.trash) addLine(panel, 'Enviados \u00E0 lixeira', counts.trash);
+      addLine(panel, 'Cart\u00F5es ativos: ' + d.activeCount + ' \u2192', activeAfter);
+      addLine(panel, 'Total de revis\u00F5es feitas (sempre cresce)', log.length + 1);
+
+      if (extra > 0) {
+        panel.appendChild(elH('p', 'rv-tip', 'Ainda h\u00E1 ' + extra + ' cart' + (extra === 1 ? '\u00E3o' : '\u00F5es') + ' aguardando decis\u00E3o \u2014 ficam para a pr\u00F3xima revis\u00E3o. Um passo de cada vez.'));
+      }
+
+      var row = elH('div', 'rv-actions');
+      row.style.marginTop = '16px';
+      row.appendChild(btn('Concluir revis\u00E3o \u2713', 'rv-btn rv-primary', function () { finishReview(); }));
+      if (extra > 0) {
+        row.appendChild(btn('Estou no embalo: resolver mais ' + Math.min(extra, BATCH_SIZE * 3), 'rv-btn rv-more', function () {
+          extendQueue();
+        }));
+      }
+      panel.appendChild(row);
+    });
+
+    function addLine(panel, label, value) {
+      var line = elH('div', 'rv-summary-line');
+      line.appendChild(elH('span', '', label));
+      line.appendChild(elH('b', '', String(value)));
+      panel.appendChild(line);
+    }
+  }
+
+  function extendQueue() {
+    var d = session.data;
+    var decided = {};
+    session.decisions.forEach(function (dec) { decided[dec.card.id] = true; });
+    var add = [];
+    function pushExtra(arr) {
+      arr.forEach(function (it) {
+        if (!decided[it.card.id] && session.queue.indexOf(it) === -1 && add.length < BATCH_SIZE * 3) add.push(it);
+      });
+    }
+    pushExtra(d.completedOnBoard); pushExtra(d.staleCards); pushExtra(d.somedayOld);
+    session.queue = session.queue.concat(add);
+    renderCurrentStep();
+  }
+
+  function finishReview() {
+    if (!session) { closeOverlay(); return; }
+    session.finished = true;
+    var counts = { historico: 0, talvez: 0, trash: 0, reactivate: 0, keep: 0 };
+    session.decisions.forEach(function (dec) { counts[dec.action] = (counts[dec.action] || 0) + 1; });
+
+    applyDecisions(session.decisions);
+
+    var log = getLog();
+    log.push({
+      date: Date.now(),
+      resolved: session.resolvedCount,
+      historico: counts.historico,
+      talvez: counts.talvez,
+      trash: counts.trash,
+      reactivated: counts.reactivate,
+      completedThisWeek: session.data.completedThisWeek,
+      activeBefore: session.data.activeCount,
+      activeAfter: session.data.activeCount - counts.talvez - counts.trash
+    });
+    saveLog(log);
+
+    session = null;
+    closeOverlay();
+    // Recarrega para o app re-renderizar tudo a partir do armazenamento
+    setTimeout(function () { location.reload(); }, 60);
+  }
+
+  // ===== 11. BOTÃO NO CABEÇALHO + LEMBRETE CALMO =====
+  function updateHeaderBadge() {
+    var b = document.getElementById('rvHeaderBtn');
+    if (!b) return;
+    var cfg = getConfig();
+    var isToday = cfg && new Date().getDay() === cfg.day;
+    b.classList.toggle('rv-today', !!isToday);
+    b.title = cfg
+      ? ('Revis\u00E3o Semanal \u2014 ritual: ' + DAY_NAMES[cfg.day] + ' \u00E0s ' + cfg.time + (isToday ? ' (hoje!)' : ''))
+      : 'Revis\u00E3o Semanal \u2014 clique para configurar seu ritual';
+  }
+
+  function injectButton() {
+    if (document.getElementById('rvHeaderBtn')) return;
+    var b = document.createElement('button');
+    b.id = 'rvHeaderBtn';
+    b.textContent = '\uD83E\uDDF9 Revis\u00E3o'; // 🧹
+    b.style.background = 'rgba(232,161,61,.12)';
+    b.style.borderColor = 'rgba(232,161,61,.4)';
+    b.addEventListener('click', function () {
+      if (!getConfig()) renderSetup(function () { startReview(); });
+      else startReview();
+    });
+    var anchor = document.getElementById('manualFocusBtn');
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor.nextSibling);
+    else {
+      var header = document.querySelector('header');
+      if (header) header.appendChild(b); else document.body.appendChild(b);
+    }
+    updateHeaderBadge();
+  }
+
+  // ===== 12. INICIALIZAÇÃO =====
+  function init() {
+    injectStyles();
+    injectButton();
+    // Scan silencioso na carga: alimenta o registro de idade dos cartões
+    try { updateRegistry(); } catch (e) { }
+    // Atualiza o brilho do lembrete ao virar o dia (checagem leve por hora)
+    setInterval(updateHeaderBadge, 3600 * 1000);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+  // API pública mínima (permite integração futura com o assistente de IA do app)
+  window.RevisaoSemanal = {
+    open: function () { var b = document.getElementById('rvHeaderBtn'); if (b) b.click(); },
+    scan: scan,
+    _applyDecisions: applyDecisions // interno: testes e integração futura com a IA do app
+  };
+})();
 
 
 // ===== MODULE: init.js =====
@@ -13941,6 +15556,8 @@ function initApp() {
     if (typeof initGamification === 'function') { initGamification(); }
     if (typeof initEconomy === 'function') { initEconomy(); }
     if (typeof initStreaks === 'function') { initStreaks(); }
+    if (typeof initWellbeing === 'function') { initWellbeing(); }
+    if (typeof initCentralBank === 'function') { initCentralBank(); }
 }
 
 // Exposição para o Test Runner

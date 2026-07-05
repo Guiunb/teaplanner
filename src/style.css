@@ -2657,3 +2657,52 @@ padding: 6px 2px;
     margin-top: 8px; opacity: 0.85;
 }
 .wallet-zerar:hover { opacity: 1; }
+
+/* ============================================================
+   M3 — Bem-estar (wellbeing.js) + catálogo de recompensas
+   ============================================================ */
+.wellbeing-pill {
+    background: transparent;
+    border: 2px solid #3ddc84;
+    border-radius: 999px;
+    min-width: 34px; height: 28px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; padding: 0 8px; margin: 0 2px;
+}
+.wellbeing-pill span { color: #3ddc84; }
+.wellbeing-popover {
+    position: fixed; z-index: 10070;
+    width: 260px; background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 12px;
+    padding: 12px 14px; box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+}
+.wellbeing-pop-titulo { font-size: 13px; color: var(--muted); margin-bottom: 8px; letter-spacing: 0.5px; }
+.wellbeing-fator { font-size: 13px; color: var(--ink); padding: 5px 0; line-height: 1.4; }
+.energia-row { margin: 4px 0 14px; }
+.energia-label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.energia-botoes { display: flex; gap: 6px; justify-content: center; }
+.energia-btn {
+    background: var(--card); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px; font-size: 18px; padding: 6px 10px; cursor: pointer;
+    transition: transform .1s, border-color .15s;
+}
+.energia-btn:hover { transform: scale(1.08); }
+.energia-btn.sel { border-color: var(--brand); background: rgba(58,139,255,0.18); }
+.wallet-rewards-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; max-height: 150px; overflow-y: auto; }
+.reward-item { display: flex; align-items: center; gap: 8px; background: var(--card); border-radius: 8px; padding: 7px 10px; }
+.reward-nome { flex: 1; font-size: 13px; color: var(--ink); }
+.reward-custo { font-size: 12.5px; color: #ffca4a; white-space: nowrap; }
+.reward-item button { background: var(--brand); border: none; border-radius: 7px; color: #fff; font-size: 12px; padding: 5px 10px; cursor: pointer; }
+.reward-item .reward-del { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--muted); padding: 5px 8px; }
+.wallet-preco-hint { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 15px; line-height: 1.4; }
+
+/* ---- M5: Banco Central ---- */
+.cb-section { margin-bottom: 12px; background: var(--card); border-radius: 10px; padding: 10px 12px; }
+.cb-linha { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.cb-carta-btn { background: transparent; border: 1px solid rgba(255,255,255,0.25); color: var(--ink);
+    border-radius: 6px; font-size: 11px; padding: 2px 8px; margin-left: 8px; cursor: pointer; }
+.carta-card { text-align: left; }
+.carta-corpo { color: var(--ink); font-size: 14.5px; line-height: 1.55; margin-bottom: 12px; }
+.carta-mudancas { color: #ffca4a; font-size: 13px; line-height: 1.7; margin-bottom: 16px; }
+
+.addon-versao { font-size: 10.5px; color: var(--muted); opacity: 0.7; padding: 2px 12px 6px; text-align: right; }

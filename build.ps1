@@ -31,6 +31,9 @@ $jsFiles = @(
     "gamification.js",
     "economy.js",
     "streaks.js",
+    "wellbeing.js",
+    "centralbank.js",
+    "revisao.js",
     "init.js"
 )
 

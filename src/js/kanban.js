@@ -225,7 +225,7 @@ function duplicateCards(cards) {
     updateSlotsHasItems();
     updateTotalTimerDisplay();
     if (typeof renderWeeklyView === 'function') {
-        renderWeeklyView();
+        if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
     }
 }
 
@@ -308,14 +308,12 @@ function toggleCardCompletion(e) {
 
     // Ponte kanban -> gamificação (Fundação 0.5). Inerte se nada escutar.
     if (window.TEAEvents) {
-        var _isChild = !!(card.dataset.recurrenceParent);
-        var _isParentRec = !!(card.dataset.recurrence && card.dataset.recurrence !== 'none');
         var _gpayload = {
             cardId: card.dataset.id,
             boardId: card.dataset.boardId || (typeof currentBoardId !== 'undefined' ? currentBoardId : ''),
             quadrant: (typeof detectCardQuadrant === 'function') ? detectCardQuadrant(card) : 'none',
-            isRecurring: _isChild || _isParentRec,
-            seriesId: _isChild ? card.dataset.recurrenceParent : (_isParentRec ? card.dataset.id : ''),
+            isRecurring: (!!(card.dataset.recurrenceParent)) || (!!(card.dataset.recurrence && card.dataset.recurrence !== 'none')),
+            seriesId: card.dataset.recurrenceParent ? card.dataset.recurrenceParent : ((card.dataset.recurrence && card.dataset.recurrence !== 'none') ? card.dataset.id : ''),
             timerSeconds: (typeof getCardFocusSeconds === 'function') ? getCardFocusSeconds(card) : 0
         };
         if (card.dataset.completed === 'true') { TEAEvents.emit('task:completed', _gpayload); }
@@ -646,7 +644,7 @@ function removeCard(c, bypassTrash = false) {
             }
             
             persist();
-            renderWeeklyView();
+            if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
             applyFilters();
         });
         return;
@@ -888,6 +886,25 @@ function wireDropZone(container) {
         if (!after) cardsContainer.appendChild(ph);
         else cardsContainer.insertBefore(ph, after);
         if (isSlot) container.classList.add('hover');
+        
+        // Matrix Color Drop (Hover over quadrant)
+        if (container.dataset.type === 'quad' && dragState.block) {
+            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const qColor = EISENHOWER_COLORS[container.dataset.quad];
+            if (qColor) {
+                var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
+                block.forEach(function(n) {
+                    if (n._originalReference) n = n._originalReference;
+                    n.dataset.labelColor = qColor;
+                    paintCard(n);
+                    const cardInCache = allCards.find(card => card === n);
+                    if (cardInCache && cardInCache !== n) {
+                        cardInCache.dataset.labelColor = qColor;
+                        paintCard(cardInCache);
+                    }
+                });
+            }
+        }
     }
 
     container.addEventListener('dragover', handleDragOver);
@@ -1225,7 +1242,7 @@ function updateSlotsHasItems() {
     });
     updateTotalTimerDisplay();
     updateListHeaderTooltips();
-    renderWeeklyView();
+    if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
 }
 
 var selectedColors = new Set();

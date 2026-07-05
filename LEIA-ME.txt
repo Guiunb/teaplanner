@@ -1,12 +1,21 @@
-PACOTE v3 - 6 lapidacoes do teste real
-=======================================
+PACOTE v6
+==========
 1. Extraia DENTRO da pasta "- TEA PLANNER 2.0", SUBSTITUINDO tudo.
-   (Agora inclui tambem o core.js - proposito por quadro)
-2. NAO precisa rodar build.ps1 - index.html da raiz ja vem pronto.
-3. Teste rapido:
-   - Carteira aberta: ligue "Som de recompensa", conclua tarefa -> som Cristal
-   - Desmarque a tarefa -> Ouro estornado (veja o historico: "Correcao")
-   - Botao "Zerar carteira" e secao "Gastar Ouro" na Carteira
-   - Add-ons: "Editar proposito deste quadro"
-   - Troque para um quadro COM proposito -> check-in daquele quadro (1x/dia por quadro)
-4. OK? Deploy.
+2. FECHE as janelas pretas de servidor antigas. Abra iniciar_servidor.bat.
+3. No navegador: http://localhost:8080/index.html e pressione CTRL+F5.
+
+COMO SABER QUE ATUALIZOU (5 segundos):
+- Abra o dropdown "Add-ons": no rodape dele deve estar escrito "pacote v6".
+- Ou aperte F12 -> Console: deve aparecer
+  [TEA Planner] Gamification PACOTE v6 carregada (M0+M1+M2+M3+M5).
+  Se NAO aparecer, o navegador esta servindo arquivo velho (Ctrl+F5 de novo).
+
+TESTES:
+- CORES: os cartoes que JA ESTAO nos quadrantes da matriz pintam o cabecalho
+  com a cor do quadrante em ate 4 segundos (verde/azul/ambar/vermelho),
+  e as copias na semana tambem. Nao precisa mais arrastar.
+- BANCO CENTRAL: ele e OPT-IN. Add-ons -> ligue "Banco Central (IA)"
+  (liga a Carteira junto). DEPOIS disso, abra a Carteira (botao de moeda):
+  a secao "Banco Central" aparece la, com temporada, precos e proxima data.
+- De volta tambem: "QuickCard Automatico" e "Unificar Repetidos (IA)"
+  no dropdown Add-ons (features suas que os pacotes anteriores derrubaram).
