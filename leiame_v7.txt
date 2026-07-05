@@ -1,0 +1,30 @@
+PACOTE v7 = v6 + M4 RITUAIS + M6 COMPANION + FIX DO TOQUE (Z FOLD)
+===================================================================
+1. Extraia DENTRO da pasta "- TEA PLANNER 2.0", SUBSTITUINDO tudo.
+   (index.html raiz pronto, build.ps1, src/index.html, src/js/: rituals.js,
+    companion.js, kanban.js corrigido, revisao.js)
+2. NAO precisa rodar o build agora: o index.html raiz ja vem completo.
+3. Feche servidores antigos, abra iniciar_servidor.bat, CTRL+F5 no navegador.
+   (No GitHub Pages: suba o index.html raiz e o revisao... nao precisa, esta
+    tudo DENTRO do index.html raiz. Basta subir o index.html.)
+
+COMO SABER QUE INSTALOU (10 segundos):
+- F12 -> Console deve mostrar:
+  [TEA Planner] M4 Rituais carregado.
+  [TEA Planner] M6 Companion carregado.
+- Dropdown Add-ons: novas linhas "Rituais" e "Companion" (comecam OFF).
+
+TESTES:
+- FIX CELULAR: no Z Fold, toque longo no cartao NAO abre mais o menu
+  (menu fica no "..."); o toque longo agora arrasta o cartao livremente.
+  No desktop, clique direito continua abrindo o menu normalmente.
+- M4 RITUAIS (ligue no Add-ons): botao lua no header = ritual de encerramento
+  do dia (mostra o que rendeu + "qual e A tarefa de amanha?").
+  Ficar 3+ dias sem abrir => tela de boas-vindas SEM culpa.
+  Domingo/segunda => painel "Sua Semana" (sempre em tom positivo).
+- M6 COMPANION (ligue no Add-ons): escolha o perfil na primeira vez.
+  "So diagnostico" nunca sofre; "Vivo" murcha so apos dias de abandono,
+  e SEMPRE conversa antes. Qualquer tarefa concluida recupera na hora.
+  Ele cresce (semente -> broto -> arvore) com dias de cuidado.
+
+IMPORTANTE: proximo build.ps1 ja inclui tudo automaticamente.

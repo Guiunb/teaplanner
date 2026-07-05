@@ -2,6 +2,26 @@
 // History (from lines 2874 to 2910)
 // ==========================================
 
+// FIX MOBILE: rastreia o tipo do ultimo ponteiro (mouse/touch/pen).
+// Usado para diferenciar clique direito (desktop) de toque longo (Android),
+// que disparam o mesmo evento 'contextmenu'.
+window.__teaLastPointerType = window.__teaLastPointerType || 'mouse';
+if (!window.__teaPointerTrackerOn) {
+    window.__teaPointerTrackerOn = true;
+    if (window.PointerEvent) {
+        document.addEventListener('pointerdown', function (ev) {
+            window.__teaLastPointerType = ev.pointerType || 'mouse';
+        }, true);
+    } else {
+        document.addEventListener('touchstart', function () {
+            window.__teaLastPointerType = 'touch';
+        }, true);
+        document.addEventListener('mousedown', function () {
+            window.__teaLastPointerType = 'mouse';
+        }, true);
+    }
+}
+
 function cardToData(c) {
     var t = c.querySelector('.text');
     if (!c.dataset.id) {
@@ -536,6 +556,12 @@ function createCard(data) {
     c.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         e.stopPropagation();
+        // FIX MOBILE (Z Fold / Android): toque longo dispara 'contextmenu' e abria
+        // o menu em cima do arrasto. No toque, o menu fica so no botao "..." (kebab)
+        // e o toque longo fica livre para iniciar o drag-and-drop nativo do Chrome.
+        if (window.__teaLastPointerType === 'touch' || window.__teaLastPointerType === 'pen') {
+            return;
+        }
         if (!selected.has(c)) {
             clearSelection();
             addSelection(c);
