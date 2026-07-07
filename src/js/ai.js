@@ -1541,8 +1541,8 @@ intervalRow.style.gap = '8px';
 intervalRow.style.fontSize = '14px';
 intervalRow.innerHTML = `
 <span>Repete a cada</span>
-<input type="number" id="recInterval" name="recInterval" value="${recRule.interval || 
-       1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
+<input type="number" id="recInterval" name="recInterval" value="${escapeHtml(recRule.interval || 
+       1)}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
        #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px;" />
 <select id="recFreq" name="recFreq" style="border: 1px solid rgba(255, 255, 255, 0.15); 
        background: var(--bg); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 14px; cursor: pointer;">
@@ -1636,8 +1636,8 @@ dateLabel.style.cursor = 'pointer';
 dateLabel.innerHTML = `
 <input type="radio" id="recEndOnDate" name="recEndType" value="date" ${recRule.endType 
        === 'date' ? 'checked' : ''} /> Em
-<input type="date" id="recEndDate" name="recEndDate" value="${recRule.endDate || new 
-       Date().toISOString().slice(0, 10)}" style="border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); 
+<input type="date" id="recEndDate" name="recEndDate" value="${escapeHtml(recRule.endDate || new 
+       Date().toISOString().slice(0, 10))}" style="border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); 
        color: #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
 `;
 endSection.appendChild(dateLabel);
@@ -1651,8 +1651,8 @@ countLabel.style.cursor = 'pointer';
 countLabel.innerHTML = `
 <input type="radio" id="recEndAfterCount" name="recEndType" value="count" 
        ${recRule.endType === 'count' ? 'checked' : ''} /> Ap\u00f3s
-<input type="number" id="recEndCount" name="recEndCount" value="${recRule.endCount || 
-       1}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
+<input type="number" id="recEndCount" name="recEndCount" value="${escapeHtml(recRule.endCount || 
+       1)}" min="1" style="width: 60px; border: 1px solid rgba(255, 255, 255, 0.15); background: var(--bg); color: 
        #fff; padding: 4px 6px; border-radius: 6px; font-size: 13px;" />
 <span>ocorr\u00eancias</span>
 `;
@@ -1824,7 +1824,7 @@ if (idx === matchedIdx) {
 optDiv.classList.add('selected');
 }
 // Use safe character mapping
-let cleanText = opt.text;
+let cleanText = escapeHtml(opt.text);
 optDiv.innerHTML = `
 <span>${cleanText}</span>
 <span class="check-mark">&#10004;</span>

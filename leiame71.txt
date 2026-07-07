@@ -1,0 +1,6 @@
+PACOTE v7.1 - CORRECOES DA SIMULACAO DE PERSONAS
+=================================================
+1. Extraia na pasta do projeto, SUBSTITUINDO (index.html raiz + src/js/).
+2. CTRL+F5. Correcoes: (a) no retorno apos ausencia, o acolhimento do M4
+   aparece SOZINHO e o Companion espera ele fechar; (b) painel do Companion
+   agora tem "Trocar perfil"; (c) diagnostico da Revisao com rotulos gentis.

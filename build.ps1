@@ -1,73 +1,58 @@
-# Script de Compilação (Build) para TEA PLANNER 2.0
-# Junta HTML, CSS e JS em um único index.html na raiz do projeto
+# ============================================================
+# TEA PLANNER - BUILD v8.1
+# Gera o index.html da raiz a partir de src/ (fonte da verdade).
+# DUAS etapas obrigatorias (nao remover nenhuma!):
+#   1. CSS: src/style.css e inlinado no lugar de BUILD_STYLE_START/END
+#   2. JS : modulos de src/js concatenados no lugar de BUILD_JS_START/END
+# Formato comprovado em producao: concatenacao plana, sem wrapper.
+# A ordem dos modulos IMPORTA (override intencional: getPrecoAtual do
+# centralbank redefine o fallback do economy - documentado nos arquivos).
+# Uso: powershell -ExecutionPolicy Bypass -File build.ps1
+# ============================================================
+$ErrorActionPreference = "Stop"
+$src = Join-Path $PSScriptRoot "src"
+$out = Join-Path $PSScriptRoot "index.html"
 
-$PSScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
-if ([string]::IsNullOrEmpty($PSScriptRoot)) { $PSScriptRoot = Get-Location }
-
-# 1. Carregar arquivos de origem
-$htmlPath = Join-Path $PSScriptRoot "src/index.html"
-$cssPath = Join-Path $PSScriptRoot "src/style.css"
-$jsDir = Join-Path $PSScriptRoot "src/js"
-
-if (!(Test-Path $htmlPath) -or !(Test-Path $cssPath)) {
-    Write-Error "Arquivos src/index.html ou src/style.css não foram encontrados."
-    Exit 1
-}
-
-Write-Host "Iniciando compilação do TEA PLANNER 2.0..." -ForegroundColor Cyan
-
-# 2. Ler CSS
-$cssContent = [System.IO.File]::ReadAllText($cssPath, [System.Text.Encoding]::UTF8)
-
-# 3. Ler JS na ordem exata de dependência
-$jsFiles = @(
-    "core.js",
-    "auth.js",
-    "database.js",
-    "timers.js",
-    "kanban.js",
-    "agenda.js",
-    "ai.js",
-    "gamification.js",
-    "economy.js",
-    "streaks.js",
-    "wellbeing.js",
-    "centralbank.js",
-    "rituals.js",
-    "companion.js",
-    "revisao.js",
-    "init.js"
+$modulos = @(
+    "core.js","auth.js","database.js","timers.js","kanban.js","agenda.js","ai.js",
+    "gamification.js","economy.js","streaks.js","wellbeing.js","centralbank.js",
+    "flow.js","rituals.js","companion.js","revisao.js","init.js"
 )
 
-$jsContent = ""
-foreach ($file in $jsFiles) {
-    $filePath = Join-Path $jsDir $file
-    if (Test-Path $filePath) {
-        Write-Host "Adicionando módulo: $file" -ForegroundColor Gray
-        $fileText = [System.IO.File]::ReadAllText($filePath, [System.Text.Encoding]::UTF8)
-        $jsContent += "`n// ===== MODULE: $file =====`n" + $fileText + "`n"
-    } else {
-        Write-Error "Módulo JS obrigatório não encontrado: $file"
-        Exit 1
-    }
+# --- Etapa 1: CSS inline ---
+$cssPath = Join-Path $src "style.css"
+if (-not (Test-Path $cssPath)) { throw "src/style.css nao encontrado!" }
+$css = [System.IO.File]::ReadAllText($cssPath, [System.Text.Encoding]::UTF8)
+
+$html = [System.IO.File]::ReadAllText((Join-Path $src "index.html"), [System.Text.Encoding]::UTF8)
+$padraoCss = "(?s)<!-- BUILD_STYLE_START -->.*?<!-- BUILD_STYLE_END -->"
+if ($html -notmatch $padraoCss) { throw "Placeholders BUILD_STYLE_START/END nao encontrados" }
+$blocoCss = "<style>`r`n" + $css + "`r`n    </style>"
+$html = [System.Text.RegularExpressions.Regex]::Replace($html, $padraoCss, { param($m) $blocoCss }, "Singleline")
+
+# --- Etapa 2: JS inline ---
+$js = ""
+foreach ($m in $modulos) {
+    $caminho = Join-Path $src ("js\" + $m)
+    if (-not (Test-Path $caminho)) { throw "Modulo ausente: $caminho" }
+    $js += "`r`n// ===== MODULO: $m =====`r`n" + [System.IO.File]::ReadAllText($caminho, [System.Text.Encoding]::UTF8) + "`r`n"
 }
+$padraoJs = "(?s)<!-- BUILD_JS_START -->.*?<!-- BUILD_JS_END -->"
+if ($html -notmatch $padraoJs) { throw "Placeholders BUILD_JS_START/END nao encontrados" }
+$blocoJs = "<script>`r`n" + $js + "`r`n</script>"
+$html = [System.Text.RegularExpressions.Regex]::Replace($html, $padraoJs, { param($m) $blocoJs }, "Singleline")
 
-# 4. Ler HTML base
-$htmlContent = [System.IO.File]::ReadAllText($htmlPath, [System.Text.Encoding]::UTF8)
-
-# 5. Efetuar as substituições dos placeholders usando expressões regulares (Regex)
-# O regex '.*?' casa com qualquer conteúdo de forma não-gulosa (single-line mode (?s))
-
-# Substituição do Bloco CSS
-$cssReplacement = "    <style>`n$cssContent`n    </style>"
-$htmlContent = [System.Text.RegularExpressions.Regex]::Replace($htmlContent, "(?s)<!-- BUILD_STYLE_START -->.*?<!-- BUILD_STYLE_END -->", $cssReplacement)
-
-# Substituição do Bloco JS (embrulhado no window.onload)
-$jsReplacement = "    <script>`n        window.addEventListener('load', function () {`n$jsContent`n        });`n    </script>"
-$htmlContent = [System.Text.RegularExpressions.Regex]::Replace($htmlContent, "(?s)<!-- BUILD_JS_START -->.*?<!-- BUILD_JS_END -->", $jsReplacement)
-
-# 6. Salvar o arquivo compilado final na raiz
-$outputPath = Join-Path $PSScriptRoot "index.html"
-[System.IO.File]::WriteAllText($outputPath, $htmlContent, (New-Object System.Text.UTF8Encoding $false))
-
-Write-Host "Compilação concluída com sucesso! Gerado: $outputPath" -ForegroundColor Green
+# --- Gravacao UTF-8 SEM BOM + validacoes ---
+$enc = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($out, $html, $enc)
+$abre = ([regex]::Matches($html, "<script")).Count
+$fecha = ([regex]::Matches($html, "</script>")).Count
+$mods = ([regex]::Matches($html, "// ===== MODULO:")).Count
+$temStyle = $html.Contains("<style>")
+$temLink = $html.Contains('rel="stylesheet"')
+Write-Host "Build OK -> $out"
+Write-Host "Modulos: $mods/$($modulos.Count) | script $abre/$fecha | style inline: $temStyle | link externo restante: $temLink"
+if ($abre -ne $fecha) { throw "Tags script desbalanceadas" }
+if ($mods -ne $modulos.Count) { throw "Modulos faltando no bundle" }
+if (-not $temStyle) { throw "CSS NAO foi inlinado!" }
+if ($temLink) { throw "Link de CSS externo sobrou no build!" }

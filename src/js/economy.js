@@ -122,6 +122,9 @@ function grantDiamante(valor, motivo, extra) {
 }
 
 // O M5 (Banco Central) sobrescreve isto para aplicar preços recalibrados.
+// [REVIEW v8] ATENCAO - OVERRIDE INTENCIONAL: esta e a versao FALLBACK.
+// O centralbank.js (M5, carregado DEPOIS) REDEFINE getPrecoAtual com precos
+// dinamicos. Nao renomear, nao remover, nao mudar a ordem do build.
 function getPrecoAtual(quadrant, base) { return base; }
 
 function onTaskCompleted(payload) {

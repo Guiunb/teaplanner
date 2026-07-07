@@ -232,6 +232,27 @@
         if (d.estado === 'conversa' && d.conversaPendente) {
             cmpRenderConversa(p);
         }
+
+        // Promessa da tela de escolha: "voce pode mudar depois" - caminho real de troca
+        var trocar = cmpEl('button', 'cmp-chip', '\u2699 Trocar perfil (' + (d.perfil === 'vivo' ? 'Vivo' : 'So diagnostico') + ')');
+        trocar.style.marginTop = '10px';
+        trocar.addEventListener('click', function () {
+            p.style.display = 'none';
+            cmpEscolherPerfil();
+        });
+        p.appendChild(trocar);
+
+        // Diario de Friccao/Evolucao: as conversas comigo ficam guardadas la
+        if (window.RituaisTEA && typeof window.RituaisTEA.diario === 'function') {
+            var verD = cmpEl('button', 'cmp-chip', '\uD83D\uDCD3 Diario');
+            verD.style.marginTop = '10px';
+            verD.style.marginLeft = '6px';
+            verD.addEventListener('click', function () {
+                p.style.display = 'none';
+                window.RituaisTEA.diario();
+            });
+            p.appendChild(verD);
+        }
     }
 
     // ---------- Conversa (SEMPRE antes de qualquer degradacao) ----------
@@ -314,9 +335,19 @@
             }
         }
         cmpRefreshBtn();
-        // Se ha conversa pendente, abre o painel UMA vez (nunca em foco)
+        // Se ha conversa pendente, abre o painel UMA vez (nunca em foco).
+        // REGRA "um por vez": se o acolhimento do M4 (welcomeBack) estiver na tela,
+        // o Companion ESPERA ele fechar - o retorno sem culpa vem primeiro, sempre.
         if (d.conversaPendente && !cmpFocus()) {
-            setTimeout(function () { cmpTogglePanel(true); }, 1200);
+            var tentativas = 0;
+            var tentarAbrir = function () {
+                tentativas++;
+                var wb = document.getElementById('welcomeBackOverlay');
+                var wbVisivel = wb && wb.style.display !== 'none' && wb.style.display !== '';
+                if (wbVisivel && tentativas < 20) { setTimeout(tentarAbrir, 3000); return; }
+                if (!cmpFocus() && cmpLoad().conversaPendente) cmpTogglePanel(true);
+            };
+            setTimeout(tentarAbrir, 1200);
         }
     }
 

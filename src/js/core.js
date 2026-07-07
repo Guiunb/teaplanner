@@ -1,5 +1,14 @@
 // ===== Helpers =====
 function el(t, c) { var n = document.createElement(t); if (c) n.className = c; return n; }
+// [REVIEW v8] Sanitizacao oficial: TODO dado que nao nasceu no codigo
+// (texto de cartao, backup importado, resposta de IA) passa por aqui
+// antes de entrar em innerHTML. Caminho preferido continua textContent.
+function escapeHtml(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function $$(s, r) { if (!r) r = document; return Array.prototype.slice.call(r.querySelectorAll(s)); }
 function to2(n) { return (n < 10 ? '0' + n : '' + n); }
 function formatSecondsToTime(totalSeconds) {

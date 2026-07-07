@@ -532,8 +532,8 @@
       var grid = elH('div', 'rv-diag');
       grid.appendChild(stat(d.completedThisWeek, 'conclu\u00EDdos nos \u00FAltimos 7 dias', true));
       grid.appendChild(stat(d.activeCount, 'cart\u00F5es ativos no total'));
-      grid.appendChild(stat(d.completedOnBoard.length, 'conclu\u00EDdos ocupando espa\u00E7o'));
-      grid.appendChild(stat(d.staleCards.length, 'parados h\u00E1 3+ semanas'));
+      grid.appendChild(stat(d.completedOnBoard.length, 'vit\u00F3rias prontas pra guardar', true));
+      grid.appendChild(stat(d.staleCards.length, 'aguardando uma decis\u00E3o sua'));
       if (d.somedayOld.length > 0) {
         grid.appendChild(stat(d.somedayOld.length, 'no Talvez um Dia h\u00E1 1+ m\u00EAs'));
       }
@@ -739,6 +739,22 @@
     session.decisions.forEach(function (dec) { counts[dec.action] = (counts[dec.action] || 0) + 1; });
 
     applyDecisions(session.decisions);
+
+    // Recompensa por sessão (camada 3 do fix do cemitério do inbox):
+    // organizar o quadro É trabalho e merece Ouro. Anti-farming: 1x/dia, teto 10.
+    try {
+      if (session.resolvedCount > 0 &&
+          typeof grantOuro === 'function' &&
+          typeof isAddonOn === 'function' && isAddonOn('economy')) {
+        var rewardKey = 'tea-planner-revisao-reward-day';
+        var hoje = new Date();
+        var hojeStr = hoje.getFullYear() + '-' + (hoje.getMonth() + 1) + '-' + hoje.getDate();
+        if (localStorage.getItem(rewardKey) !== hojeStr) {
+          grantOuro(Math.min(session.resolvedCount, 10), 'Sess\u00E3o de Revis\u00E3o Semanal');
+          localStorage.setItem(rewardKey, hojeStr);
+        }
+      }
+    } catch (e) { /* economia desligada ou indisponível: revisão funciona igual */ }
 
     var log = getLog();
     log.push({

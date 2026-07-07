@@ -1,0 +1,24 @@
+PACOTE v8 - TODAS AS CORRECOES DO REVIEW
+==========================================
+ESTE PACOTE CONTEM O src/ COMPLETO (17 modulos) - agora a fonte da
+verdade esta inteira e o build.ps1 novo reconstroi o app sozinho.
+
+1. FACA BACKUP da sua pasta atual antes (por seguranca).
+2. Extraia DENTRO da pasta do projeto, SUBSTITUINDO tudo.
+3. O index.html raiz ja vem BUILDADO e validado - nao precisa buildar.
+4. CTRL+F5. Teste: criar cartao, timer (Alt+T), recorrencia, alerta,
+   arrastar no celular, Add-ons, Revisao (vassoura), Rituais (lua).
+
+O QUE MUDOU POR DENTRO (review):
+- 13 copias mortas de funcoes REMOVIDAS (agenda.js: -1.400 linhas!);
+  as versoes ativas foram preservadas byte a byte - comportamento identico.
+- Override intencional do getPrecoAtual DOCUMENTADO (economy/centralbank).
+- escapeHtml oficial criado no core.js + sanitizacao real no ai.js
+  (cleanText e campos de recorrencia).
+- Logs de sync silenciados: para depurar, window.TEA_DEBUG = true.
+- </script> orfao eliminado (tags 4/4 balanceadas).
+- build.ps1 reescrito no formato comprovado, com validacao embutida.
+
+ATENCAO: seu src local de agenda.js e ai.js estava MAIS NOVO que o
+app em producao (o root v6 rodava versoes antigas). O v8 ja usa as
+suas versoes novas - a homologacao completa e importante por isso.

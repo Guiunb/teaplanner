@@ -1,3 +1,5 @@
+// [REVIEW v8] Logs de sync silenciados por padrao. Para depurar:
+// digite window.TEA_DEBUG = true no console e recarregue.
 // ===== Real-time Database Sync Logic =====
 let isInitialLoadComplete = false;
 let hasLoadedMetadata = false;
@@ -11,7 +13,7 @@ function checkInitialLoadComplete() {
     if (hasLoadedMetadata && hasLoadedCurrentBoard && hasLoadedGlobalAgenda) {
         if (!isInitialLoadComplete) {
             isInitialLoadComplete = true;
-            console.log("Sync: Carga inicial do Firebase concluída com sucesso.");
+            if (window.TEA_DEBUG) console.log("Sync: Carga inicial do Firebase concluída com sucesso.");
         }
     }
 }
@@ -33,7 +35,7 @@ function setupFirebaseSync(user) {
                 try {
                     const localMeta = JSON.parse(localMetaStr);
                     if (localMeta && localMeta.length > 0) {
-                        console.log("Sync: Firebase meta não existe, enviando metadados locais...");
+                        if (window.TEA_DEBUG) console.log("Sync: Firebase meta não existe, enviando metadados locais...");
                         metaRef.set(localMeta);
                         return;
                     }
@@ -54,7 +56,7 @@ function setupFirebaseSync(user) {
                 updated = true;
             }
             if (JSON.stringify(val) !== JSON.stringify(boardsMeta)) {
-                console.log("Sync: Nova lista de quadros recebida.");
+                if (window.TEA_DEBUG) console.log("Sync: Nova lista de quadros recebida.");
                 boardsMeta = val;
                 localStorage.setItem(LS_BOARDS_META, JSON.stringify(boardsMeta));
                 updateBoardSelectUI();
@@ -84,7 +86,7 @@ function subscribeToGlobalAgenda(uid) {
     if (!isFirebaseReady || !uid) return;
     if (globalAgendaRef) globalAgendaRef.off();
 
-    console.log("Sync: Escutando Agenda Global...");
+    if (window.TEA_DEBUG) console.log("Sync: Escutando Agenda Global...");
     globalAgendaRef = db.ref('users/' + uid + '/global/agenda');
 
     globalAgendaRef.on('value', (snapshot) => {
@@ -95,7 +97,7 @@ function subscribeToGlobalAgenda(uid) {
         if (!snapshot.exists()) {
             const localAgendaStr = localStorage.getItem(LS_GLOBAL_AGENDA);
             if (localAgendaStr && localAgendaStr !== '[]' && localAgendaStr !== '') {
-                console.log("Sync: Firebase agenda global não existe, enviando local...");
+                if (window.TEA_DEBUG) console.log("Sync: Firebase agenda global não existe, enviando local...");
                 try {
                     globalAgendaRef.set(JSON.parse(localAgendaStr));
                     return;
@@ -112,7 +114,7 @@ function subscribeToGlobalAgenda(uid) {
 
         if (valStr === currentLocal) return;
 
-        console.log("Sync: Agenda Global atualizada remotamente.");
+        if (window.TEA_DEBUG) console.log("Sync: Agenda Global atualizada remotamente.");
         isRemoteUpdate = true;
         localStorage.setItem(LS_GLOBAL_AGENDA, valStr);
 
@@ -128,7 +130,7 @@ function subscribeToCurrentBoard(uid, boardId) {
     if (currentBoardRef) currentBoardRef.off();
 
     if (boardId === 'board-todos') {
-        console.log('Sync: Escutando alterações em TODOS os quadros...');
+        if (window.TEA_DEBUG) console.log('Sync: Escutando alterações em TODOS os quadros...');
         currentBoardRef = db.ref('users/' + uid + '/boards');
         currentBoardRef.on('value', (snapshot) => {
             hasLoadedCurrentBoard = true;
@@ -157,7 +159,7 @@ function subscribeToCurrentBoard(uid, boardId) {
         return;
     }
 
-    console.log(`Sync: Escutando alterações no quadro ${boardId}...`);
+    if (window.TEA_DEBUG) console.log(`Sync: Escutando alterações no quadro ${boardId}...`);
     currentBoardRef = db.ref('users/' + uid + '/boards/' + boardId);
 
     currentBoardRef.on('value', (snapshot) => {
@@ -168,7 +170,7 @@ function subscribeToCurrentBoard(uid, boardId) {
         if (!snapshot.exists()) {
             const localBoardStr = localStorage.getItem(LS_BOARD_PREFIX + boardId);
             if (localBoardStr && localBoardStr !== '[]' && localBoardStr !== '') {
-                console.log(`Sync: Firebase board ${boardId} não existe, enviando local...`);
+                if (window.TEA_DEBUG) console.log(`Sync: Firebase board ${boardId} não existe, enviando local...`);
                 try {
                     currentBoardRef.set(JSON.parse(localBoardStr));
                     return;
@@ -185,7 +187,7 @@ function subscribeToCurrentBoard(uid, boardId) {
 
         if (valStr === currentLocalData) return;
 
-        console.log('Sync: Conteúdo do quadro atualizado remotamente.');
+        if (window.TEA_DEBUG) console.log('Sync: Conteúdo do quadro atualizado remotamente.');
         isRemoteUpdate = true;
         localStorage.setItem(LS_BOARD_PREFIX + boardId, valStr);
 
@@ -196,48 +198,8 @@ function subscribeToCurrentBoard(uid, boardId) {
     });
 }
 
-function saveImmediately() {
-    if (__persistTick) {
-        clearTimeout(__persistTick);
-        __persistTick = null;
-    }
-    if (__muteHistory > 0) return;
-    try {
-        const { boardData, agendaData } = serializeAndSeparate();
-        if (currentBoardId === 'board-todos') {
-            distributeAndSaveTodos(boardData, agendaData);
-        } else {
-            const boardJson = JSON.stringify(boardData);
-            const agendaJson = JSON.stringify(agendaData);
-            if (currentBoardId) {
-                localStorage.setItem(LS_BOARD_PREFIX + currentBoardId, boardJson);
-                const board = boardsMeta.find(b => b.id === currentBoardId);
-                if (board) {
-                    board.lastModified = Date.now();
-                    saveBoardsMetadata();
-                }
-            }
-            localStorage.setItem(LS_GLOBAL_AGENDA, agendaJson);
-            if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
-                if (typeof isInitialLoadComplete !== 'undefined' && !isInitialLoadComplete) {
-                    console.log("Sync: Ignorando gravação no Firebase (carga inicial incompleta).");
-                } else {
-                    db.ref('users/' + auth.currentUser.uid + '/boards/' + currentBoardId).set(boardData)
-                        .catch(e => console.error("Firebase board save error:", e));
-                    db.ref('users/' + auth.currentUser.uid + '/global/agenda').set(agendaData)
-                        .catch(e => console.error("Firebase agenda save error:", e));
-                }
-            }
-        }
+// [DEDUP v8] "saveImmediately" removida daqui: a versao ATIVA vive em kanban.js (ultima no build vence).
 
-        if (isFirebaseReady && auth && auth.currentUser && !isRemoteUpdate) {
-            if (typeof isInitialLoadComplete !== 'undefined' && isInitialLoadComplete) {
-                triggerAutomaticCloudBackup(auth.currentUser.uid);
-            }
-        }
-    } catch (e) { }
-    capture();
-}
 
 function saveToCloud(path, data) {
     if (isFirebaseReady && db && auth && auth.currentUser) {
@@ -274,7 +236,7 @@ function triggerAutomaticCloudBackup(uid) {
                 dateStr: dateStr
             });
 
-            console.log("Sync: Backup automático salvo na nuvem.");
+            if (window.TEA_DEBUG) console.log("Sync: Backup automático salvo na nuvem.");
 
             // Limpa backups com mais de 7 dias (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
             const oneWeekAgo = now - 604800000;

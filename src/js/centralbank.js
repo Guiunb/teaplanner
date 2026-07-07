@@ -58,6 +58,8 @@ function cbAddDias(dataStr, dias) {
 }
 
 // ---------- Preço vigente (SOBRESCREVE a versão do economy.js no bundle) ----------
+// [REVIEW v8] OVERRIDE INTENCIONAL: redefine o fallback do economy.js
+// (ultima declaracao vence no escopo compartilhado). Par documentado la tambem.
 function getPrecoAtual(quadrant, base) {
     if (typeof isAddonOn === 'function' && isAddonOn('centralbank') && cbData && cbData.precos) {
         var p = cbData.precos[quadrant];

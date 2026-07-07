@@ -1,0 +1,26 @@
+PACOTE DE RESGATE - LEIA NESTA ORDEM
+=====================================
+SEUS DADOS ESTAO SEGUROS: cartoes/quadros vivem no navegador (localStorage)
+e no Firebase, nao nos arquivos. Nada foi perdido.
+
+O QUE ACONTECEU: o build.ps1 que reescrevi na v8 esqueceu a etapa de
+inlinar o CSS (o original fazia CSS + JS; eu so fiz JS). Sem estilo, o
+dropdown de Add-ons e os dialogos renderizam expandidos - o crash visual
+do seu print. A deduplicacao nao teve culpa. Erro registrado no caderno.
+
+PASSO 1 - VOLTAR A FUNCIONAR JA (30 segundos):
+  Renomeie index_RESTAURACAO_v7.2.html para index.html na pasta do projeto.
+  CTRL+F5. Essa e a versao boa que voce estava rodando (v6 + modulos).
+
+PASSO 2 - TESTAR A v8.1 SEM ARRISCAR NADA:
+  Renomeie index_v8.1_TESTAR_ANTES.html para index_v81.html, coloque na
+  pasta e abra http://localhost:8080/index_v81.html
+  Confira: barra normal, Add-ons em dropdown, timer ok, criar cartao,
+  recorrencia, alerta. Rode tambem o test-runner apontando pra ela se quiser.
+
+PASSO 3 - SO ENTAO promova a v8.1 a index.html oficial.
+  (O build.ps1 novo, corrigido com as DUAS etapas, ja esta neste pacote.)
+
+OBS: se os testes automatizados ainda falharem com a v8.1 FUNCIONANDO no
+uso manual, o suspeito passa a ser o test-runner.html antigo apontando
+para seletores da estrutura antiga - ai atualizamos ele, nao o app.

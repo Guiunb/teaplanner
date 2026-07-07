@@ -342,26 +342,107 @@
         inp.addEventListener('focus', function () { ritPauseCountdown(ov); });
         card.appendChild(inp);
 
+        // Diario de Friccao/Evolucao (Ciclo 1): registro leve do que travou ou fluiu
+        var qd = ritEl('p', 'rit-sub', 'Algo travou ou fluiu hoje? (opcional \u2014 vira registro no seu Diario)');
+        qd.style.marginBottom = '2px';
+        card.appendChild(qd);
+        var diario = document.createElement('input');
+        diario.className = 'rit-input';
+        diario.id = 'shutdownDiario';
+        diario.type = 'text';
+        diario.placeholder = 'Ex.: Travei na tarefa X porque faltava a senha do sistema';
+        diario.addEventListener('focus', function () { ritPauseCountdown(ov); });
+        card.appendChild(diario);
+
+        var verDiario = ritEl('button', 'rit-btn rit-ghost', '\uD83D\uDCD3 Ver diario');
+        verDiario.style.marginLeft = '0';
+        verDiario.addEventListener('click', function () { ritPauseCountdown(ov); ritShowDiario(); });
+
         var btn = ritEl('button', 'rit-btn', 'Encerrar o dia \u2713');
-        btn.addEventListener('click', function () { ritCloseShutdown(inp.value); });
+        btn.addEventListener('click', function () { ritCloseShutdown(inp.value, diario.value); });
         card.appendChild(btn);
+        card.appendChild(verDiario);
 
         var prog = ritEl('div', 'rit-progress'); prog.appendChild(ritEl('i', '', ''));
         card.appendChild(prog);
         ov.appendChild(card);
         ov.style.display = 'flex';
-        ritStartCountdown(ov, ritDur(), function () { ritCloseShutdown(inp.value); });
+        ritStartCountdown(ov, ritDur(), function () { ritCloseShutdown(inp.value, diario.value); });
         ritEmit('ritual:shutdown', s);
     }
 
-    function ritCloseShutdown(topTask) {
+    function ritCloseShutdown(topTask, diarioTexto) {
         var ov = document.getElementById('shutdownOverlay');
         if (ov) ov.style.display = 'none';
         if (ritShutdownTimer) { clearTimeout(ritShutdownTimer); ritShutdownTimer = null; }
         var t = (topTask || '').trim();
         if (t) ritCreateTopTask(t);
+        var dt = (diarioTexto || '').trim();
+        if (dt) ritDiarioAdd({ ts: Date.now(), tipo: 'dia', texto: dt });
         ritLoad().ultimoShutdown = ritToday();
         ritSave();
+    }
+
+    // ---------- Diario de Friccao/Evolucao: escrita e LEITURA ----------
+    var RIT_FRICCAO_KEY = 'tea-planner-friccao';
+    function ritDiarioAdd(entrada) {
+        try {
+            var raw = localStorage.getItem(RIT_FRICCAO_KEY);
+            var arr = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(arr)) arr = [];
+            arr.push(entrada);
+            if (arr.length > 200) arr = arr.slice(-200);
+            localStorage.setItem(RIT_FRICCAO_KEY, JSON.stringify(arr));
+        } catch (e) { }
+    }
+    function ritShowDiario() {
+        ritStyles();
+        var arr = [];
+        try {
+            var raw = localStorage.getItem(RIT_FRICCAO_KEY);
+            arr = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(arr)) arr = [];
+        } catch (e) { arr = []; }
+
+        var ov = ritOverlay('diarioOverlay');
+        ov.innerHTML = '';
+        var card = ritEl('div', 'rit-card');
+        card.style.textAlign = 'left';
+        card.style.maxHeight = '80vh';
+        card.style.overflowY = 'auto';
+        var h = ritEl('h3', '', '\uD83D\uDCD3 Diario de Friccao & Evolucao');
+        h.style.textAlign = 'center';
+        card.appendChild(h);
+
+        if (arr.length === 0) {
+            var vazio = ritEl('p', 'rit-sub', 'Ainda sem registros. Eles nascem no ritual de encerramento ' +
+                '(campo "algo travou ou fluiu?") e nas conversas com o Companion. Sem pressa.');
+            vazio.style.textAlign = 'center';
+            card.appendChild(vazio);
+        } else {
+            var icones = { 'dia': '\uD83C\uDF19', 'conversa-retorno': '\uD83C\uDF31' };
+            for (var i = arr.length - 1; i >= 0 && i >= arr.length - 60; i--) {
+                var e2 = arr[i];
+                if (!e2 || (!e2.texto && !e2.tag)) continue;
+                var linha = ritEl('div', '', '');
+                linha.style.cssText = 'padding:9px 2px;border-bottom:1px dashed rgba(255,255,255,.08);font-size:14px;';
+                var dt2 = new Date(e2.ts || 0);
+                var quando = dt2.toLocaleDateString('pt-BR') + ' ' +
+                    String(dt2.getHours()).padStart(2, '0') + ':' + String(dt2.getMinutes()).padStart(2, '0');
+                var head = ritEl('div', '', (icones[e2.tipo] || '\uD83D\uDCD3') + ' ' + quando);
+                head.style.cssText = 'font-size:11.5px;color:#9db2cc;margin-bottom:2px;';
+                linha.appendChild(head);
+                linha.appendChild(ritEl('div', '', e2.texto || ('(' + e2.tag + ')')));
+                card.appendChild(linha);
+            }
+        }
+
+        var fechar = ritEl('button', 'rit-btn', 'Fechar');
+        fechar.style.cssText = 'display:block;margin:14px auto 0;';
+        fechar.addEventListener('click', function () { ov.style.display = 'none'; });
+        card.appendChild(fechar);
+        ov.appendChild(card);
+        ov.style.display = 'flex';
     }
 
     function ritCreateTopTask(text) {
@@ -438,6 +519,35 @@
         var ov = ritOverlay('weekReviewOverlay');
         ov.innerHTML = '';
         var card = ritEl('div', 'rit-card');
+
+        // M0 v1.5: fechar a semana OLHANDO para o proposito (foto + frase)
+        try {
+            if (typeof isPropositoVisualOn === 'function' && isPropositoVisualOn() &&
+                typeof getBoardsComProposito === 'function') {
+                var metas = getBoardsComProposito();
+                var meta = null;
+                for (var mi = 0; mi < metas.length; mi++) {
+                    if (typeof currentBoardId !== 'undefined' && metas[mi].id === currentBoardId) { meta = metas[mi]; break; }
+                }
+                if (!meta && metas.length) meta = metas[0];
+                if (meta && meta.proposito) {
+                    if (meta.proposito.fotos && meta.proposito.fotos.length) {
+                        var img = document.createElement('img');
+                        img.src = meta.proposito.fotos[0];
+                        img.alt = 'Seu proposito';
+                        img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:50%;' +
+                            'border:2px solid rgba(232,161,61,.6);margin:0 auto 6px;display:block;';
+                        card.appendChild(img);
+                    }
+                    if (meta.proposito.frase) {
+                        var fr = ritEl('p', 'rit-sub', '\u201C' + meta.proposito.frase + '\u201D');
+                        fr.style.fontStyle = 'italic';
+                        card.appendChild(fr);
+                    }
+                }
+            }
+        } catch (e) { /* proposito e opcional */ }
+
         card.appendChild(ritEl('h3', '', '\uD83C\uDF05 Sua Semana'));
         card.appendChild(ritEl('p', 'rit-sub', 'A semana que fechou (' + resumo.iso + '):'));
 
@@ -540,5 +650,5 @@
     if (document.readyState === 'complete') { setTimeout(ritBoot, 0); }
     else { window.addEventListener('load', function () { setTimeout(ritBoot, 0); }); }
 
-    window.RituaisTEA = { shutdown: ritShowShutdown, semana: ritMaybeWeekReview };
+    window.RituaisTEA = { shutdown: ritShowShutdown, semana: ritMaybeWeekReview, diario: ritShowDiario };
 })();
