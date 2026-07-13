@@ -2752,27 +2752,27 @@ padding: 6px 2px;
         <!-- BOARD CONTROLS -->
         <div class="board-controls"
             style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
-            <select id="boardSelect" class="board-selector">
+            <select id="boardSelect" class="board-selector" title="Selecionar o quadro ativo">
                 <!-- Options populated by JS -->
             </select>
             
             <div class="header-dropdown" id="boardDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Quadros &#9662;</button>
+                <button class="header-dropdown-btn" type="button" title="Gerenciar quadros: criar, renomear, clonar, colorir ou excluir">Quadros &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
-                    <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
-                    <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
-                    <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuNewBoard" title="Cria um novo quadro em branco">➕ Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard" title="Renomeia o quadro atual">✏️ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard" title="Duplica o quadro atual com outro nome">💾 Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme" title="Define a cor de fundo do quadro atual">🎨 Cor do Quadro</button>
                     <button type="button" id="menuBoardProposito" style="display:none;">🎯 Editar Propósito</button>
                     <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
-                <button class="header-dropdown-btn" type="button">Dados &#9662;</button>
+                <button class="header-dropdown-btn" type="button" title="Backup dos seus dados: baixar ou importar JSON">Dados &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuExportJson">📥 Salvar Json</button>
-                    <button type="button" id="menuImportJson">📤 Importar Json</button>
+                    <button type="button" id="menuExportJson" title="Baixa um arquivo JSON com todos os seus quadros e cartões">📥 Salvar Json</button>
+                    <button type="button" id="menuImportJson" title="Restaura seus dados a partir de um arquivo JSON salvo">📤 Importar Json</button>
                     <button type="button" id="menuCloudBackups">☁️ Backups na Nuvem</button>
                 </div>
             </div>
@@ -2823,12 +2823,12 @@ padding: 6px 2px;
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
-        <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
+        <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" title="Filtrar cartões pelo tempo do timer (ex: 45m, 1h)" style="width:120px"
             title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
         <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
-        <label>De <input id="fFrom" type="date"></label>
-        <label>Até <input id="fTo" type="date"></label>
-        <button id="clearFilters">Limpar filtros</button>
+        <label title="Mostrar apenas cartões com data a partir deste dia">De <input id="fFrom" type="date"></label>
+        <label title="Mostrar apenas cartões com data até este dia">Até <input id="fTo" type="date"></label>
+        <button id="clearFilters" title="Remove todos os filtros ativos (cor, tempo e datas)">Limpar filtros</button>
 
         <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
         <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
@@ -2837,7 +2837,7 @@ padding: 6px 2px;
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <button id="addList">+ Lista</button>
+        <button id="addList" title="Adiciona uma nova lista ao Kanban">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
             <div class="ai-prompt-bar">
@@ -2904,43 +2904,43 @@ padding: 6px 2px;
     </section>
 
     <div id="ctx" class="ctx">
-        <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
-        <button data-action="select-mode">🖱️ Selecionar Cartão</button>
+        <button data-action="edit" title="Edita o texto do cartão">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+        <button data-action="select-mode" title="Marca o cartão para seleção múltipla (mover/editar vários de uma vez)">🖱️ Selecionar Cartão</button>
         <div class="sep"></div>
-        <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
-        <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
-        <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
-        <button data-action="agenda">📅 Agendar / Recorrência...</button>
-        <button data-action="alert">🔔 Configurar Alerta...</button>
+        <button data-action="timer" title="Define tempo estimado e cronometra a tarefa (TEA Timer)">⏱️ Timer <span class="shortcut">Alt+T</span></button>
+        <button data-action="color" title="Aplica etiqueta de cor: quadrantes da Matriz ou cores personalizadas">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
+        <button data-action="date" title="Define a data de vencimento do cartão">📅 Editar Data <span class="shortcut">Alt+D</span></button>
+        <button data-action="agenda" title="Agenda o cartão em dia/horário e configura recorrências">📅 Agendar / Recorrência...</button>
+        <button data-action="alert" title="Cria um lembrete com alerta para este cartão">🔔 Configurar Alerta...</button>
         <div class="sep"></div>
         <div id="ctx-move-board" style="position:relative">
-            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
+            <button data-action="move-board" title="Envia o cartão para outro quadro">🚀 Mover para Quadro ▶</button>
             <div class="ctx-sub" id="ctx-move-board-sub"></div>
         </div>
         <div class="sep"></div>
-        <button data-action="prop">ℹ️ Propriedades do Cartão</button>
-        <button data-action="gemini-subtasks">✨ Gerar subtarefas</button>
-        <button data-action="gemini-organize">✨ Organizar na Matriz</button>
+        <button data-action="prop" title="Mostra histórico de movimentações e detalhes do cartão">ℹ️ Propriedades do Cartão</button>
+        <button data-action="gemini-subtasks" title="A IA divide este cartão em subtarefas menores">✨ Gerar subtarefas</button>
+        <button data-action="gemini-organize" title="A IA classifica este cartão em um quadrante da Matriz de Eisenhower">✨ Organizar na Matriz</button>
         <div class="sep"></div>
-        <button data-action="dup">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
-        <button data-action="del">🗑️ Excluir <span class="shortcut">Del</span></button>
+        <button data-action="dup" title="Cria uma cópia deste cartão">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
+        <button data-action="del" title="Exclui este cartão">🗑️ Excluir <span class="shortcut">Del</span></button>
         <div id="ctx-move" style="position:relative">
-            <button data-action="move">➡️ Mover para ▶</button>
+            <button data-action="move" title="Move para: lista do Kanban, quadrante da Matriz, dia da Semana ou horário da Agenda">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
         </div>
         <div id="ctx-move-all" style="position:relative">
-            <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
+            <button data-action="move-all" title="Move TODOS os cartões desta lista de uma vez (pode desfazer com Ctrl+Z)">➡️ Mover TODOS desta Lista ▶</button>
             <div class="ctx-sub" id="ctx-moveall-sub"></div>
         </div>
-        <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="del-all" title="Exclui TODOS os cartões desta lista">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
     <div id="ctx-list" class="ctx">
-        <button data-action="list-del">🗑️ Excluir lista</button>
-        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
-        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
+        <button data-action="list-del" title="Exclui a lista inteira do Kanban">🗑️ Excluir lista</button>
+        <button data-action="list-del-all" title="Exclui todos os cartões desta lista (a lista permanece)">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all" title="Move todos os cartões desta lista para outro destino">➡️ Mover TODOS desta Lista ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
-        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro ▶</button>
+        <button data-action="list-move-board" title="Move a lista inteira para outro quadro">➡️ Mover LISTA para outro quadro ▶</button>
         <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
     </div>
 
@@ -4776,6 +4776,19 @@ function startGlobalTimer() {
                 state = 'finished';
                 left = 0;
                 playBeep(); // Trigger alert
+                // ITEM 7: notifica no Foco (empilha se vários terminam juntos)
+                if (typeof showFocusNotification === 'function') {
+                    var _finishedCard = null;
+                    for (let c of cards) { _finishedCard = c; break; }
+                    if (!_finishedCard) {
+                        for (let c of allCards) { if (c.dataset.id === id) { _finishedCard = c; break; } }
+                    }
+                    if (_finishedCard) {
+                        var _txtEl = _finishedCard.querySelector('.text');
+                        var _txt = (_txtEl ? _txtEl.textContent : 'Tarefa').trim();
+                        showFocusNotification(_txt);
+                    }
+                }
             }
 
             // Sync the updates to all DOM representations
@@ -5419,46 +5432,80 @@ function createCard(data) {
 }
 
 function removeCardsBatch(cards, done) {
-    // Deleção em lote resiliente (itens 2 e 5): um cartão problemático
-    // (recorrente ou com erro) não pode impedir a deleção dos demais.
     var list = (cards || []).filter(Boolean);
     if (!list.length) { if (typeof done === 'function') done(); return; }
 
     var recurring = [];
     var normals = [];
     list.forEach(function (c) {
-        var isChild = !!c.dataset.recurrenceParent;
-        var isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
-        if (isChild || isParent) recurring.push(c); else normals.push(c);
+        try {
+            var isChild = !!c.dataset.recurrenceParent;
+            var isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
+            (isChild || isParent) ? recurring.push(c) : normals.push(c);
+        } catch (e) { console.error('Erro ao classificar:', e); }
     });
 
-    // 1) Deleta todos os cartões normais de uma vez, sem modal.
-    normals.forEach(function (c) {
-        try { removeCard(c); } catch (e) { console.error('Falha ao excluir cartão:', e); }
-    });
-
-    // 2) Processa os recorrentes em sequência: cada modal só abre
-    //    depois que o anterior é resolvido (evita colisão de modais).
+    // Processa recorrentes em sequência REAL: o próximo modal só abre depois
+    // que o usuário responde (ou cancela) o anterior. Sem metralhadora de modais.
     var i = 0;
-    function next() {
-        if (i >= recurring.length) {
+    function handleNextRecurring() {
+        if (i >= recurring.length) { handleNormals(); return; }
+        var card = recurring[i++];
+        try {
+            removeCard(card, false, function () { handleNextRecurring(); });
+        } catch (e) {
+            console.error('Erro recurr:', e);
+            handleNextRecurring(); // não trava a fila se um der erro
+        }
+    }
+
+    // Deleta cartões normais em lote (sem render mid-loop)
+    function handleNormals() {
+        normals.forEach(function (c) {
+            try {
+                // Mesmo comportamento de removeCard: se não tá na lixeira, envia lá
+                if (currentBoardId !== 'board-trash') {
+                    addCardHistory(c, 'Enviado para a lixeira');
+                    // Pega dados do cartão ANTES de remover do DOM
+                    var cardData = cardToData(c);
+                    cardData.boardId = 'board-trash';
+                    cardData.color = '#555';
+                    // Adiciona ao board-trash em memória (localStorage)
+                    var trashData = getBoardData('board-trash');
+                    var trashList = trashData.find(l => l.type === 'kanban' && l.title === 'Apagados');
+                    if (!trashList) {
+                        trashList = { type: 'kanban', title: 'Apagados', cards: [] };
+                        trashData.push(trashList);
+                    }
+                    trashList.cards.push(cardData);
+                    localStorage.setItem('ls:board-trash', JSON.stringify(trashData));
+                    // Remove do quadro ativo
+                    var idx = allCards.indexOf(c);
+                    if (idx > -1) allCards.splice(idx, 1);
+                    c.remove();
+                } else {
+                    // Já tá na lixeira: deleta permanentemente
+                    var idx = allCards.indexOf(c);
+                    if (idx > -1) allCards.splice(idx, 1);
+                    c.remove();
+                }
+            } catch (e) { console.error('Erro ao remover:', e); }
+        });
+        // Render + persist UMA VEZ ao final
+        try {
             persist();
             if (typeof renderWeeklyView === 'function') renderWeeklyView();
             applyFilters();
-            if (typeof done === 'function') done();
-            return;
-        }
-        var card = recurring[i++];
-        try {
-            // Encadeia via microtask pra garantir que o modal anterior fechou.
-            removeCard(card);
-        } catch (e) { console.error('Falha ao excluir recorrência:', e); }
-        setTimeout(next, 0);
+            clearSelection();
+        } catch (e) { console.error('Erro ao finalizar:', e); }
+        if (typeof done === 'function') done();
     }
-    next();
+
+    if (recurring.length === 0) handleNormals();
+    else handleNextRecurring();
 }
 
-function removeCard(c, bypassTrash = false) {
+function removeCard(c, bypassTrash = false, onComplete) {
     const isChild = !!c.dataset.recurrenceParent;
     const isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
     
@@ -5554,11 +5601,16 @@ function removeCard(c, bypassTrash = false) {
             persist();
             if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
             applyFilters();
+            if (typeof onComplete === 'function') onComplete();
+        }, function onCancel() {
+            // Usuário cancelou o modal do recorrente: segue a cadeia mesmo assim
+            if (typeof onComplete === 'function') onComplete();
         });
         return;
     }
     
     executeActualCardRemoval(c, bypassTrash);
+    if (typeof onComplete === 'function') onComplete();
 }
 
 function executeActualCardRemoval(c, bypassTrash) {
@@ -6587,6 +6639,23 @@ listCtx.addEventListener('click', function (e) {
 
             function showConfirm(message, onYes) { showModal('Confirmação', function () { var d = el('div'); d.textContent = message; return d; }, function (body, wrap) { if (typeof onYes === 'function') onYes(); }); }
 
+            // Variante com callback de cancelamento (usada pela Revisão, item 1)
+            function showConfirmCancel(message, onYes, onNo) {
+                var decided = false;
+                var m = showModal('Confirmação', function () { var d = el('div'); d.textContent = message; return d; }, function () {
+                    decided = true;
+                    if (typeof onYes === 'function') onYes();
+                });
+                // Acopla o "não" ao botão Cancelar e ao Esc (mantendo o comportamento original)
+                if (m && m.cancelButton) {
+                    var origCancel = m.cancelButton.onclick;
+                    m.cancelButton.onclick = function () {
+                        if (typeof origCancel === 'function') origCancel.call(this);
+                        if (!decided && typeof onNo === 'function') { decided = true; onNo(); }
+                    };
+                }
+            }
+
             function openColorDialog(cards) {
                 if (!cards.length) return;
                 var modalElements = showModal('Cor da Etiqueta', function () {
@@ -6841,6 +6910,7 @@ listCtx.addEventListener('click', function (e) {
                         paintCard(c); 
                     });
                     persist();
+                    if (typeof renderWeeklyView === 'function') renderWeeklyView();
                 });
 
                 const manageBtn = el('button'); 
@@ -6859,7 +6929,7 @@ listCtx.addEventListener('click', function (e) {
                 modalElements.wrap.querySelector('.row').prepend(manageBtn);
             }
 
-            function openDateDialog(cards) { if (!cards.length) return; showModal('Editar data', function () { var r = el('div'); var i = el('input'); i.type = 'date'; if (cards[0].dataset.due) i.value = cards[0].dataset.due; r.appendChild(i); return r; }, function (r, wrap) { var v = r.querySelector('input').value; cards.forEach(function (c) { c.dataset.due = v || ''; paintCard(c); }); applyFilters(); }); }
+            function openDateDialog(cards) { if (!cards.length) return; showModal('Editar data', function () { var r = el('div'); var i = el('input'); i.type = 'date'; if (cards[0].dataset.due) i.value = cards[0].dataset.due; r.appendChild(i); return r; }, function (r, wrap) { var v = r.querySelector('input').value; cards.forEach(function (c) { c.dataset.due = v || ''; paintCard(c); }); applyFilters(); if (typeof renderWeeklyView === 'function') renderWeeklyView(); }); }
 // [DEDUP v8] "openTimerDialog" removida daqui: a versao ATIVA vive em ai.js (ultima no build vence).
 
             function openColorFilters() {
@@ -8371,9 +8441,52 @@ function initAiControls() {
     const micBtn = document.getElementById('aiMicBtn');
     if (micBtn) micBtn.addEventListener('click', toggleVoiceRecord);
 
+    // ITEM 3: Atalho Alt+S para transcrição de voz.
+    // Protegido: não dispara enquanto digita em input/textarea/editável.
+    document.addEventListener('keydown', function (e) {
+        if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 's' || e.key === 'S')) {
+            var t = e.target;
+            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            var editando = tag === 'input' || tag === 'textarea' || (t && t.isContentEditable);
+            if (editando) return; // deixa o navegador/campo lidar normalmente
+            e.preventDefault();
+            if (micBtn) micBtn.click();
+        }
+    });
+
     initSpeechRecognition();
 }
 
+
+// ITEM 7: Fila de notificações para múltiplos timers terminando no Foco.
+// Cada notificação aparece por 3s; se vários terminam juntos, empilham em sequência.
+var focusNotificationQueue = [];
+var focusNotificationShowing = false;
+
+function showFocusNotification(cardText) {
+    if (!document.body.classList.contains('focus-mode')) return;
+    focusNotificationQueue.push(cardText);
+    processNextFocusNotification();
+}
+
+function processNextFocusNotification() {
+    if (focusNotificationShowing || focusNotificationQueue.length === 0) return;
+    focusNotificationShowing = true;
+    var text = focusNotificationQueue.shift();
+    var notif = document.createElement('div');
+    notif.className = 'focus-timer-notif';
+    notif.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); ' +
+        'background: #4caf50; color: #fff; padding: 12px 20px; border-radius: 8px; ' +
+        'z-index: 100000; font-weight: bold; box-shadow: 0 4px 16px rgba(0,0,0,0.3); ' +
+        'max-width: 80vw; text-align: center;';
+    notif.textContent = '\u2705 ' + text + ' \u2014 tempo esgotado!';
+    document.body.appendChild(notif);
+    setTimeout(function () {
+        if (notif.parentNode) notif.remove();
+        focusNotificationShowing = false;
+        processNextFocusNotification();
+    }, 3000);
+}
 
 let alertCheckInterval = null;
 function startAlertCheck() {
@@ -8463,8 +8576,9 @@ toast.style.transform = 'translateY(-20px)';
 setTimeout(() => toast.remove(), 500);
 }, 8000);
 }
-function promptDeleteRecurringCard(card, onDecision) {
-    showModal('Excluir Recorr\u00EAncia', function () {
+function promptDeleteRecurringCard(card, onDecision, onCancel) {
+    var _decided = false;
+    var _m = showModal('Excluir Recorr\u00EAncia', function () {
         var d = el('div');
         d.style.display = 'flex';
         d.style.flexDirection = 'column';
@@ -8491,9 +8605,18 @@ function promptDeleteRecurringCard(card, onDecision) {
         `;
         return d;
     }, function (body, wrap) {
+        _decided = true;
         var val = body.querySelector('input[name="delRecurOption"]:checked').value;
         onDecision(val);
     });
+    // Repassa o cancelamento (botão Cancelar) para quem chamou
+    if (_m && _m.cancelButton) {
+        var _origCancel = _m.cancelButton.onclick;
+        _m.cancelButton.onclick = function () {
+            if (typeof _origCancel === 'function') _origCancel.call(this);
+            if (!_decided && typeof onCancel === 'function') { _decided = true; onCancel(); }
+        };
+    }
 }
 
 function parseRecurrenceRule(recurrenceVal) {
@@ -13828,6 +13951,30 @@ function initCentralBank() {
   function finishReview() {
     if (!session) { closeOverlay(); return; }
     session.finished = true;
+
+    // ITEM 1: sugerir enviar concluídos pra lixeira ANTES de finalizar.
+    // A finalização (completeFinishReview) roda nos DOIS caminhos: sim e não/cancelar,
+    // pra nunca perder as decisões da revisão.
+    var completedCards = allCards.filter(function (c) { return c.dataset.completed === 'true'; });
+    if (completedCards.length > 0 && !session._trashAsked) {
+        session._trashAsked = true;
+        showConfirmCancel(
+            'Enviar ' + completedCards.length + ' cartão(s) concluído(s) para a lixeira?',
+            function onYes() {
+                removeCardsBatch(completedCards, function () { completeFinishReview(); });
+            },
+            function onNo() {
+                completeFinishReview();
+            }
+        );
+        return;
+    }
+
+    completeFinishReview();
+  }
+
+  function completeFinishReview() {
+    if (!session) { closeOverlay(); return; }
     var counts = { historico: 0, talvez: 0, trash: 0, reactivate: 0, keep: 0 };
     session.decisions.forEach(function (dec) { counts[dec.action] = (counts[dec.action] || 0) + 1; });
 
@@ -14165,8 +14312,7 @@ document.addEventListener('keydown', function (e) {
         if (document.activeElement.tagName === 'INPUT' || document.activeElement.isContentEditable) return;
         e.preventDefault();
         appClipboard = Array.from(selected).map(cardToData);
-        selected.forEach(card => removeCard(card));
-        clearSelection();
+        removeCardsBatch(Array.from(selected), function () { clearSelection(); });
         return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
