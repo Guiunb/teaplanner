@@ -980,18 +980,6 @@
             margin: 6px 0
         }
 
-        .ctx-sub-header {
-            padding: 8px 12px 3px;
-            font-size: 10px;
-            letter-spacing: .6px;
-            color: #9fb3d2;
-            text-transform: uppercase;
-            pointer-events: none;
-            opacity: .85;
-            border-top: 1px solid rgba(255,255,255,.06);
-        }
-        .ctx-sub-header:first-child { border-top: none; }
-
         .ctx-sub {
             position: absolute;
             left: 100%;
@@ -1253,7 +1241,7 @@
             flex-direction: column;
             flex-grow: 1;
             overflow: hidden;
-            min-height: 48px;
+            min-height: 300px;
             transition: all .3s ease-in-out;
         }
 
@@ -1752,25 +1740,6 @@
             position: relative;
             z-index: 10;
             transition: background-color 0.2s;
-            touch-action: none; /* impede a pagina de rolar ao arrastar a alca */
-        }
-
-        @media (pointer: coarse) {
-            .resizer-h {
-                height: 18px;
-                margin: -4px 0;
-            }
-            .resizer-h::after {
-                content: '';
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-                width: 48px;
-                height: 5px;
-                border-radius: 3px;
-                background: rgba(255,255,255,.45);
-            }
         }
         
         .resizer:hover, .resizer.resizing {
@@ -2777,33 +2746,33 @@ padding: 6px 2px;
             </svg>
             TEA PLANNER
         </h1>
-        <button id="loginBtn" title="Entrar com sua conta Google para sincronizar os dados" style="background:#4285F4; color:white;">Login Google</button>
+        <button id="loginBtn" style="background:#4285F4; color:white;">Login Google</button>
         <span id="userInfo" style="font-size:12px; font-weight:bold;"></span>
 
         <!-- BOARD CONTROLS -->
         <div class="board-controls"
             style="display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 8px; margin-right: auto; flex-wrap: wrap;">
-            <select id="boardSelect" class="board-selector" title="Selecionar o quadro ativo">
+            <select id="boardSelect" class="board-selector">
                 <!-- Options populated by JS -->
             </select>
             
             <div class="header-dropdown" id="boardDropdownContainer">
-                <button class="header-dropdown-btn" type="button" title="Gerenciar quadros: criar, renomear, salvar como, colorir ou excluir">Quadros &#9662;</button>
+                <button class="header-dropdown-btn" type="button">Quadros &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuNewBoard" title="Cria um novo quadro em branco">➕ Adicionar Quadro</button>
-                    <button type="button" id="menuRenameBoard" title="Renomeia o quadro atual">✏️ Renomear Quadro</button>
-                    <button type="button" id="menuCloneBoard" title="Duplica o quadro atual com outro nome">💾 Salvar Quadro como...</button>
-                    <button type="button" id="menuBoardTheme" title="Define a cor de fundo do quadro atual">🎨 Cor do Quadro</button>
+                    <button type="button" id="menuNewBoard">➕ Adicionar Quadro</button>
+                    <button type="button" id="menuRenameBoard">✏️ Renomear Quadro</button>
+                    <button type="button" id="menuCloneBoard">💾 Salvar Quadro como...</button>
+                    <button type="button" id="menuBoardTheme">🎨 Cor do Quadro</button>
                     <button type="button" id="menuBoardProposito" style="display:none;">🎯 Editar Propósito</button>
-                    <button type="button" id="menuDeleteBoard" title="Exclui o quadro atual (ação irreversível)" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
+                    <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
                 </div>
             </div>
             
             <div class="header-dropdown" id="dataDropdownContainer">
-                <button class="header-dropdown-btn" type="button" title="Backup dos seus dados: salvar ou importar arquivo JSON">Dados &#9662;</button>
+                <button class="header-dropdown-btn" type="button">Dados &#9662;</button>
                 <div class="header-dropdown-content">
-                    <button type="button" id="menuExportJson" title="Baixa um arquivo JSON com todos os seus quadros e cartões">📥 Salvar Json</button>
-                    <button type="button" id="menuImportJson" title="Restaura seus dados a partir de um arquivo JSON salvo">📤 Importar Json</button>
+                    <button type="button" id="menuExportJson">📥 Salvar Json</button>
+                    <button type="button" id="menuImportJson">📤 Importar Json</button>
                     <button type="button" id="menuCloudBackups">☁️ Backups na Nuvem</button>
                 </div>
             </div>
@@ -2854,12 +2823,12 @@ padding: 6px 2px;
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
-        <input id="fTime" type="text" title="Filtrar cartões pelo tempo do timer (ex: 45m, 1h)" placeholder="Tempo (ex: 45m)" style="width:120px"
+        <input id="fTime" type="text" placeholder="Tempo (ex: 45m)" style="width:120px"
             title="Filtra cartões com tempo definido menor ou igual ao valor. Use 'm' para minutos, 'h' para horas. Ex: 90m or 1h 30m">
         <strong id="sumTimersDisplay" title="Selecionado: 0:00 / Filtrado: 0:00 / Total: 0:00">0:00 min</strong>
-        <label title="Mostrar apenas cartões com data a partir deste dia">De <input id="fFrom" type="date"></label>
-        <label title="Mostrar apenas cartões com data até este dia">Até <input id="fTo" type="date"></label>
-        <button id="clearFilters" title="Remove todos os filtros ativos (cor, tempo e datas)">Limpar filtros</button>
+        <label>De <input id="fFrom" type="date"></label>
+        <label>Até <input id="fTo" type="date"></label>
+        <button id="clearFilters">Limpar filtros</button>
 
         <button id="toggleBoardBtn" title="Mostrar/Ocultar Kanban">☰</button>
         <button id="toggleMatrixBtn" title="Mostrar/Ocultar Matriz">⊞</button>
@@ -2868,7 +2837,7 @@ padding: 6px 2px;
         <button id="manualFocusBtn" title="Minimizar para Timer" style="background: rgba(102, 187, 106, 0.2); border-color: rgba(102, 187, 106, 0.4);">🎯 Foco</button>
 
         <button id="quickSaveBtn" style="display:none"></button>
-        <button id="addList" title="Adiciona uma nova lista ao Kanban">+ Lista</button>
+        <button id="addList">+ Lista</button>
         <!-- AI Assistant Header Bar -->
         <div class="ai-assistant-container" id="aiAssistantContainer">
             <div class="ai-prompt-bar">
@@ -2935,43 +2904,43 @@ padding: 6px 2px;
     </section>
 
     <div id="ctx" class="ctx">
-        <button data-action="edit" title="Edita o texto do cartão">✍️ Editar Cartão <span class="shortcut">F2</span></button>
-        <button data-action="select-mode" title="Marca o cartão para seleção múltipla (mover/editar vários de uma vez)">🖱️ Selecionar Cartão</button>
+        <button data-action="edit">✍️ Editar Cartão <span class="shortcut">F2</span></button>
+        <button data-action="select-mode">🖱️ Selecionar Cartão</button>
         <div class="sep"></div>
-        <button data-action="timer" title="Define tempo estimado e cronometra a tarefa (TEA Timer)">⏱️ Timer <span class="shortcut">Alt+T</span></button>
-        <button data-action="color" title="Aplica etiqueta de cor: quadrantes da Matriz ou cores personalizadas">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
-        <button data-action="date" title="Define a data de vencimento do cartão">📅 Editar Data <span class="shortcut">Alt+D</span></button>
-        <button data-action="agenda" title="Agenda o cartão em dia/horário e configura recorrências">📅 Agendar / Recorrência...</button>
-        <button data-action="alert" title="Cria um lembrete com alerta para este cartão">🔔 Configurar Alerta...</button>
+        <button data-action="timer">⏱️ Timer <span class="shortcut">Alt+T</span></button>
+        <button data-action="color">🎨 Editar cor <span class="shortcut">Alt+C</span></button>
+        <button data-action="date">📅 Editar Data <span class="shortcut">Alt+D</span></button>
+        <button data-action="agenda">📅 Agendar / Recorrência...</button>
+        <button data-action="alert">🔔 Configurar Alerta...</button>
         <div class="sep"></div>
         <div id="ctx-move-board" style="position:relative">
-            <button data-action="move-board" title="Envia o cartão para outro quadro">🚀 Mover para Quadro ▶</button>
+            <button data-action="move-board">🚀 Mover para Quadro ▶</button>
             <div class="ctx-sub" id="ctx-move-board-sub"></div>
         </div>
         <div class="sep"></div>
-        <button data-action="prop" title="Mostra histórico de movimentações e detalhes do cartão">ℹ️ Propriedades do Cartão</button>
-        <button data-action="gemini-subtasks" title="A IA divide este cartão em subtarefas menores">✨ Gerar subtarefas</button>
-        <button data-action="gemini-organize" title="A IA classifica este cartão em um quadrante da Matriz de Eisenhower">✨ Organizar na Matriz</button>
+        <button data-action="prop">ℹ️ Propriedades do Cartão</button>
+        <button data-action="gemini-subtasks">✨ Gerar subtarefas</button>
+        <button data-action="gemini-organize">✨ Organizar na Matriz</button>
         <div class="sep"></div>
-        <button data-action="dup" title="Cria uma cópia deste cartão">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
-        <button data-action="del" title="Exclui este cartão">🗑️ Excluir <span class="shortcut">Del</span></button>
+        <button data-action="dup">➕ Duplicar <span class="shortcut">Ctrl+D</span></button>
+        <button data-action="del">🗑️ Excluir <span class="shortcut">Del</span></button>
         <div id="ctx-move" style="position:relative">
-            <button data-action="move" title="Move para: lista do Kanban, quadrante da Matriz, dia da Semana ou horário da Agenda">➡️ Mover para ▶</button>
+            <button data-action="move">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
         </div>
         <div id="ctx-move-all" style="position:relative">
-            <button data-action="move-all" title="Move TODOS os cartões desta lista de uma vez (pode desfazer com Ctrl+Z)">➡️ Mover TODOS desta Lista ▶</button>
+            <button data-action="move-all">➡️ Mover TODOS desta Lista ▶</button>
             <div class="ctx-sub" id="ctx-moveall-sub"></div>
         </div>
-        <button data-action="del-all" title="Exclui TODOS os cartões desta lista">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="del-all">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
     <div id="ctx-list" class="ctx">
-        <button data-action="list-del" title="Exclui a lista inteira do Kanban">🗑️ Excluir lista</button>
-        <button data-action="list-del-all" title="Exclui todos os cartões desta lista (a lista permanece)">🗑️ Excluir TODOS desta Lista</button>
-        <button data-action="list-move-all" title="Move todos os cartões desta lista para outro destino">➡️ Mover TODOS desta Lista ▶</button>
+        <button data-action="list-del">🗑️ Excluir lista</button>
+        <button data-action="list-del-all">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="list-move-all">➡️ Mover TODOS desta Lista ▶</button>
         <div class="ctx-sub" id="ctx-list-move-sub"></div>
-        <button data-action="list-move-board" title="Move a lista inteira para outro quadro">➡️ Mover LISTA para outro quadro ▶</button>
+        <button data-action="list-move-board">➡️ Mover LISTA para outro quadro ▶</button>
         <div class="ctx-sub" id="ctx-list-move-board-sub"></div>
     </div>
 
@@ -5449,6 +5418,46 @@ function createCard(data) {
     return c;
 }
 
+function removeCardsBatch(cards, done) {
+    // Deleção em lote resiliente (itens 2 e 5): um cartão problemático
+    // (recorrente ou com erro) não pode impedir a deleção dos demais.
+    var list = (cards || []).filter(Boolean);
+    if (!list.length) { if (typeof done === 'function') done(); return; }
+
+    var recurring = [];
+    var normals = [];
+    list.forEach(function (c) {
+        var isChild = !!c.dataset.recurrenceParent;
+        var isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
+        if (isChild || isParent) recurring.push(c); else normals.push(c);
+    });
+
+    // 1) Deleta todos os cartões normais de uma vez, sem modal.
+    normals.forEach(function (c) {
+        try { removeCard(c); } catch (e) { console.error('Falha ao excluir cartão:', e); }
+    });
+
+    // 2) Processa os recorrentes em sequência: cada modal só abre
+    //    depois que o anterior é resolvido (evita colisão de modais).
+    var i = 0;
+    function next() {
+        if (i >= recurring.length) {
+            persist();
+            if (typeof renderWeeklyView === 'function') renderWeeklyView();
+            applyFilters();
+            if (typeof done === 'function') done();
+            return;
+        }
+        var card = recurring[i++];
+        try {
+            // Encadeia via microtask pra garantir que o modal anterior fechou.
+            removeCard(card);
+        } catch (e) { console.error('Falha ao excluir recorrência:', e); }
+        setTimeout(next, 0);
+    }
+    next();
+}
+
 function removeCard(c, bypassTrash = false) {
     const isChild = !!c.dataset.recurrenceParent;
     const isParent = c.dataset.recurrence && c.dataset.recurrence !== 'none';
@@ -6347,11 +6356,6 @@ function buildMoveAllSubmenu(fromList) {
     });
     const goalSlot = slotsRoot.querySelector('.goal-slot');
     if (goalSlot && goalSlot !== fromList) addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveAllSub, fromList);
-    addSubHeader('📅 Semana', ctxMoveAllSub);
-    addWeekDayButtons(ctxMoveAllSub, function () {
-        var src = fromList && fromList.querySelector('.cards');
-        return src ? Array.from(src.querySelectorAll('.card')) : [];
-    });
 }
 
 function addMoveAllButton(targetListElement, name, submenuContainer, sourceListElement) {
@@ -6431,7 +6435,7 @@ ctx.addEventListener('click', function (e) {
     if (action === 'edit') { if (block.length) startInlineEdit(block[0]); }
     else if (action === 'prop') { showPropertiesDialog(block[0]); }
     else if (action === 'dup') { duplicateCards(block); }
-    else if (action === 'del') { block.forEach(function (n) { removeCard(n); }); }
+    else if (action === 'del') { removeCardsBatch(block, clearSelection); }
     else if (action === 'color') { openColorDialog(block); }
     else if (action === 'date') { openDateDialog(block); }
     else if (action === 'timer') { openTimerDialog(block); }
@@ -6440,7 +6444,7 @@ ctx.addEventListener('click', function (e) {
     else if (action === 'gemini-subtasks') { generateSubtasks(block); }
     else if (action === 'gemini-organize') { organizeCardWithGemini(block); }
     else if (action === 'select-mode') { if (!isSelectionMode) toggleSelectionMode(); addSelection(ctxTarget); }
-    else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { $$('.card', list2).forEach(function (c) { removeCard(c); }); }); }
+    else if (action === 'del-all') { var list2 = (ctxTarget || block[0]) ? (ctxTarget || block[0]).closest('.list') : null; if (!list2) return; showConfirm('Excluir TODOS os cartões desta lista?', function () { removeCardsBatch($$('.card', list2), clearSelection); }); }
 });
 
 function showPropertiesDialog(card) {
@@ -6490,53 +6494,11 @@ function buildListMoveSub() {
     const goalSlot = slotsRoot.querySelector('.goal-slot');
     if (goalSlot && goalSlot !== listCtxTarget) addMoveAllButton(goalSlot, '🎯 OBJETIVO DO DIA', listMoveSub, listCtxTarget);
 }
-function addSubHeader(txt, container) {
-    var h = el('div', 'ctx-sub-header');
-    h.textContent = txt;
-    container.appendChild(h);
-}
-
-// Adiciona os 7 dias da semana ativa como destinos de "Mover para".
-// getCards: função que retorna os cartões a mover (seleção atual ou todos da lista de origem)
-function addWeekDayButtons(container, getCards) {
-    var day = getActiveDay();
-    var curr = new Date(day + 'T12:00:00');
-    var first = curr.getDate() - curr.getDay();
-    var names = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    for (var i = 0; i < 7; i++) {
-        (function (i) {
-            var d = new Date(curr); d.setDate(first + i);
-            var iso = d.toISOString().slice(0, 10);
-            var label = names[i] + ' ' + iso.split('-').reverse().slice(0, 2).join('/');
-            if (iso === day) label += ' • hoje';
-            var b = el('button');
-            b.textContent = '📅 ' + label;
-            b.title = 'Agenda para ' + label + ' (aparece no Painel Semanal, sem horário definido)';
-            b.addEventListener('click', function (ev) {
-                ev.stopPropagation();
-                var block = getCards();
-                if (!block.length) return;
-                applyWhen({ dataset: { date: iso }, closest: function () { return null; } }, block);
-                block.forEach(function (n) { addCardHistory(n, 'Agendado para ' + label + ' via Menu'); });
-                updateSlotsHasItems(); persist(); applyFilters();
-                if (typeof renderWeeklyView === 'function') renderWeeklyView();
-                hideCtx();
-            });
-            container.appendChild(b);
-        })(i);
-    }
-}
-
 function buildMoveSubmenu() {
     ctxMoveSub.innerHTML = '';
-    addSubHeader('📋 Listas do Kanban', ctxMoveSub);
     $$('.list[data-type="kanban"]', boardEl).forEach(function (l, i) { addMoveButton(l, (l.querySelector('.title') ? l.querySelector('.title').value : null) || ('Lista ' + (i + 1)), ctxMoveSub); });
-    addSubHeader('🧭 Matriz de Eisenhower', ctxMoveSub);
     const matrixLabels = { 'Q1': 'Q1 - FAÇA AGORA', 'Q2': 'Q2 - AGENDE', 'Q3': 'Q3 - DELEGUE', 'Q4': 'Q4 - ELIMINE' };
     $$('.list[data-type="quad"]', matrixEl).forEach(function (l) { addMoveButton(l, matrixLabels[l.dataset.quad] || l.dataset.quad, ctxMoveSub); });
-    addSubHeader('📅 Semana', ctxMoveSub);
-    addWeekDayButtons(ctxMoveSub, function () { return getSelectionOr(ctxTarget); });
-    addSubHeader('🕐 Agenda do dia ativo', ctxMoveSub);
     const goalSlot = slotsRoot.querySelector('.goal-slot');
     if (goalSlot) addMoveButton(goalSlot, '🎯 OBJETIVO DO DIA', ctxMoveSub);
     $$('.list[data-type="time"]', schedule).forEach(function (l) { addMoveButton(l, l.dataset.time, ctxMoveSub); });
@@ -6879,7 +6841,6 @@ listCtx.addEventListener('click', function (e) {
                         paintCard(c); 
                     });
                     persist();
-                    if (typeof renderWeeklyView === 'function') renderWeeklyView(); // Atualiza espelhos no painel semanal imediatamente
                 });
 
                 const manageBtn = el('button'); 
@@ -6898,7 +6859,7 @@ listCtx.addEventListener('click', function (e) {
                 modalElements.wrap.querySelector('.row').prepend(manageBtn);
             }
 
-            function openDateDialog(cards) { if (!cards.length) return; showModal('Editar data', function () { var r = el('div'); var i = el('input'); i.type = 'date'; if (cards[0].dataset.due) i.value = cards[0].dataset.due; r.appendChild(i); return r; }, function (r, wrap) { var v = r.querySelector('input').value; cards.forEach(function (c) { c.dataset.due = v || ''; paintCard(c); }); applyFilters(); if (typeof renderWeeklyView === 'function') renderWeeklyView(); }); }
+            function openDateDialog(cards) { if (!cards.length) return; showModal('Editar data', function () { var r = el('div'); var i = el('input'); i.type = 'date'; if (cards[0].dataset.due) i.value = cards[0].dataset.due; r.appendChild(i); return r; }, function (r, wrap) { var v = r.querySelector('input').value; cards.forEach(function (c) { c.dataset.due = v || ''; paintCard(c); }); applyFilters(); }); }
 // [DEDUP v8] "openTimerDialog" removida daqui: a versao ATIVA vive em ai.js (ultima no build vence).
 
             function openColorFilters() {
@@ -14327,7 +14288,7 @@ function getActiveCardForEdit() {
         return;
     }
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); duplicateCards(currentSelection); return; }
-    if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartão(s)?', function () { currentSelection.forEach(function (n) { removeCard(n); }); clearSelection(); }); return; }
+    if (currentSelection.length > 0 && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); showConfirm('Excluir ' + currentSelection.length + ' cartão(s)?', function () { removeCardsBatch(currentSelection, clearSelection); }); return; }
     if (currentSelection.length > 0 && (e.ctrlKey || e.metaKey)) {
         let moved = false;
         let targetCard = currentSelection[0];
@@ -15364,14 +15325,6 @@ document.getElementById('focusCloseBtn').onclick = () => {
 };
 
 document.getElementById('manualFocusBtn').onclick = () => {
-    const hasTimer = Array.from(document.querySelectorAll('.card:not(.mirror-card)')).some(c => {
-        const total = parseInt(c.dataset.timerTotal || '0', 10);
-        return total > 0 && c.dataset.completed !== 'true';
-    });
-    if (!hasTimer) {
-        alert("Configure um timer em algum cartão primeiro para entrar no modo foco!");
-        return;
-    }
     document.body.classList.toggle('manual-focus-mode');
     updateFocusMode();
 };
@@ -15396,7 +15349,7 @@ function initResizers() {
         }
         if (saved.weeklyHeight) {
             const h = parseInt(saved.weeklyHeight);
-            weeklyContainer.style.height = (isNaN(h) || h < 30) ? '250px' : h + 'px';
+            weeklyContainer.style.height = (isNaN(h) || h < 50) ? '250px' : h + 'px';
         }
     } catch(e) {}
 
@@ -15467,7 +15420,7 @@ function initResizers() {
                 boardContainer.style.flex = 'none'; // Ensure flex-grow doesn't override height
             } else if (type === 'weekly') {
                 let newHeight = startHeight + (clientY - startY);
-                if (newHeight < 48) newHeight = 48; // Altura mínima do weekly view (modo compacto)
+                if (newHeight < 150) newHeight = 150; // Altura mínima do weekly view
                 if (newHeight > window.innerHeight * 0.8) newHeight = window.innerHeight * 0.8;
                 weeklyContainer.style.height = newHeight + 'px';
                 weeklyContainer.style.flex = 'none';
@@ -15504,40 +15457,6 @@ function initResizers() {
     setupResizer(resizerSidebar, 'sidebar');
     setupResizer(resizerMatrix, 'matrix');
     setupResizer(resizerWeekly, 'weekly');
-
-    // ===== TOQUE/CLIQUE NA ALÇA DO PAINEL SEMANAL = MODO COMPACTO =====
-    function toggleWeeklyCompact() {
-        const cur = weeklyContainer.getBoundingClientRect().height;
-        if (cur > 70) {
-            weeklyContainer.dataset.prevHeight = Math.round(cur);
-            weeklyContainer.style.height = '48px';
-        } else {
-            const prev = parseInt(weeklyContainer.dataset.prevHeight || '250', 10);
-            weeklyContainer.style.height = Math.max(prev, 150) + 'px';
-        }
-        weeklyContainer.style.flex = 'none';
-        if (typeof saveResizerState === 'function') saveResizerState();
-    }
-
-    if (resizerWeekly) {
-        let tapStartX = 0, tapStartY = 0, tapStartTime = 0;
-        function tapStart(e) {
-            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            tapStartX = cx; tapStartY = cy; tapStartTime = Date.now();
-        }
-        function tapEnd(e) {
-            const cx = e.type.includes('touch') ? (e.changedTouches[0] ? e.changedTouches[0].clientX : tapStartX) : e.clientX;
-            const cy = e.type.includes('touch') ? (e.changedTouches[0] ? e.changedTouches[0].clientY : tapStartY) : e.clientY;
-            const moved = Math.abs(cx - tapStartX) + Math.abs(cy - tapStartY);
-            const elapsed = Date.now() - tapStartTime;
-            if (moved < 8 && elapsed < 500) toggleWeeklyCompact();
-        }
-        resizerWeekly.addEventListener('mousedown', tapStart);
-        resizerWeekly.addEventListener('mouseup', tapEnd);
-        resizerWeekly.addEventListener('touchstart', tapStart, { passive: true });
-        resizerWeekly.addEventListener('touchend', tapEnd);
-    }
 }
 
 function initApp() {
