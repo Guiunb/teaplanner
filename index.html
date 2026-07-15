@@ -2744,7 +2744,7 @@ padding: 6px 2px;
                     d="M12 2a9.99 9.99 0 0 1 8.61 14.61A9.99 9.99 0 0 1 12 22a9.99 9.99 0 0 1-8.61-5.39A9.99 9.99 0 0 1 12 2z">
                 </path>
             </svg>
-            TEA PLANNER
+            TEA PLANNER<span id="appVersionTag" style="font-size:10px; font-weight:400; opacity:0.55; margin-left:8px; letter-spacing:0.3px; vertical-align:middle;"></span>
         </h1>
         <button id="loginBtn" style="background:#4285F4; color:white;">Login Google</button>
         <span id="userInfo" style="font-size:12px; font-weight:bold;"></span>
@@ -2801,6 +2801,7 @@ padding: 6px 2px;
                         </label>
                     </div>
                     <button type="button" id="aiDeduplicateBtn">🧹 Unificar Repetidos (IA)</button>
+                    <button type="button" id="aiFindSimilarBtn" title="Verifica se já existe um cartão parecido antes de criar um novo">🔎 Buscar cartão parecido</button>
                     <div class="addon-versao">pacote v6</div>
                     <button type="button" id="addonVerPropositoBtn">🌅 Ver propósito agora</button>
                     <button type="button" id="addonEditarPropositoBtn">🎯 Editar propósito deste quadro</button>
@@ -4122,6 +4123,100 @@ function moveCardToBoard(cardElement, targetBoardId, targetListTitle) {
         document.body.appendChild(btn);
         setTimeout(() => btn.remove(), 3000);
     }
+}
+
+// ===== ITEM 9: Mover LISTA inteira para outro quadro (com troca de cor) =====
+// Reaproveita a camada de dados de moveCardToBoard, mas em lote e sem toast por cartão.
+function moveListToBoard(listEl, targetBoardId) {
+    if (!listEl || !targetBoardId) return;
+    var cardsContainer = listEl.querySelector('.cards');
+    var cardEls = cardsContainer ? Array.prototype.slice.call(cardsContainer.querySelectorAll('.card:not(.mirror-card)')) : [];
+
+    var targetBoard = boardsMeta.find(function (b) { return b.id === targetBoardId; });
+    var boardName = targetBoard ? targetBoard.name : 'Outro Quadro';
+    var newColor = getBoardColor(targetBoardId) || '';
+
+    // Título da lista de destino: mesmo nome da lista de origem, se existir; senão a 1a kanban
+    var titleInp = listEl.querySelector('.title');
+    var listTitle = titleInp ? titleInp.value : (listEl.dataset.quad || listEl.dataset.time || 'Inbox');
+
+    var targetData = getBoardData(targetBoardId);
+    var targetList = targetData.find(function (l) { return l.type === 'kanban' && l.title === listTitle; });
+    if (!targetList) {
+        // cria a lista no destino preservando o nome
+        targetList = { type: 'kanban', title: listTitle, cards: [] };
+        targetData.push(targetList);
+    }
+    if (!targetList.cards) targetList.cards = [];
+
+    // Move os dados de cada cartão, trocando a cor para a do quadro destino
+    cardEls.forEach(function (c) {
+        try {
+            addCardHistory(c, 'Movido para o quadro "' + boardName + '"');
+            var cardData = cardToData(c);
+            cardData.when = '';
+            cardData.boardId = targetBoardId;
+            cardData.color = newColor;   // troca de cor ao mudar de quadro
+            targetList.cards.push(cardData);
+        } catch (e) { console.error('Erro ao mover cartão da lista:', e); }
+    });
+
+    // Persiste o quadro destino
+    localStorage.setItem(LS_BOARD_PREFIX + targetBoardId, JSON.stringify(targetData));
+    if (targetBoard) { targetBoard.lastModified = Date.now(); saveBoardsMetadata(); }
+    if (isFirebaseReady && auth && auth.currentUser) {
+        try { db.ref('users/' + auth.currentUser.uid + '/boards/' + targetBoardId).set(targetData); } catch (e) { }
+    }
+
+    // Remove os cartões (e a lista) do quadro atual.
+    // No quadro "Todos", os cartões são espelhados de outros quadros; mover a lista inteira
+    // só faz sentido nos quadros normais. Em "Todos", removemos os cartões da visão.
+    cardEls.forEach(function (c) {
+        try { var idx = allCards.indexOf(c); if (idx > -1) allCards.splice(idx, 1); c.remove(); } catch (e) { }
+    });
+    // Remove a lista de origem esvaziada
+    try { listEl.remove(); } catch (e) { }
+
+    persist();
+    if (typeof renderWeeklyView === 'function') renderWeeklyView();
+    applyFilters();
+
+    // Um único toast de confirmação
+    try {
+        var toast = document.createElement('div');
+        toast.textContent = 'Lista movida para "' + boardName + '" (' + cardEls.length + ' cartão(s))';
+        toast.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#28a745; color:#fff; padding:10px 20px; border-radius:5px; z-index:9999;';
+        document.body.appendChild(toast);
+        setTimeout(function () { toast.remove(); }, 3000);
+    } catch (e) { }
+}
+
+function buildListMoveBoardSubmenu() {
+    var sub = document.getElementById('ctx-list-move-board-sub');
+    if (!sub) return;
+    sub.innerHTML = '';
+    var destinos = boardsMeta.filter(function (b) {
+        return b.id !== currentBoardId && b.id !== 'board-trash' && b.id !== 'board-todos';
+    });
+    if (destinos.length === 0) {
+        var vazio = document.createElement('div');
+        vazio.textContent = '(nenhum outro quadro)';
+        vazio.style.cssText = 'padding:6px 12px; font-size:12px; opacity:0.6;';
+        sub.appendChild(vazio);
+        return;
+    }
+    destinos.forEach(function (b) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = b.name;
+        btn.title = 'Mover a lista para "' + b.name + '" (cartões passam a usar a cor deste quadro)';
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (listCtxTarget) moveListToBoard(listCtxTarget, b.id);
+            listCtx.style.display = 'none';
+        });
+        sub.appendChild(btn);
+    });
 }
 
 function updateBoardSelectUI() {
@@ -5954,14 +6049,20 @@ function createList(title) {
     t.value = title || 'Nova lista';
     var addBtn = el('button', 'add-btn-minimal');
     addBtn.textContent = '+';
-    addBtn.title = 'Novo Cartão';
-    addBtn.onclick = function (e) {
-        e.stopPropagation();
+    addBtn.title = 'Novo Cartão (segure para ditar por voz)';
+    function _createCardInList() {
         var card = createCard({ text: '' });
         var cardsContainer = list.querySelector('.cards');
         cardsContainer.prepend(card);
         startInlineEdit(card, true);
+        return card;
+    }
+    addBtn.onclick = function (e) {
+        e.stopPropagation();
+        if (addBtn._wasLongPress && addBtn._wasLongPress()) return; // long-press já criou+ditou
+        _createCardInList();
     };
+    attachLongPressVoice(addBtn, _createCardInList); // ITEM 4: segurar = ditar
     var more = el('button', 'more');
     more.type = 'button'; more.textContent = '⋯';
     more.addEventListener('click', function (ev) { ev.stopPropagation(); var r = more.getBoundingClientRect(); showListCtx(r.right, r.bottom, list); });
@@ -6000,9 +6101,8 @@ function ensureMatrix() {
         var t = el('div', 'quad-label'); t.textContent = sp.label;
         var addBtn = el('button', 'add-btn-minimal');
         addBtn.textContent = '+';
-        addBtn.title = 'Novo Cartão';
-        addBtn.onclick = function (e) {
-            e.stopPropagation();
+        addBtn.title = 'Novo Cartão (segure para ditar por voz)';
+        function _createCardInQuad() {
             var card = createCard({ text: '' });
             const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
             card.dataset.labelColor = EISENHOWER_COLORS[sp.quad] || '';
@@ -6010,7 +6110,14 @@ function ensureMatrix() {
             var cardsContainer = l.querySelector('.cards');
             cardsContainer.prepend(card);
             startInlineEdit(card, true);
+            return card;
+        }
+        addBtn.onclick = function (e) {
+            e.stopPropagation();
+            if (addBtn._wasLongPress && addBtn._wasLongPress()) return;
+            _createCardInQuad();
         };
+        attachLongPressVoice(addBtn, _createCardInQuad); // ITEM 4: segurar = ditar
         h.appendChild(t); h.appendChild(addBtn);
         var cs = el('div', 'cards');
         wireDropZone(cs);
@@ -6565,6 +6672,7 @@ listCtx.addEventListener('click', function (e) {
         return;
     }
     if (action === 'list-move-board') {
+        buildListMoveBoardSubmenu(); // ITEM 9: popula os quadros de destino
         listMoveBoardSub.style.display = (listMoveBoardSub.style.display === 'block' ? 'none' : 'block');
         listMoveSub.style.display = 'none';
         return;
@@ -7263,15 +7371,15 @@ async function callAI(contentsOrPrompt, retries = 3, delay = 1000) {
     const provider = localStorage.getItem('ai-provider') || 'gemini';
 
     if (provider === 'gemini') {
-        const hardcodedKey = ""; // <--- INSIRA SUA API KEY AQUI
-        const apiKey = localStorage.getItem('gemini-api-key') || hardcodedKey;
+        // Chave apenas local (localStorage), inserida 1x por aparelho via botão 🔑. Nunca hardcodar.
+        const apiKey = localStorage.getItem('gemini-api-key') || '';
         if (!apiKey) {
             alert("Chave API do Gemini não configurada. Por favor, clique na chave 🔑 na barra de prompt para configurá-la.");
             throw new Error("No API Key");
         }
 
         const modelSetting = localStorage.getItem('gemini-model') || 'auto';
-        const models = modelSetting === 'auto' ? ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro'] : [modelSetting];
+        const models = modelSetting === 'auto' ? ['gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'] : [modelSetting];
         let lastError = null;
 
         for (const model of models) {
@@ -7624,11 +7732,9 @@ function configureApiKeyDialog() {
                     <label style="display: block; font-weight: bold; margin-bottom: 6px; font-size: 13px; color: #9fb3d2;">Modelo do Gemini</label>
                     <select id="dialogGeminiModelSelect" style="width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box; outline:none; font-size: 14px; font-family: inherit;">
                         <option value="auto">Auto (Flash/Pro Sequencial)</option>
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
-                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                        <option value="gemini-2.0-pro-exp">Gemini 2.0 Pro Exp</option>
+                        <option value="gemini-3.5-flash">Gemini 3.5 Flash (recomendado)</option>
+                        <option value="gemini-flash-latest">Gemini Flash (latest)</option>
+                        <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (rápido)</option>
                         <option value="custom">Outro Modelo Personalizado...</option>
                     </select>
                 </div>
@@ -7726,7 +7832,7 @@ function configureApiKeyDialog() {
         // Load Gemini
         div.querySelector('#dialogGeminiApiKeyInput').value = localStorage.getItem('gemini-api-key') || '';
         const savedGeminiModel = localStorage.getItem('gemini-model') || 'auto';
-        if (['auto', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-2.0-pro-exp'].includes(savedGeminiModel)) {
+        if (['auto', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'].includes(savedGeminiModel)) {
             geminiModelSelect.value = savedGeminiModel;
         } else {
             geminiModelSelect.value = 'custom';
@@ -7865,6 +7971,77 @@ function toggleVoiceRecord() {
     } else {
         recognition.start();
     }
+}
+
+// ===== ITEM 4: Ditado por voz direcionado a um cartão específico =====
+// Segurar o botão "+" (long-press) cria o cartão e transcreve a fala direto no texto dele,
+// usando o mesmo motor de reconhecimento (Web Speech API / ditado do Google no Android).
+var _voiceTargetCard = null;
+
+function startVoiceForCard(card) {
+    if (!card) return;
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("O reconhecimento de voz não é suportado pelo seu navegador."); return; }
+
+    // Usa uma instância dedicada pra não colidir com o ditado de comando (aiInput)
+    var rec = new SR();
+    rec.lang = 'pt-BR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    _voiceTargetCard = card;
+
+    rec.onstart = function () {
+        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Ouvindo... fale o cartão.', false, false);
+    };
+    rec.onresult = function (event) {
+        var transcript = event.results[0][0].transcript || '';
+        var c = _voiceTargetCard;
+        if (!c) return;
+        var textEl = c.querySelector('.text');
+        if (textEl) {
+            textEl.textContent = transcript;
+            c.dataset.text = transcript;
+        }
+        try { if (typeof persist === 'function') persist(); } catch (e) { }
+        try { if (typeof renderWeeklyView === 'function') renderWeeklyView(); } catch (e) { }
+    };
+    rec.onerror = function (event) {
+        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Erro na gravação: ' + event.error, false, true);
+    };
+    rec.onend = function () { _voiceTargetCard = null; };
+
+    try { rec.start(); } catch (e) { console.error('Falha ao iniciar voz:', e); }
+}
+
+// Anexa long-press a um botão "+" sem quebrar o clique normal nem abrir o menu da lista.
+// createCardFn deve criar o cartão vazio, colocá-lo na lista e retorná-lo.
+function attachLongPressVoice(btn, createCardFn) {
+    if (!btn || typeof createCardFn !== 'function') return;
+    var timer = null;
+    var longFired = false;
+    var LONG_MS = 500;
+
+    function begin() {
+        longFired = false;
+        timer = setTimeout(function () {
+            longFired = true;
+            var card = createCardFn();       // cria o cartão (mesma ação do clique)
+            if (card) startVoiceForCard(card); // e começa a ditar nele
+        }, LONG_MS);
+    }
+    function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
+
+    // Touch (Android): não faz preventDefault no start pra não bloquear o clique;
+    // só marca que foi long-press pra o click handler ignorar a criação dupla.
+    btn.addEventListener('touchstart', function () { begin(); }, { passive: true });
+    btn.addEventListener('touchend', function (e) {
+        cancel();
+        if (longFired) { e.preventDefault(); } // evita disparar o onclick (que criaria 2o cartão)
+    });
+    btn.addEventListener('touchmove', function () { cancel(); }, { passive: true });
+
+    // Expor flag pro onclick checar
+    btn._wasLongPress = function () { return longFired; };
 }
 
 function showAiResponseBubble(message, isQuestion = false, isError = false) {
@@ -8440,6 +8617,14 @@ function initAiControls() {
     
     const micBtn = document.getElementById('aiMicBtn');
     if (micBtn) micBtn.addEventListener('click', toggleVoiceRecord);
+
+    // ITEM 8: botão de buscar cartão parecido
+    var findSimBtn = document.getElementById('aiFindSimilarBtn');
+    if (findSimBtn) findSimBtn.addEventListener('click', openSimilarSearchDialog);
+
+    // Garante o listener do 'Unificar Repetidos' (caso não estivesse ligado)
+    var dedupBtn = document.getElementById('aiDeduplicateBtn');
+    if (dedupBtn && !dedupBtn._wired) { dedupBtn._wired = true; dedupBtn.addEventListener('click', function () { if (typeof findDuplicatesAI === 'function') findDuplicatesAI(); }); }
 
     // ITEM 3: Atalho Alt+S para transcrição de voz.
     // Protegido: não dispara enquanto digita em input/textarea/editável.
@@ -9955,6 +10140,136 @@ okBtn.click();
 }
 
 
+
+// ==========================================
+// ITEM 8: Buscar cartão parecido (híbrido: texto primeiro, IA opcional)
+// ==========================================
+function _normalizeText(t) {
+    return (t || '').toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acentos
+        .replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+// Similaridade simples por sobreposição de palavras (Jaccard) + substring.
+function _textSimilarity(a, b) {
+    var na = _normalizeText(a), nb = _normalizeText(b);
+    if (!na || !nb) return 0;
+    if (na === nb) return 1;
+    if (na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1) return 0.9;
+    var sa = na.split(' ').filter(Boolean), sb = nb.split(' ').filter(Boolean);
+    if (!sa.length || !sb.length) return 0;
+    var setB = {}; sb.forEach(function (w) { setB[w] = true; });
+    var inter = 0; sa.forEach(function (w) { if (setB[w]) inter++; });
+    var uni = {}; sa.concat(sb).forEach(function (w) { uni[w] = true; });
+    return inter / Object.keys(uni).length;
+}
+
+// Varre TODOS os quadros (via localStorage) e retorna candidatos parecidos.
+function findSimilarCardsLocal(query, threshold) {
+    threshold = threshold || 0.45;
+    var results = [];
+    (boardsMeta || []).forEach(function (b) {
+        if (b.id === 'board-trash') return;
+        var data = getBoardData(b.id);
+        (data || []).forEach(function (list) {
+            if (!list || !list.cards) return;
+            var listName = list.title || list.quad || list.time || 'Lista';
+            list.cards.forEach(function (cd) {
+                var txt = cd.text || cd.title || '';
+                if (!txt) return;
+                var score = _textSimilarity(query, txt);
+                if (score >= threshold) {
+                    results.push({ text: txt, boardName: b.name, boardId: b.id, listName: listName, score: score });
+                }
+            });
+        });
+    });
+    results.sort(function (x, y) { return y.score - x.score; });
+    return results;
+}
+
+function openSimilarSearchDialog() {
+    var modalRef = showModal('Buscar cartão parecido', function () {
+        var d = el('div');
+        d.style.minWidth = '320px';
+        d.innerHTML = '<div style="margin-bottom:8px; font-size:13px; color:#9fb3d2;">Digite o texto do cartão que você quer verificar (a busca roda enquanto você digita):</div>';
+        var inp = el('input');
+        inp.type = 'text';
+        inp.placeholder = 'Ex: comprar presente de aniversário';
+        inp.style.cssText = 'width:100%; padding:10px; background:#0b2240; border:1px solid #2a4e78; border-radius:8px; color:#fff; box-sizing:border-box;';
+        d.appendChild(inp);
+        var out = el('div');
+        out.style.cssText = 'margin-top:12px; max-height:260px; overflow:auto;';
+        d.appendChild(out);
+
+        function runSearch() {
+            var q = inp.value.trim();
+            out.innerHTML = '';
+            if (!q) return;
+            var found = findSimilarCardsLocal(q);
+            if (found.length > 0) {
+                var head = el('div');
+                head.style.cssText = 'font-size:13px; color:#7fd18c; margin-bottom:6px;';
+                head.textContent = 'Encontrei ' + found.length + ' cartão(s) parecido(s):';
+                out.appendChild(head);
+                found.slice(0, 8).forEach(function (r) {
+                    var row = el('div');
+                    row.style.cssText = 'padding:8px; margin-bottom:6px; background:#0e2a4a; border-radius:6px; font-size:13px;';
+                    var pct = Math.round(r.score * 100);
+                    row.innerHTML = '<div style="color:#fff;">' + r.text.replace(/</g, '&lt;') + '</div>' +
+                        '<div style="color:#9fb3d2; font-size:11px; margin-top:2px;">📋 ' +
+                        r.boardName.replace(/</g, '&lt;') + ' › ' + r.listName.replace(/</g, '&lt;') +
+                        ' · ' + pct + '% parecido</div>';
+                    out.appendChild(row);
+                });
+                var stillCreate = el('div');
+                stillCreate.style.cssText = 'margin-top:10px; font-size:12px; color:#9fb3d2;';
+                stillCreate.textContent = 'Mesmo assim quer criar? Feche e use o botão + da lista desejada.';
+                out.appendChild(stillCreate);
+            } else {
+                var none = el('div');
+                none.style.cssText = 'font-size:13px; color:#e0a95c; margin-bottom:8px;';
+                none.textContent = 'Nenhum cartão parecido encontrado.';
+                out.appendChild(none);
+                var ask = el('div');
+                ask.style.cssText = 'font-size:13px; color:#9fb3d2; margin-bottom:6px;';
+                ask.textContent = 'Quer criar este cartão? Escolha o quadro:';
+                out.appendChild(ask);
+                (boardsMeta || []).filter(function (b) { return b.id !== 'board-trash'; }).forEach(function (b) {
+                    var cb = el('button');
+                    cb.type = 'button';
+                    cb.textContent = '+ Criar em "' + b.name + '"';
+                    cb.style.cssText = 'display:block; width:100%; text-align:left; padding:8px; margin-bottom:4px; background:#123; border:1px solid #2a4e78; border-radius:6px; color:#fff; cursor:pointer;';
+                    cb.addEventListener('click', function () {
+                        _createCardInBoard(b.id, q);
+                        if (modalRef && modalRef.wrap && modalRef.wrap.parentNode) modalRef.wrap.parentNode.removeChild(modalRef.wrap);
+                    });
+                    out.appendChild(cb);
+                });
+            }
+        }
+
+        inp.addEventListener('input', runSearch);
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); runSearch(); } });
+        setTimeout(function () { inp.focus(); }, 50);
+        return d;
+    }, function () { /* OK apenas fecha */ });
+}
+
+// Cria um cartão num quadro específico (na 1a lista kanban), trocando pro quadro se preciso.
+function _createCardInBoard(boardId, text) {
+    if (currentBoardId !== boardId) switchBoard(boardId);
+    setTimeout(function () {
+        var firstList = $$('.list[data-type="kanban"]', boardEl)[0];
+        if (firstList) {
+            var card = createCard({ text: text });
+            var cc = firstList.querySelector('.cards');
+            if (cc) { cc.prepend(card); paintCard(card); persist(); }
+        } else {
+            alert('O quadro não tem listas Kanban. Crie uma lista primeiro.');
+        }
+    }, 200);
+}
 
 // ==========================================
 // AI Deduplication (Find Repeated Cards)
@@ -15605,7 +15920,14 @@ function initResizers() {
     setupResizer(resizerWeekly, 'weekly');
 }
 
+// Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
+var APP_VERSION = 'v3.0.1';
+
 function initApp() {
+    try {
+        var _vt = document.getElementById('appVersionTag');
+        if (_vt) _vt.textContent = APP_VERSION;
+    } catch (e) { }
     initResizers();
     applyDragScroll();
     loadState();
