@@ -2728,6 +2728,74 @@ padding: 6px 2px;
 
 .addon-versao { font-size: 10.5px; color: var(--muted); opacity: 0.7; padding: 2px 12px 6px; text-align: right; }
 
+
+        /* ===== FIX 2026-07: area de toque dos botoes "+" e "..." =====
+           Antes: "+" tinha ~18x20px e ficava a 4px do "...". No Android
+           (dedo/caneta) era quase impossivel segurar o "+" sem pegar o "...".
+           Agora: alvos de 36px, separados por um gap real. */
+        .list header .add-btn-minimal,
+        .list header .more,
+        .list .head .add-btn-minimal,
+        .weekly-add-btn,
+        #addUnscheduledBtn {
+            min-width: 36px;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            line-height: 1;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        .list header .add-btn-minimal {
+            margin-left: auto;
+            margin-right: 10px;   /* separa fisicamente do "..." */
+        }
+
+        .list header .more {
+            margin-left: 0;       /* anula o "margin-left:auto" duplicado mais acima */
+        }
+
+        /* feedback visual do long-press */
+        .list header .add-btn-minimal:active,
+        .list .head .add-btn-minimal:active,
+        .weekly-add-btn:active,
+        #addUnscheduledBtn:active {
+            background: rgba(159, 193, 255, 0.28);
+        }
+
+        /* ===== FIX 2026-07: tooltip para caneta (S Pen) no Android =====
+           O Chrome do Android NAO renderiza o atributo title nativo.
+           Esta e a camada propria, alimentada por pointerover/pointermove
+           filtrando pointerType === 'pen'. */
+        .tea-pen-tip {
+            position: fixed;
+            z-index: 2147483000;
+            max-width: 240px;
+            padding: 7px 10px;
+            border-radius: 8px;
+            background: #101828;
+            color: #eaf0ff;
+            border: 1px solid #2b3a55;
+            font-size: 13px;
+            line-height: 1.35;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, .45);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity .12s ease, transform .12s ease;
+            white-space: normal;
+        }
+
+        .tea-pen-tip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -5723,6 +5791,10 @@ function executeActualCardRemoval(c, bypassTrash) {
 }
 
 function startInlineEdit(card, isNewCard = false) {
+    // FIX 2026-07: durante o long-press de voz o cartao e criado SEM edicao inline.
+    // Antes, o focus() do contenteditable + o prompt do microfone causavam blur ->
+    // finish(true) com texto vazio -> removeCard(). O cartao morria antes da fala chegar.
+    if (window.__teaVoiceCreating) return;
     var tEl = card.querySelector('.text'); if (!tEl) return; if (card.classList.contains('editing')) return;
     card.classList.add('editing'); var original = tEl.textContent; tEl.setAttribute('contenteditable', 'true'); tEl.focus();
     var sel = window.getSelection();
@@ -6076,7 +6148,14 @@ function createList(title) {
     h.draggable = true;
     h.addEventListener('dragstart', function (ev) { draggingList = list; list.classList.add('dragging'); if (ev.dataTransfer) ev.dataTransfer.setData('text/plain', 'list'); });
     h.addEventListener('dragend', function () { draggingList = null; list.classList.remove('dragging'); persist(); });
-    h.addEventListener('contextmenu', function (e) { e.preventDefault(); showListCtx(e.clientX, e.clientY, list); });
+    h.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        // FIX 2026-07: no dedo/caneta o long-press dispara 'contextmenu'. Isso abria
+        // o menu da lista por cima do ditado por voz do "+". No toque, o menu da lista
+        // fica SO no botao "..." (mesma regra ja aplicada aos cartoes).
+        if (window.__teaLastPointerType === 'touch' || window.__teaLastPointerType === 'pen') return;
+        showListCtx(e.clientX, e.clientY, list);
+    });
     return list;
 }
 
@@ -6134,12 +6213,19 @@ function ensureSchedule() {
     var goalLabel = el('span', 'goal-label'); goalLabel.textContent = '🎯 OBJETIVO DO DIA';
     var goalAdd = el('button', 'add-btn-minimal');
     goalAdd.textContent = '+';
-    goalAdd.onclick = function (e) {
-        e.stopPropagation();
+    goalAdd.title = 'Novo Cartao (segure para ditar por voz)';
+    function _createCardInGoal() {
         var card = createCard({ text: '', when: getActiveDay() + 'TGOAL' });
         goalSlot.querySelector('.cards').prepend(card);
         startInlineEdit(card, true);
+        return card;
+    }
+    goalAdd.onclick = function (e) {
+        e.stopPropagation();
+        if (goalAdd._wasLongPress && goalAdd._wasLongPress()) return;
+        _createCardInGoal();
     };
+    attachLongPressVoice(goalAdd, _createCardInGoal);
     goalHead.appendChild(goalLabel); goalHead.appendChild(goalAdd);
     goalSlot.appendChild(goalHead);
     var goalCards = el('div', 'cards');
@@ -6154,13 +6240,20 @@ function ensureSchedule() {
     var uLabel = el('span', 'unscheduled-label'); uLabel.textContent = '⚠️ HORÁRIO A DEFINIR';
     var uAdd = el('button', 'add-btn-minimal');
     uAdd.textContent = '+';
-    uAdd.onclick = function (e) {
-        e.stopPropagation();
+    uAdd.title = 'Novo Cartao (segure para ditar por voz)';
+    function _createCardInUnscheduled() {
         var card = createCard({ text: '', when: getActiveDay() + 'T' });
         unscheduledSlot.querySelector('.cards').prepend(card);
         startInlineEdit(card, true);
         updateSlotsHasItems();
+        return card;
+    }
+    uAdd.onclick = function (e) {
+        e.stopPropagation();
+        if (uAdd._wasLongPress && uAdd._wasLongPress()) return;
+        _createCardInUnscheduled();
     };
+    attachLongPressVoice(uAdd, _createCardInUnscheduled);
     uHead.appendChild(uLabel); uHead.appendChild(uAdd);
     unscheduledSlot.appendChild(uHead);
     var uCards = el('div', 'cards');
@@ -6190,15 +6283,21 @@ function ensureSchedule() {
 
 const addUnscheduledBtn = document.getElementById('addUnscheduledBtn');
 if (addUnscheduledBtn) {
-    addUnscheduledBtn.onclick = function () {
+    addUnscheduledBtn.title = 'Novo Evento a definir (segure para ditar por voz)';
+    var _createCardUnscheduledBtn = function () {
         const unscheduledSlot = document.getElementById('unscheduled-bucket');
-        if (unscheduledSlot) {
-            var card = createCard({ text: '', when: getActiveDay() + 'T' });
-            unscheduledSlot.querySelector('.cards').prepend(card);
-            startInlineEdit(card, true);
-            updateSlotsHasItems();
-        }
+        if (!unscheduledSlot) return null;
+        var card = createCard({ text: '', when: getActiveDay() + 'T' });
+        unscheduledSlot.querySelector('.cards').prepend(card);
+        startInlineEdit(card, true);
+        updateSlotsHasItems();
+        return card;
     };
+    addUnscheduledBtn.onclick = function () {
+        if (addUnscheduledBtn._wasLongPress && addUnscheduledBtn._wasLongPress()) return;
+        _createCardUnscheduledBtn();
+    };
+    attachLongPressVoice(addUnscheduledBtn, _createCardUnscheduledBtn);
 }
 
 function getActiveDay() { var i = document.getElementById('agendaDate'); return (i && i.value) ? i.value : new Date().toISOString().slice(0, 10); }
@@ -7096,17 +7195,21 @@ listCtx.addEventListener('click', function (e) {
                     
                     const addBtn = el('button', 'weekly-add-btn');
                     addBtn.type = 'button';
-                    addBtn.title = 'Adicionar cartão';
+                    addBtn.title = 'Adicionar cartao (segure para ditar por voz)';
                     addBtn.textContent = '+';
-                    addBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
+                    const _createCardInWeekly = function () {
                         const newCard = createCard({ text: '', when: date + 'T' });
                         renderWeeklyView();
                         const clone = Array.from(weeklyGrid.querySelectorAll('.mirror-card')).find(c => c._originalReference === newCard);
-                        if (clone) {
-                            startInlineEdit(clone, true);
-                        }
+                        if (clone) { startInlineEdit(clone, true); return clone; }
+                        return newCard;
+                    };
+                    addBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (addBtn._wasLongPress && addBtn._wasLongPress()) return;
+                        _createCardInWeekly();
                     });
+                    attachLongPressVoice(addBtn, _createCardInWeekly);
                     header.appendChild(addBtn);
                     
                     col.appendChild(header);
@@ -7981,67 +8084,251 @@ var _voiceTargetCard = null;
 function startVoiceForCard(card) {
     if (!card) return;
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { alert("O reconhecimento de voz não é suportado pelo seu navegador."); return; }
 
-    // Usa uma instância dedicada pra não colidir com o ditado de comando (aiInput)
+    // Fecha o ciclo SEMPRE: com texto, sem texto ou com erro, o cartao termina
+    // em edicao inline. Assim o fluxo normal (persist + config rapida) roda igual
+    // ao clique simples, e o cartao nunca fica orfao/vazio na tela.
+    var settled = false;
+    function settle(transcript) {
+        if (settled) return;
+        settled = true;
+        _voiceTargetCard = null;
+        if (transcript) {
+            var textEl = card.querySelector('.text');
+            if (textEl) {
+                textEl.textContent = transcript;
+                card.dataset.text = transcript;
+            }
+        }
+        if (typeof startInlineEdit === 'function') startInlineEdit(card, true);
+    }
+
+    if (!SR) {
+        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Voz nao suportada neste navegador.', false, true);
+        settle('');
+        return;
+    }
+
+    // Instancia dedicada pra nao colidir com o ditado de comando (aiInput)
     var rec = new SR();
     rec.lang = 'pt-BR';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     _voiceTargetCard = card;
 
+    var gotResult = false;
+
     rec.onstart = function () {
-        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Ouvindo... fale o cartão.', false, false);
+        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Ouvindo... fale o cartao.', false, false);
     };
     rec.onresult = function (event) {
-        var transcript = event.results[0][0].transcript || '';
-        var c = _voiceTargetCard;
-        if (!c) return;
-        var textEl = c.querySelector('.text');
-        if (textEl) {
-            textEl.textContent = transcript;
-            c.dataset.text = transcript;
-        }
-        try { if (typeof persist === 'function') persist(); } catch (e) { }
-        try { if (typeof renderWeeklyView === 'function') renderWeeklyView(); } catch (e) { }
+        gotResult = true;
+        var transcript = '';
+        try { transcript = (event.results[0][0].transcript || '').trim(); } catch (e) { }
+        settle(transcript);
     };
     rec.onerror = function (event) {
-        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Erro na gravação: ' + event.error, false, true);
+        if (typeof showAiResponseBubble === 'function') showAiResponseBubble('Erro na gravacao: ' + (event && event.error), false, true);
+        settle('');
     };
-    rec.onend = function () { _voiceTargetCard = null; };
+    rec.onend = function () { if (!gotResult) settle(''); };
 
-    try { rec.start(); } catch (e) { console.error('Falha ao iniciar voz:', e); }
+    try {
+        rec.start();
+    } catch (e) {
+        console.error('Falha ao iniciar voz:', e);
+        settle('');
+    }
 }
 
 // Anexa long-press a um botão "+" sem quebrar o clique normal nem abrir o menu da lista.
 // createCardFn deve criar o cartão vazio, colocá-lo na lista e retorná-lo.
 function attachLongPressVoice(btn, createCardFn) {
     if (!btn || typeof createCardFn !== 'function') return;
+    if (btn._longPressVoiceOn) return;
+    btn._longPressVoiceOn = true;
+
     var timer = null;
     var longFired = false;
+    var firedAt = 0;
+    var startX = 0, startY = 0;
     var LONG_MS = 500;
+    var MOVE_TOL = 12;
+    var CLICK_GRACE_MS = 800;
 
-    function begin() {
-        longFired = false;
-        timer = setTimeout(function () {
-            longFired = true;
-            var card = createCardFn();       // cria o cartão (mesma ação do clique)
-            if (card) startVoiceForCard(card); // e começa a ditar nele
-        }, LONG_MS);
+    // Evita que o Android trate o long-press como inicio de drag nativo
+    // (o header da lista tem draggable=true e sequestrava o gesto).
+    btn.draggable = false;
+    try {
+        btn.style.touchAction = 'manipulation';
+        btn.style.webkitUserSelect = 'none';
+        btn.style.userSelect = 'none';
+        btn.style.webkitTouchCallout = 'none';
+    } catch (e) { }
+
+    function fire() {
+        timer = null;
+        longFired = true;
+        firedAt = Date.now();
+        var card = null;
+        window.__teaVoiceCreating = true;
+        try {
+            card = createCardFn();
+        } catch (e) {
+            console.error('long-press: falha ao criar cartao', e);
+        }
+        window.__teaVoiceCreating = false;
+        if (card) startVoiceForCard(card);
     }
     function cancel() { if (timer) { clearTimeout(timer); timer = null; } }
-
-    // Touch (Android): não faz preventDefault no start pra não bloquear o clique;
-    // só marca que foi long-press pra o click handler ignorar a criação dupla.
-    btn.addEventListener('touchstart', function () { begin(); }, { passive: true });
-    btn.addEventListener('touchend', function (e) {
+    function begin(x, y) {
         cancel();
-        if (longFired) { e.preventDefault(); } // evita disparar o onclick (que criaria 2o cartão)
-    });
-    btn.addEventListener('touchmove', function () { cancel(); }, { passive: true });
+        longFired = false;
+        startX = x; startY = y;
+        timer = setTimeout(fire, LONG_MS);
+    }
+    function moved(x, y) {
+        if (!timer) return;
+        if (Math.abs(x - startX) > MOVE_TOL || Math.abs(y - startY) > MOVE_TOL) cancel();
+    }
 
-    // Expor flag pro onclick checar
-    btn._wasLongPress = function () { return longFired; };
+    if (window.PointerEvent) {
+        // Pointer Events cobrem dedo E caneta (S Pen). Mouse fica de fora:
+        // no desktop o caminho e o Alt+S.
+        btn.addEventListener('pointerdown', function (e) {
+            if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+            begin(e.clientX, e.clientY);
+        });
+        btn.addEventListener('pointermove', function (e) { moved(e.clientX, e.clientY); });
+        btn.addEventListener('pointerup', function () { cancel(); });
+        btn.addEventListener('pointerleave', function () { cancel(); });
+        btn.addEventListener('pointercancel', function () { cancel(); longFired = false; });
+    } else {
+        btn.addEventListener('touchstart', function (e) {
+            var t = e.touches && e.touches[0];
+            begin(t ? t.clientX : 0, t ? t.clientY : 0);
+        }, { passive: true });
+        btn.addEventListener('touchmove', function (e) {
+            var t = e.touches && e.touches[0];
+            if (t) moved(t.clientX, t.clientY);
+        }, { passive: true });
+        btn.addEventListener('touchend', function () { cancel(); });
+        btn.addEventListener('touchcancel', function () { cancel(); longFired = false; });
+    }
+
+    // BUG CORRIGIDO: o long-press no "+" disparava 'contextmenu', que borbulhava
+    // ate o <header> da lista e abria showListCtx (o "menu lateral").
+    // Aqui o evento morre no proprio botao.
+    btn.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    // BUG CORRIGIDO (2 camadas):
+    // (a) longFired nunca era resetado -> depois do 1o long-press, TODO clique
+    //     seguinte no "+" era engolido e o botao parava de criar cartao.
+    // (b) resetar so na leitura nao basta: quando o long-press dispara o
+    //     'contextmenu', o Chrome do Android NAO emite o clique sintetico depois.
+    //     A flag ficava pendurada e engolia o PROXIMO toque legitimo.
+    // Solucao: a flag so vale dentro de uma janela de 800ms apos o disparo,
+    // e e consumida na leitura de qualquer jeito.
+    btn._wasLongPress = function () {
+        var recente = longFired && (Date.now() - firedAt) < CLICK_GRACE_MS;
+        longFired = false;
+        return recente;
+    };
+}
+
+
+// ===== FIX 2026-07 (item 4): tooltips para caneta (S Pen) no Android =====
+// O Chrome do Android ignora o atributo title nativo: nao existe hover de mouse
+// e nao ha tooltip. Por isso "deixar a caneta em cima do botao" nunca mostrou nada
+// -- nao era bug de cobertura de title, era ausencia de camada de tooltip.
+// Aqui interceptamos o hover REAL da caneta (pointerType 'pen', buttons 0).
+function initPenTooltips() {
+    if (window.__teaPenTipsOn) return;
+    window.__teaPenTipsOn = true;
+    if (!window.PointerEvent) return;
+
+    var tip = null;
+    var currentTarget = null;
+    var autoHide = null;
+
+    function ensureTip() {
+        if (tip && tip.isConnected) return tip;
+        tip = document.createElement('div');
+        tip.className = 'tea-pen-tip';
+        tip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tip);
+        return tip;
+    }
+
+    function textFor(elm) {
+        if (!elm) return '';
+        var t = elm.getAttribute('data-tip') || elm.getAttribute('title') || elm.getAttribute('aria-label') || '';
+        return (t || '').trim();
+    }
+
+    function place(x, y) {
+        var t = ensureTip();
+        var r = t.getBoundingClientRect();
+        var left = x + 14;
+        var top = y + 18;
+        if (left + r.width > window.innerWidth - 8) left = window.innerWidth - r.width - 8;
+        if (left < 8) left = 8;
+        if (top + r.height > window.innerHeight - 8) top = y - r.height - 14;
+        if (top < 8) top = 8;
+        t.style.left = left + 'px';
+        t.style.top = top + 'px';
+    }
+
+    function show(elm, x, y) {
+        var txt = textFor(elm);
+        if (!txt) return;
+        var t = ensureTip();
+        t.textContent = txt;
+        t.classList.add('show');
+        place(x, y);
+        if (autoHide) clearTimeout(autoHide);
+        autoHide = setTimeout(hide, 5000);
+    }
+
+    function hide() {
+        currentTarget = null;
+        if (autoHide) { clearTimeout(autoHide); autoHide = null; }
+        if (tip) tip.classList.remove('show');
+    }
+
+    function candidate(node) {
+        if (!node || !node.closest) return null;
+        var c = node.closest('[data-tip], [title], [aria-label]');
+        if (!c) return null;
+        return textFor(c) ? c : null;
+    }
+
+    document.addEventListener('pointermove', function (e) {
+        if (e.pointerType !== 'pen') return;
+        if (e.buttons !== 0) { hide(); return; }   // caneta encostada = clique, nao hover
+        var c = candidate(e.target);
+        if (!c) { if (currentTarget) hide(); return; }
+        if (c !== currentTarget) {
+            currentTarget = c;
+            show(c, e.clientX, e.clientY);
+        } else {
+            place(e.clientX, e.clientY);
+        }
+    }, true);
+
+    document.addEventListener('pointerdown', function (e) { if (e.pointerType === 'pen') hide(); }, true);
+    document.addEventListener('pointerleave', function (e) { if (e.pointerType === 'pen') hide(); }, true);
+    document.addEventListener('pointerout', function (e) {
+        if (e.pointerType !== 'pen') return;
+        if (!e.relatedTarget) hide();
+    }, true);
+    window.addEventListener('blur', hide);
+    document.addEventListener('scroll', hide, true);
+
+    window.__teaHidePenTip = hide;
 }
 
 function showAiResponseBubble(message, isQuestion = false, isError = false) {
@@ -8626,18 +8913,75 @@ function initAiControls() {
     var dedupBtn = document.getElementById('aiDeduplicateBtn');
     if (dedupBtn && !dedupBtn._wired) { dedupBtn._wired = true; dedupBtn.addEventListener('click', function () { if (typeof findDuplicatesAI === 'function') findDuplicatesAI(); }); }
 
-    // ITEM 3: Atalho Alt+S para transcrição de voz.
-    // Protegido: não dispara enquanto digita em input/textarea/editável.
-    document.addEventListener('keydown', function (e) {
-        if (e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 's' || e.key === 'S')) {
-            var t = e.target;
-            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
-            var editando = tag === 'input' || tag === 'textarea' || (t && t.isContentEditable);
-            if (editando) return; // deixa o navegador/campo lidar normalmente
-            e.preventDefault();
-            if (micBtn) micBtn.click();
+    // ITEM 3 (v2) - Alt+S: toque rapido = liga/desliga | SEGURAR = push-to-talk.
+    //
+    // CAUSA RAIZ DO BUG: o handler antigo nao checava e.repeat. Segurar Alt+S dispara
+    // keydown por auto-repeat (~30x/s) e CADA disparo chamava micBtn.click(), que e um
+    // TOGGLE. Resultado: liga/desliga/liga/desliga em loop -> o microfone nunca ficava
+    // ligado tempo suficiente pra capturar nada. Por isso 'segurar Alt+S' nao funcionava.
+    //
+    // Tambem trocado e.key por e.code: com Alt pressionado o e.key muda em varios layouts.
+    var _altSDown = false;
+    var _altSStartedAt = 0;
+    var ALT_S_HOLD_MS = 400;
+
+    function _altSEditable(t) {
+        if (!t) return false;
+        var tag = t.tagName ? t.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+        if (t.isContentEditable) return true;
+        // Fallback: o alvo pode ser um filho do contenteditable (ou o navegador
+        // pode nao expor isContentEditable). Cobre a edicao inline do cartao.
+        try {
+            if (t.closest && t.closest('[contenteditable]:not([contenteditable="false"])')) return true;
+        } catch (err) { }
+        return false;
+    }
+    function _altSStart() {
+        if (!recognition) {
+            showAiResponseBubble('Reconhecimento de voz nao suportado neste navegador.', false, true);
+            return false;
         }
+        try { recognition.start(); return true; } catch (err) { return false; }
+    }
+    function _altSStop() {
+        if (!recognition) return;
+        try { recognition.stop(); } catch (err) { }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.code !== 'KeyS' || !e.altKey || e.ctrlKey || e.metaKey) return;
+        if (_altSEditable(e.target)) return; // deixa o campo lidar normalmente
+        e.preventDefault();
+        if (e.repeat) return;                // <<< a correcao central do bug
+
+        // Todo keydown NAO repetido re-arma o estado. Nada de 'if (_altSDown) return':
+        // o prompt de permissao do microfone rouba o foco e o keyup nunca chega,
+        // o que deixava a flag presa e matava o atalho ate um blur da janela.
+        _altSDown = true;
+
+        if (isRecording) {                   // ja gravava (modo toggle): este toque encerra
+            _altSStartedAt = 0;
+            _altSStop();
+            return;
+        }
+        _altSStartedAt = _altSStart() ? Date.now() : 0;
     });
+
+    function _altSEnd() {
+        if (!_altSDown) return;
+        _altSDown = false;
+        if (!_altSStartedAt) return;
+        var held = Date.now() - _altSStartedAt;
+        _altSStartedAt = 0;
+        // Segurou >= 400ms: push-to-talk, para ao soltar.
+        // Toque rapido: fica gravando (toggle), para no proximo Alt+S ou no silencio.
+        if (held >= ALT_S_HOLD_MS) _altSStop();
+    }
+    document.addEventListener('keyup', function (e) {
+        if (e.code === 'KeyS' || e.key === 'Alt') _altSEnd();
+    });
+    window.addEventListener('blur', function () { _altSDown = false; _altSStartedAt = 0; });
 
     initSpeechRecognition();
 }
@@ -15921,7 +16265,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.1';
+var APP_VERSION = 'v3.0.2';
 
 function initApp() {
     try {
@@ -15933,6 +16277,7 @@ function initApp() {
     loadState();
     migrateToMultiBoard();
     initAiControls();
+    if (typeof initPenTooltips === 'function') initPenTooltips();
     setupFocusTreemapControls();
     if (currentBoardId) { switchBoard(currentBoardId); } else { ensureMatrix(); ensureSchedule(false); initDemo(); }
     startAlertCheck();
