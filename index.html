@@ -462,6 +462,44 @@
             flex-grow: 1;
         }
 
+        /* ===== ITEM 11 (Ciclo 2): CABECALHOS FIXOS =====
+           Antes, a lista crescia sem limite e a rolagem acontecia no #main-content:
+           o cabecalho subia junto e o usuario perdia a referencia de destino.
+           Agora a lista e limitada a altura do painel; a rolagem passa para .cards
+           (que ja tinha overflow-y:auto) e o header, sendo flex-shrink:0, fica parado. */
+        .board {
+            align-items: stretch;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .board > .list {
+            max-height: 100%;
+            min-height: 0;
+        }
+
+        .board > .list > .cards {
+            min-height: 0;
+        }
+
+        /* Reforco: se alguma rolagem ainda acontecer acima da lista, o header gruda. */
+        .list > header,
+        .day-column > header {
+            position: sticky;
+            top: 0;
+            z-index: 6;
+        }
+
+        /* Painel Semanal: mesma logica por coluna de dia. */
+        .weekly-grid > .day-column {
+            max-height: 100%;
+            min-height: 0;
+        }
+
+        .day-column > .cards {
+            min-height: 0;
+        }
+
         .card {
             background: var(--card);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -2997,11 +3035,13 @@ padding: 6px 2px;
             <button data-action="move" title="Move para: lista do Kanban, quadrante da Matriz, dia da Semana ou horário da Agenda">➡️ Mover para ▶</button>
             <div class="ctx-sub" id="ctx-move-sub"></div>
         </div>
-        <div id="ctx-move-all" style="position:relative">
+        <!-- ITEM 10 (Ciclo 2): acoes de lista saem do menu do CARTAO.
+             Oculto, nao removido: #ctx-moveall-sub e usado sem guarda de null. -->
+        <div id="ctx-move-all" style="position:relative;display:none">
             <button data-action="move-all" title="Move TODOS os cartões desta lista de uma vez (pode desfazer com Ctrl+Z)">➡️ Mover TODOS desta Lista ▶</button>
             <div class="ctx-sub" id="ctx-moveall-sub"></div>
         </div>
-        <button data-action="del-all" title="Exclui TODOS os cartões desta lista">🗑️ Excluir TODOS desta Lista</button>
+        <button data-action="del-all" style="display:none" title="Exclui TODOS os cartões desta lista">🗑️ Excluir TODOS desta Lista</button>
     </div>
 
     <div id="ctx-list" class="ctx">
@@ -3549,6 +3589,9 @@ function doRedo() { if (!canRedo()) return; withMute(function () { cursor++; res
 
 // Função unificada para carregar tudo
 function loadAndRenderAll() {
+    // ITEM 3/4 (Ciclo 2): se ha edicao inline aberta, adia o redesenho.
+    // renderFromData() faz boardEl.innerHTML = '' e mataria o cartao sendo digitado.
+    if (window.__teaEditLock > 0) { window.__teaPendingRender = true; return; }
     let boardData = [];
     let agendaData = [];
 
@@ -5807,6 +5850,23 @@ function startInlineEdit(card, isNewCard = false) {
     // finish(true) com texto vazio -> removeCard(). O cartao morria antes da fala chegar.
     if (window.__teaVoiceCreating) return;
     var tEl = card.querySelector('.text'); if (!tEl) return; if (card.classList.contains('editing')) return;
+    // ITEM 3/4 (Ciclo 2): trava de edicao.
+    // Enquanto um cartao esta em edicao inline, nenhum render remoto pode
+    // apagar o DOM debaixo do teclado do usuario.
+    window.__teaEditLock = (window.__teaEditLock || 0) + 1;
+    var _editLockReleased = false;
+    function releaseEditLock() {
+        if (_editLockReleased) return;
+        _editLockReleased = true;
+        window.__teaEditLock = Math.max(0, (window.__teaEditLock || 1) - 1);
+        if (window.__teaEditLock === 0 && window.__teaPendingRender) {
+            window.__teaPendingRender = false;
+            setTimeout(function () {
+                if (typeof loadAndRenderAll === 'function') loadAndRenderAll();
+            }, 0);
+        }
+    }
+
     card.classList.add('editing'); var original = tEl.textContent; tEl.setAttribute('contenteditable', 'true'); tEl.focus();
     var sel = window.getSelection();
     var range = document.createRange();
@@ -5816,6 +5876,7 @@ function startInlineEdit(card, isNewCard = false) {
     sel.addRange(range);
 
     function finish(save) {
+        releaseEditLock();
         tEl.removeEventListener('keydown', onKey);
         tEl.removeEventListener('blur', onBlur);
         tEl.removeAttribute('contenteditable');
@@ -16285,7 +16346,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.3';
+var APP_VERSION = 'v3.0.4';
 
 function initApp() {
     try {
