@@ -5339,6 +5339,17 @@ function toggleCardCompletion(e) {
         }
     }
 
+    // ITEM 5 (Ciclo 1): cartao concluido desce para o fim da lista.
+    // Nao se aplica a slots de horario da Agenda (.slot), onde a posicao e o horario.
+    try {
+        var _cont = card.parentElement;
+        if (card.dataset.completed === 'true' && _cont &&
+            _cont.classList && _cont.classList.contains('cards') &&
+            !(_cont.closest && _cont.closest('.slot'))) {
+            if (_cont.lastElementChild !== card) _cont.appendChild(card);
+        }
+    } catch (_e5) { }
+
     syncCardTimerState(card);
     persist();
     updateTimerDisplay(card);
@@ -7498,6 +7509,8 @@ async function callAI(contentsOrPrompt, retries = 3, delay = 1000) {
 
             let currentDelay = delay;
             let is404 = false;
+            let lastStatus = 0;
+            const TRANSIENT_STATUS = [429, 500, 502, 503, 504];
 
             for (let i = 0; i < retries; i++) {
                 try {
@@ -7506,6 +7519,8 @@ async function callAI(contentsOrPrompt, retries = 3, delay = 1000) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+
+                    lastStatus = response.status;
 
                     if (response.status === 404) {
                         console.warn(`Modelo ${model} indisponível (404). Tentando próximo modelo da lista...`);
@@ -7530,7 +7545,12 @@ async function callAI(contentsOrPrompt, retries = 3, delay = 1000) {
                 } catch (error) {
                     lastError = error;
                     if (i === retries - 1) {
-                        console.error(`Erro final ao chamar o modelo ${model}:`, error);
+                        if (TRANSIENT_STATUS.indexOf(lastStatus) !== -1) {
+                            console.warn(`Modelo ${model} sobrecarregado (${lastStatus}). Tentando proximo modelo da lista...`);
+                            is404 = true;
+                        } else {
+                            console.error(`Erro final ao chamar o modelo ${model}:`, error);
+                        }
                     } else {
                         await new Promise(res => setTimeout(res, currentDelay));
                         currentDelay *= 2;
@@ -16265,7 +16285,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.2';
+var APP_VERSION = 'v3.0.3';
 
 function initApp() {
     try {
