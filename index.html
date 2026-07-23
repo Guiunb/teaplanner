@@ -555,6 +555,86 @@
             #appHeader.tea-mb .tea-menu-btn { padding: 5px 7px; font-size: 11px; }
         }
 
+        /* ===== ITEM 11 (Ciclo 6): CABECALHOS CONGELADOS - FREEZE PANES =====
+           Modelo mental: celula congelada do Excel, nao caixa de altura fixa.
+           A LISTA continua crescendo sem limite. Quem e limitado e a JANELA,
+           que o proprio usuario ja dimensiona arrastando o resizer.
+
+           Detalhe que fazia sticky falhar antes: .board tem overflow-x:auto,
+           logo e container de rolagem nos dois eixos - mas nunca rolava na
+           vertical, entao o cabecalho nunca tinha de onde se descolar.
+
+           Desliga com: localStorage.setItem('tea-freeze','off') */
+        body.tea-freeze #board-container {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        body.tea-freeze .board {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+        }
+
+        body.tea-freeze .board > .list > header,
+        body.tea-freeze .day-column > header {
+            position: sticky;
+            top: 0;
+            z-index: 7;
+            background: var(--panel);
+            border-radius: 10px 10px 0 0;
+        }
+
+        /* Painel Semanal: a coluna do dia ja e esticada pelo grid.
+           Faltava min-height:0 - sem ele, um item flex se recusa a encolher
+           abaixo do conteudo e transborda em vez de rolar. E a razao de os
+           cartoes aparecerem cortados embaixo da coluna. */
+        body.tea-freeze .weekly-grid {
+            overflow: auto;
+        }
+
+        body.tea-freeze .day-column {
+            min-height: 0;
+        }
+
+        body.tea-freeze .day-column > .cards {
+            min-height: 0;
+        }
+
+        /* ===== ITEM 6 (Ciclo 6): MATRIZ LOTADA =====
+           minmax(250px, auto) fazia a linha crescer sem fim quando o quadrante
+           enchia, empurrando a matriz para fora da tela. Agora o quadrante tem
+           teto em vh e rola por dentro.
+
+           Esta e a MESMA forma de correcao que achatou os cartoes no Ciclo 2.
+           So e segura porque .cards > .card ganhou flex-shrink:0 no Ciclo 3:
+           o cartao nao pode mais ser comprimido, entao o navegador e obrigado
+           a rolar em vez de espremer.
+
+           Desliga com: localStorage.setItem('tea-matrixfit','off') */
+        body.tea-matrixfit .matrix .list {
+            max-height: 42vh;
+            min-height: 0;
+        }
+
+        body.tea-matrixfit .matrix .list > .cards {
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        body.tea-matrixfit .matrix .list > header {
+            position: sticky;
+            top: 0;
+            z-index: 7;
+            background: var(--panel);
+        }
+
+        @media (max-width: 700px) {
+            body.tea-matrixfit .matrix .list {
+                max-height: 60vh;
+            }
+        }
+
         /* ITEM 12a (Ciclo 4): selo de duracao estimada. */
         .dur-badge {
             font-size: 10px;
@@ -6796,6 +6876,27 @@ function buildMenuBar() {
     window.addEventListener('resize', teaMbApplyCompact);
     setTimeout(teaMbAdoptLate, 800);
     setTimeout(teaMbAdoptLate, 2500);
+}
+
+
+// ============================================================================
+// ITEM 11 e 6 (Ciclo 6) - CHAVES DE LAYOUT
+// ----------------------------------------------------------------------------
+// Ligadas por padrao. Desligar nao exige novo upload:
+//     localStorage.setItem('tea-freeze','off');    location.reload();  // item 11
+//     localStorage.setItem('tea-matrixfit','off'); location.reload();  // item 6
+//     localStorage.removeItem('tea-freeze');       location.reload();  // religa
+// ============================================================================
+function teaApplyLayoutFlags() {
+    var b = document.body;
+    if (!b) return;
+    var freeze = true, matrixfit = true;
+    try {
+        freeze = localStorage.getItem('tea-freeze') !== 'off';
+        matrixfit = localStorage.getItem('tea-matrixfit') !== 'off';
+    } catch (e) { }
+    b.classList.toggle('tea-freeze', freeze);
+    b.classList.toggle('tea-matrixfit', matrixfit);
 }
 
 function applyWhen(listElement, nodes) {
@@ -17051,7 +17152,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.7';
+var APP_VERSION = 'v3.0.8';
 
 function initApp() {
     try {
@@ -17060,6 +17161,7 @@ function initApp() {
     } catch (e) { }
     initResizers();
     if (typeof initTouchDrag === 'function') initTouchDrag();
+    if (typeof teaApplyLayoutFlags === 'function') teaApplyLayoutFlags();
     // ITEM 9 (Ciclo 5): roda depois do load para adotar botoes injetados por modulos.
     if (typeof buildMenuBar === 'function') {
         if (document.readyState === 'complete') setTimeout(buildMenuBar, 0);
