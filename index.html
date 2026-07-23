@@ -469,6 +469,92 @@
             flex-shrink: 0;
         }
 
+        /* ===== ITEM 9 (Ciclo 5): BARRA DE MENUS ESTILO FREEPLANE =====
+           Opcao B: uma linha ate 500px; duas linhas abaixo disso.
+           header.app ja e flex com wrap - .tea-break forca a quebra no ponto certo. */
+        #appHeader.tea-mb {
+            row-gap: 6px;
+            gap: 6px;
+        }
+
+        #appHeader.tea-mb .tea-break {
+            flex-basis: 100%;
+            height: 0;
+            margin: 0;
+            display: none;
+        }
+
+        #appHeader.tea-mb h1 {
+            margin: 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        #appHeader.tea-mb .tea-brand-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+        }
+
+        #appHeader.tea-mb .tea-caret {
+            font-size: 10px;
+            opacity: .7;
+        }
+
+        #appHeader.tea-mb .tea-menu-btn {
+            font-weight: 600;
+            padding: 5px 10px;
+        }
+
+        #appHeader.tea-mb #boardSelect {
+            max-width: 150px;
+        }
+
+        .tea-sep-line {
+            height: 1px;
+            background: rgba(255, 255, 255, .12);
+            margin: 6px 10px;
+        }
+
+        .tea-section {
+            font-size: 10px;
+            opacity: .55;
+            padding: 8px 16px 2px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: #f1f5f9;
+        }
+
+        /* Controles de filtro que passaram a morar dentro de um dropdown. */
+        .header-dropdown-content label,
+        .header-dropdown-content .badge {
+            display: block;
+            color: #f1f5f9;
+            padding: 6px 16px;
+            font-size: 12px;
+        }
+
+        .header-dropdown-content input[type="text"],
+        .header-dropdown-content input[type="date"] {
+            margin: 4px 16px;
+            max-width: calc(100% - 32px);
+        }
+
+        /* Estagio 3 - Z Fold fechado. A quebra entra aqui. */
+        @media (max-width: 500px) {
+            #appHeader.tea-mb .tea-break { display: block; }
+            #appHeader.tea-mb #sumTimersDisplay { display: none; }
+            #appHeader.tea-mb #appVersionTag { display: none; }
+            #appHeader.tea-mb h1 { font-size: 0; gap: 0; }
+            #appHeader.tea-mb h1 .header-icon { font-size: 14px; }
+            #appHeader.tea-mb #boardSelect { max-width: 92px; }
+            #appHeader.tea-mb .tea-menu-btn { padding: 5px 7px; font-size: 11px; }
+        }
+
         /* ITEM 12a (Ciclo 4): selo de duracao estimada. */
         .dur-badge {
             font-size: 10px;
@@ -6479,6 +6565,237 @@ function askCardDuration(card, onDone) {
         if (typeof renderWeeklyView === 'function') renderWeeklyView();
         if (onDone) onDone(chosen);
     });
+}
+
+
+// ============================================================================
+// ITEM 9 (Ciclo 5) - BARRA DE MENUS ESTILO FREEPLANE
+// ----------------------------------------------------------------------------
+// Reorganizador em tempo de execucao. NAO reescreve markup: MOVE os nos que ja
+// existem. Mover preserva listeners, IDs e estado; reescrever destruiria tudo.
+//
+// ROLLBACK (sem novo upload):
+//     localStorage.setItem('tea-menubar','off'); location.reload();
+//
+// Layout escolhido pelo Gui (opcao B):
+//     >= 500px  -> uma linha
+//     <  500px  -> duas linhas (quebra forcada por .tea-break)
+//     Linha 1: marca + seletor de quadro + Arquivo Editar Exibir IA
+//     Linha 2: paineis + Lista + desfazer/refazer + Foco + carteira + comando
+// ============================================================================
+var TEA_MENUBAR_KEY = 'tea-menubar';
+
+function teaMbById(id) { return document.getElementById(id); }
+
+function teaMbSep() {
+    var d = document.createElement('div');
+    d.className = 'tea-sep-line';
+    return d;
+}
+
+function teaMbSection(txt) {
+    var d = document.createElement('div');
+    d.className = 'tea-section';
+    d.textContent = txt;
+    return d;
+}
+
+function teaMbMenu(id, label) {
+    var wrap = document.createElement('div');
+    wrap.className = 'header-dropdown tea-menu';
+    wrap.id = id;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'header-dropdown-btn tea-menu-btn';
+    btn.textContent = label;
+
+    var content = document.createElement('div');
+    content.className = 'header-dropdown-content';
+    content.id = id + 'Content';
+
+    wrap.appendChild(btn);
+    wrap.appendChild(content);
+
+    // O wiring global de dropdown (querySelectorAll) ja rodou no load e e um
+    // snapshot: menus criados depois nao seriam ligados. Religa aqui.
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var all = document.querySelectorAll('.header-dropdown');
+        for (var i = 0; i < all.length; i++) {
+            if (all[i] !== wrap) all[i].classList.remove('active');
+        }
+        wrap.classList.toggle('active');
+    });
+    content.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    return { wrap: wrap, btn: btn, content: content };
+}
+
+// Botao-espelho: o controle real continua na toolbar, o menu so dispara o click.
+function teaMbProxy(targetId, label) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.addEventListener('click', function () {
+        var t = teaMbById(targetId);
+        if (t) t.click();
+    });
+    return b;
+}
+
+function teaMbMove(elOrId, into) {
+    var el = (typeof elOrId === 'string') ? teaMbById(elOrId) : elOrId;
+    if (el && into) into.appendChild(el);
+    return el;
+}
+
+// Rotulos curtos no Estagio 3 (Z Fold fechado).
+var TEA_MB_SHORT = { toggleWeeklyBtn: '\ud83d\udcc5', manualFocusBtn: '\ud83c\udfaf', addList: '+' };
+
+function teaMbApplyCompact() {
+    var narrow = window.innerWidth <= 500;
+    Object.keys(TEA_MB_SHORT).forEach(function (id) {
+        var b = teaMbById(id);
+        if (!b) return;
+        if (!narrow) {
+            if (b.dataset.teaFull) { b.textContent = b.dataset.teaFull; }
+            else { b.dataset.teaFull = b.textContent; }
+        } else {
+            if (!b.dataset.teaFull) b.dataset.teaFull = b.textContent;
+            b.textContent = TEA_MB_SHORT[id];
+        }
+    });
+}
+
+// O botao de Revisao e injetado por outro modulo e pode chegar depois.
+function teaMbAdoptLate() {
+    var exib = teaMbById('teaMenuExibirContent');
+    var rv = teaMbById('rvHeaderBtn');
+    if (exib && rv && rv.parentNode !== exib) exib.insertBefore(rv, exib.firstChild);
+}
+
+function buildMenuBar() {
+    try { if (localStorage.getItem(TEA_MENUBAR_KEY) === 'off') return; } catch (e) { }
+
+    var header = teaMbById('appHeader');
+    if (!header || header.dataset.teaMenubar === '1') { teaMbAdoptLate(); return; }
+    header.dataset.teaMenubar = '1';
+
+    // Fotografa o estado inicial para garantir que nada seja perdido.
+    var preExisting = Array.prototype.slice.call(header.children);
+
+    // ------------------------------------------------------------ marca
+    var brand = teaMbMenu('teaBrandMenu', '');
+    brand.btn.classList.add('tea-brand-btn');
+    var h1 = header.querySelector('h1');
+    if (h1) brand.btn.insertBefore(h1, brand.btn.firstChild);
+    var caret = document.createElement('span');
+    caret.className = 'tea-caret';
+    caret.textContent = '\u25be';
+    brand.btn.appendChild(caret);
+    teaMbMove('userInfo', brand.content);
+    teaMbMove('loginBtn', brand.content);
+
+    // ---------------------------------------------------------- Arquivo
+    var arq = teaMbMenu('teaMenuArquivo', 'Arquivo');
+    ['boardDropdownContainer', 'dataDropdownContainer'].forEach(function (cid, i) {
+        var c = teaMbById(cid);
+        if (!c) return;
+        if (i > 0) arq.content.appendChild(teaMbSep());
+        var inner = c.querySelector('.header-dropdown-content');
+        if (inner) { while (inner.firstChild) arq.content.appendChild(inner.firstChild); }
+        c.style.display = 'none';
+    });
+
+    // ----------------------------------------------------------- Editar
+    var edt = teaMbMenu('teaMenuEditar', 'Editar');
+    edt.content.appendChild(teaMbProxy('undo', '\u27f2 Desfazer'));
+    edt.content.appendChild(teaMbProxy('redo', '\u27f3 Refazer'));
+    edt.content.appendChild(teaMbSep());
+    teaMbMove('toggleSelectionModeBtn', edt.content);
+
+    // ----------------------------------------------------------- Exibir
+    var exb = teaMbMenu('teaMenuExibir', 'Exibir');
+    exb.content.appendChild(teaMbProxy('toggleBoardBtn', '\u2630 Kanban'));
+    exb.content.appendChild(teaMbProxy('toggleMatrixBtn', '\u229e Matriz'));
+    exb.content.appendChild(teaMbProxy('toggleAgendaBtn', '\ud83d\uddd3\ufe0f Agenda'));
+    exb.content.appendChild(teaMbProxy('toggleWeeklyBtn', '\ud83d\udcc5 Semana'));
+    exb.content.appendChild(teaMbSep());
+    // Revisao (2x por semana -> menu). Pode ainda nao existir; teaMbAdoptLate resolve.
+    teaMbMove('rvHeaderBtn', exb.content);
+    exb.content.appendChild(teaMbSection('Filtros'));
+    teaMbMove('filterColorsBtn', exb.content);
+    teaMbMove('fTime', exb.content);
+    var lFrom = teaMbById('fFrom') && teaMbById('fFrom').closest('label');
+    var lTo = teaMbById('fTo') && teaMbById('fTo').closest('label');
+    teaMbMove(lFrom, exb.content);
+    teaMbMove(lTo, exb.content);
+    teaMbMove('clearFilters', exb.content);
+    teaMbMove('filtersOn', exb.content);
+
+    // --------------------------------------------------------------- IA
+    var ia = teaMbMenu('teaMenuIA', 'IA');
+    teaMbMove('aiConfigBtn', ia.content);
+    ia.content.appendChild(teaMbSep());
+    var addons = teaMbById('addonsDropdownContainer');
+    if (addons) {
+        var ainner = addons.querySelector('.header-dropdown-content');
+        if (ainner) { while (ainner.firstChild) ia.content.appendChild(ainner.firstChild); }
+        addons.style.display = 'none';
+    }
+
+    // ------------------------------------------------- montagem das linhas
+    var brk = document.createElement('div');
+    brk.className = 'tea-break';
+
+    var mine = [brand.wrap, arq.wrap, edt.wrap, exb.wrap, ia.wrap, brk];
+
+    header.appendChild(brand.wrap);
+    // Seletor de quadro colado no logo (decisao do Gui).
+    var bsel = teaMbMove('boardSelect', header);
+    header.appendChild(arq.wrap);
+    header.appendChild(edt.wrap);
+    header.appendChild(exb.wrap);
+    header.appendChild(ia.wrap);
+    header.appendChild(brk);
+
+    // Linha 2 - o que o Gui usa mais de dez vezes por dia.
+    ['toggleBoardBtn', 'toggleMatrixBtn', 'toggleAgendaBtn', 'toggleWeeklyBtn',
+     'addList', 'undo', 'redo', 'manualFocusBtn',
+     'walletBtn', 'wellbeingPill', 'sumTimersDisplay', 'aiAssistantContainer'
+    ].forEach(function (id) { teaMbMove(id, header); });
+
+    // A caixa antiga de controles de quadro fica so com IDs legados ocultos.
+    var bc = header.querySelector('.board-controls');
+    if (bc) {
+        bc.style.display = 'none';
+        // Vai para o fim: oculta, mas ainda ocupava a posicao 0 do DOM, o que
+        // bagunca ordem de tabulacao e leitura por leitor de tela.
+        header.appendChild(bc);
+    }
+
+    // ----------------------------------------- rede de seguranca: sobras
+    var sobras = [];
+    preExisting.forEach(function (n) {
+        if (n.parentNode !== header) return;
+        if (mine.indexOf(n) !== -1) return;
+        if (n === bc || n === bsel) return;
+        if (n.classList && n.classList.contains('tea-unclassified')) return;
+        n.classList.add('tea-unclassified');
+        header.appendChild(n);
+        sobras.push(n.id || n.tagName.toLowerCase() + '.' + (n.className || ''));
+    });
+    if (sobras.length) {
+        console.warn('[TEA Planner] Barra de menus: itens sem classificacao mantidos visiveis ->', sobras);
+    }
+
+    header.classList.add('tea-mb');
+    teaMbApplyCompact();
+    teaMbAdoptLate();
+    window.addEventListener('resize', teaMbApplyCompact);
+    setTimeout(teaMbAdoptLate, 800);
+    setTimeout(teaMbAdoptLate, 2500);
 }
 
 function applyWhen(listElement, nodes) {
@@ -16734,7 +17051,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.6';
+var APP_VERSION = 'v3.0.7';
 
 function initApp() {
     try {
@@ -16743,6 +17060,11 @@ function initApp() {
     } catch (e) { }
     initResizers();
     if (typeof initTouchDrag === 'function') initTouchDrag();
+    // ITEM 9 (Ciclo 5): roda depois do load para adotar botoes injetados por modulos.
+    if (typeof buildMenuBar === 'function') {
+        if (document.readyState === 'complete') setTimeout(buildMenuBar, 0);
+        else window.addEventListener('load', function () { setTimeout(buildMenuBar, 0); });
+    }
     applyDragScroll();
     loadState();
     migrateToMultiBoard();
