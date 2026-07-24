@@ -566,6 +566,12 @@
             position: relative;
         }
 
+        /* Ciclo 10: a Agenda com linha do tempo gerencia a propria altura;
+           o freeze do Kanban nao deve impor overflow ao container de slots. */
+        body.tea-freeze.tea-timeline #slots {
+            overflow: visible;
+        }
+
         body.tea-timeline .list.slot[data-type="time"] {
             position: relative;
             height: var(--tea-slot-h, 44px);
@@ -655,6 +661,15 @@
            vertical, entao o cabecalho nunca tinha de onde se descolar.
 
            Desliga com: localStorage.setItem('tea-freeze','off') */
+        /* Ciclo 10: reescrito. A rolagem acontece DENTRO da coluna, e o
+           cabecalho da coluna fica fixo no topo dela. Nao usa position:sticky
+           (que falhou no Ciclo 6 por overflow herdado e painel colapsado) -
+           usa layout flex com o scroller na .cards.
+
+           ---- KANBAN ----
+           O painel do Kanban ja tem altura definida pelo usuario (resizer).
+           .board preenche essa altura; cada .list vira coluna flex; o header
+           fica preso (flex-shrink:0) e .cards rola por dentro. */
         body.tea-freeze #board-container {
             overflow: hidden;
             min-height: 0;
@@ -663,32 +678,53 @@
         body.tea-freeze .board {
             flex: 1 1 auto;
             min-height: 0;
-            overflow: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            align-items: stretch;
         }
 
-        body.tea-freeze .board > .list > header,
-        body.tea-freeze .day-column > header {
-            position: sticky;
-            top: 0;
+        body.tea-freeze .board > .list {
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+            min-height: 0;
+        }
+
+        body.tea-freeze .board > .list > header {
+            flex-shrink: 0;
             z-index: 7;
-            background: var(--panel);
-            border-radius: 10px 10px 0 0;
         }
 
-        /* Painel Semanal: a coluna do dia ja e esticada pelo grid.
-           Faltava min-height:0 - sem ele, um item flex se recusa a encolher
-           abaixo do conteudo e transborda em vez de rolar. E a razao de os
-           cartoes aparecerem cortados embaixo da coluna. */
+        body.tea-freeze .board > .list > .cards {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        /* ---- SEMANAL ----
+           O grid deixa de rolar na vertical; cada coluna do dia rola por
+           dentro, com o cabecalho (dia + data) preso no topo da coluna.
+           O grid ja tem height:100%, entao a coluna tem contra o que se medir. */
         body.tea-freeze .weekly-grid {
-            overflow: auto;
+            overflow-x: auto;
+            overflow-y: hidden;
+            align-items: stretch;
         }
 
         body.tea-freeze .day-column {
+            max-height: 100%;
             min-height: 0;
         }
 
+        body.tea-freeze .day-column > header {
+            flex-shrink: 0;
+            z-index: 7;
+        }
+
         body.tea-freeze .day-column > .cards {
+            flex: 1 1 auto;
             min-height: 0;
+            overflow-y: auto;
         }
 
         /* ===== ITEM 6 (Ciclo 6): MATRIZ LOTADA =====
@@ -17493,7 +17529,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.11';
+var APP_VERSION = 'v3.0.12';
 
 function initApp() {
     try {
