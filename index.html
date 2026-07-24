@@ -555,7 +555,97 @@
             #appHeader.tea-mb .tea-menu-btn { padding: 5px 7px; font-size: 11px; }
         }
 
-        /* ===== ITEM 11 (Ciclo 6): CABECALHOS CONGELADOS - FREEZE PANES =====
+        /* ===== ITEM 12b (Ciclo 8): AGENDA COMO LINHA DO TEMPO =====
+           Desligado por padrao. Ligar com:
+             localStorage.setItem('tea-timeline','on'); location.reload();
+
+           A estrutura de slots NAO muda - so a altura passa a ser fixa, o que
+           torna a coluna proporcional ao tempo. Sem isso, 'ocupar 1h30' nao
+           tem significado visual: hoje um slot vazio colapsa e um cheio cresce. */
+        body.tea-timeline #slots {
+            position: relative;
+        }
+
+        body.tea-timeline .list.slot[data-type="time"] {
+            position: relative;
+            height: var(--tea-slot-h, 44px);
+            min-height: var(--tea-slot-h, 44px);
+            overflow: visible;
+        }
+
+        /* Calha do horario a esquerda, area de eventos a direita. */
+        body.tea-timeline .list.slot[data-type="time"] > .head {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 46px;
+            height: 100%;
+            align-items: flex-start;
+            padding-top: 2px;
+            pointer-events: none;
+        }
+
+        body.tea-timeline .list.slot[data-type="time"] > .cards {
+            display: block;
+            position: absolute;
+            left: 48px;
+            right: 2px;
+            top: 0;
+            bottom: 0;
+            padding: 0;
+            min-height: 0;
+            overflow: visible;
+        }
+
+        /* Cartao dimensionado pela duracao. O texto e recortado: a altura aqui
+           significa TEMPO, entao ela nao pode ceder ao tamanho do texto. */
+        body.tea-timeline .tea-tl-card {
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        body.tea-timeline .tea-tl-card .text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Linha da hora cheia mais marcada que a da meia hora. */
+        body.tea-timeline .list.slot[data-type="time"][data-time$=":00"] {
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        /* ITEM 12b (Ciclo 9): durante o arrasto, o cartao alto deixa de
+           interceptar o ponteiro. Sem isto, soltar sobre a area que ele cobre
+           acertaria o cartao e o evento borbulharia para o slot de ORIGEM -
+           agendando 17:00 quando o dedo apontou 18:00. */
+        body.tea-dragging.tea-timeline .tea-tl-card,
+        body.tea-touch-dragging.tea-timeline .tea-tl-card {
+            pointer-events: none;
+        }
+
+        /* Ciclo 9: chaves de layout dentro do menu Exibir. */
+        .tea-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            font-size: 12px;
+            color: #f1f5f9;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tea-toggle:hover {
+            background: rgba(255, 255, 255, .07);
+        }
+
+        .tea-toggle input {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        /* ITEM 11 (Ciclo 6): CABECALHOS CONGELADOS - FREEZE PANES =====
            Modelo mental: celula congelada do Excel, nao caixa de altura fixa.
            A LISTA continua crescendo sem limite. Quem e limitado e a JANELA,
            que o proprio usuario ja dimensiona arrastando o resizer.
@@ -5765,6 +5855,9 @@ function createCard(data) {
 
     c.addEventListener('dragstart', function (e) {
         e.stopPropagation();
+        // ITEM 12b (Ciclo 9): cartao alto cobre os slots seguintes. Sem isto, soltar
+        // sobre a area coberta acerta o cartao e agenda no horario de ORIGEM.
+        document.body.classList.add('tea-dragging');
         var block = selected.has(c) ? Array.from(selected) : [c];
         dragState = { leader: c, block: block };
         block.forEach(function (n) { n.classList.add('dragging'); });
@@ -5773,6 +5866,7 @@ function createCard(data) {
     });
 
     c.addEventListener('dragend', function () {
+        document.body.classList.remove('tea-dragging');
         if (dragState && dragState.block) {
             dragState.block.forEach(function (n) { n.classList.remove('dragging'); });
         }
@@ -6756,7 +6850,7 @@ function teaMbAdoptLate() {
 }
 
 function buildMenuBar() {
-    try { if (localStorage.getItem(TEA_MENUBAR_KEY) === 'off') return; } catch (e) { }
+    if (!teaToggleLigado(TEA_MENUBAR_KEY, true)) return;
 
     var header = teaMbById('appHeader');
     if (!header || header.dataset.teaMenubar === '1') { teaMbAdoptLate(); return; }
@@ -6870,6 +6964,7 @@ function buildMenuBar() {
         console.warn('[TEA Planner] Barra de menus: itens sem classificacao mantidos visiveis ->', sobras);
     }
 
+    buildLayoutToggles();
     header.classList.add('tea-mb');
     teaMbApplyCompact();
     teaMbAdoptLate();
@@ -6890,13 +6985,222 @@ function buildMenuBar() {
 function teaApplyLayoutFlags() {
     var b = document.body;
     if (!b) return;
-    var freeze = true, matrixfit = true;
-    try {
-        freeze = localStorage.getItem('tea-freeze') !== 'off';
-        matrixfit = localStorage.getItem('tea-matrixfit') !== 'off';
-    } catch (e) { }
+    var freeze = teaToggleLigado('tea-freeze', true);
+    var matrixfit = teaToggleLigado('tea-matrixfit', true);
     b.classList.toggle('tea-freeze', freeze);
     b.classList.toggle('tea-matrixfit', matrixfit);
+}
+
+
+// ============================================================================
+// ITEM 12b (Ciclo 8) - AGENDA COMO LINHA DO TEMPO
+// ----------------------------------------------------------------------------
+// DESLIGADO POR PADRAO. Ligar com:
+//     localStorage.setItem('tea-timeline','on'); location.reload();
+//
+// Porque a Agenda de hoje nao pode "ocupar o horario": ela nao e proporcional
+// ao tempo. Slot vazio colapsa (.slot .cards { display:none }), slot cheio
+// cresce. Uma hora vazia ocupa 20px, uma hora cheia ocupa 200px. Nesse espaco,
+// "ocupar 1h30" nao significa nada.
+//
+// Esta implementacao NAO reescreve a Agenda: mantem a estrutura de <section
+// class="list slot"> com dataset.time, entao wireDropZone, applyWhen e
+// updateSlotsHasItems continuam funcionando sem alteracao. O que muda e que
+// cada slot de 30min ganha altura fixa e o cartao e posicionado por cima.
+// ============================================================================
+var TEA_TL_SLOT_MIN = 30;          // minutos por slot
+var TEA_TL_DEFAULT_DURATION = 30;  // cartao sem estimativa ocupa 1 slot
+var TEA_TL_GAP = 3;                // respiro vertical entre cartoes, em px
+
+function teaTimelineOn() {
+    // Ciclo 9: LIGADA por padrao. A chave agora desliga.
+    // O Gui aprovou altura, corte de texto e padrao de 30min - as tres decisoes
+    // que definiam o comportamento. Nao ha mais motivo para nascer desligada.
+    return teaToggleLigado('tea-timeline', true);
+}
+
+function teaTimelineSlotHeight() {
+    var v = NaN;
+    try { v = parseInt(localStorage.getItem('tea-timeline-h'), 10); } catch (e) { }
+    if (isNaN(v) || v < 24 || v > 200) v = 44;
+    return v;
+}
+
+// Converte os cartoes ja distribuidos nos slots em eventos {start, end, card}.
+// start/end sao indices de slot, nao minutos - o slot ja carrega o horario.
+function teaTimelineEvents(slots) {
+    var eventos = [];
+    for (var i = 0; i < slots.length; i++) {
+        var cont = slots[i].querySelector('.cards');
+        if (!cont) continue;
+        var cards = cont.querySelectorAll(':scope > .card');
+        for (var k = 0; k < cards.length; k++) {
+            var card = cards[k];
+            var d = parseInt(card.dataset.duration, 10);
+            if (isNaN(d) || d <= 0) d = TEA_TL_DEFAULT_DURATION;
+            var span = Math.max(1, Math.ceil(d / TEA_TL_SLOT_MIN));
+            eventos.push({
+                start: i,
+                end: Math.min(i + span, slots.length),  // trava no fim do dia
+                card: card,
+                col: 0,
+                cols: 1
+            });
+        }
+    }
+    return eventos;
+}
+
+// Algoritmo de colunas por intervalo, igual ao de qualquer agenda de calendario:
+// agrupa eventos que se sobrepoem e divide a largura entre eles. Nenhum cartao
+// esconde outro.
+function teaTimelineAssignColumns(eventos) {
+    eventos.sort(function (a, b) {
+        return (a.start - b.start) || (a.end - b.end);
+    });
+
+    var clusters = [], atual = [], maxEnd = -1;
+    eventos.forEach(function (ev) {
+        if (atual.length && ev.start >= maxEnd) {
+            clusters.push(atual);
+            atual = [];
+            maxEnd = -1;
+        }
+        atual.push(ev);
+        if (ev.end > maxEnd) maxEnd = ev.end;
+    });
+    if (atual.length) clusters.push(atual);
+
+    clusters.forEach(function (cl) {
+        var fimDaColuna = [];
+        cl.forEach(function (ev) {
+            var j = 0;
+            while (j < fimDaColuna.length && fimDaColuna[j] > ev.start) j++;
+            fimDaColuna[j] = ev.end;
+            ev.col = j;
+        });
+        cl.forEach(function (ev) { ev.cols = fimDaColuna.length; });
+    });
+
+    return eventos;
+}
+
+function teaTimelineClear(root) {
+    var cards = root.querySelectorAll('.tea-tl-card');
+    for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        c.classList.remove('tea-tl-card');
+        c.style.position = '';
+        c.style.top = '';
+        c.style.left = '';
+        c.style.width = '';
+        c.style.height = '';
+        c.style.zIndex = '';
+    }
+}
+
+function layoutAgendaTimeline() {
+    var root = document.getElementById('slots');
+    if (!root) return;
+
+    var ligado = teaTimelineOn();
+    if (document.body) document.body.classList.toggle('tea-timeline', ligado);
+    if (!ligado) { teaTimelineClear(root); return; }
+
+    var h = teaTimelineSlotHeight();
+    root.style.setProperty('--tea-slot-h', h + 'px');
+
+    var slots = Array.prototype.slice.call(
+        root.querySelectorAll('.list.slot[data-type="time"]')
+    );
+    if (!slots.length) return;
+
+    teaTimelineClear(root);
+
+    var eventos = teaTimelineAssignColumns(teaTimelineEvents(slots));
+
+    eventos.forEach(function (ev) {
+        var altura = (ev.end - ev.start) * h - TEA_TL_GAP;
+        var largura = 100 / ev.cols;
+        var c = ev.card;
+        c.classList.add('tea-tl-card');
+        c.style.position = 'absolute';
+        c.style.top = '0px';
+        c.style.left = 'calc(' + (ev.col * largura) + '% + 1px)';
+        c.style.width = 'calc(' + largura + '% - 3px)';
+        c.style.height = Math.max(18, altura) + 'px';
+        // Cartao mais longo fica atras, para o mais curto nunca ser engolido.
+        c.style.zIndex = String(10 + ev.col);
+    });
+}
+
+
+// ============================================================================
+// ITEM 12b / 11 / 6 / 9 (Ciclo 9) - CHAVES DE LAYOUT COMO ITENS DE MENU
+// ----------------------------------------------------------------------------
+// As chaves criadas nos ciclos 5, 6 e 8 so podiam ser acionadas pelo console.
+// O aparelho principal do Gui e um Android, que nao tem console: as chaves eram
+// inuteis exatamente onde seriam necessarias. Agora sao marcaveis no menu Exibir.
+//
+// Convencao: guardamos apenas o desvio do padrao. Ausencia = padrao.
+// ============================================================================
+var TEA_LAYOUT_TOGGLES = [
+    { key: 'tea-timeline', label: 'Linha do tempo na Agenda', padrao: true },
+    { key: 'tea-freeze', label: 'Cabe\u00e7alhos congelados', padrao: true },
+    { key: 'tea-matrixfit', label: 'Matriz compacta', padrao: true },
+    { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true }
+];
+
+function teaToggleLigado(key, padrao) {
+    try {
+        var v = localStorage.getItem(key);
+        if (v === 'off') return false;
+        if (v === 'on') return true;
+        return padrao;
+    } catch (e) { return padrao; }
+}
+
+function teaToggleSet(key, ligado) {
+    try {
+        localStorage.setItem(key, ligado ? 'on' : 'off');
+    } catch (e) { }
+}
+
+function buildLayoutToggles() {
+    var alvo = document.getElementById('teaMenuExibirContent');
+    if (!alvo || alvo.querySelector('.tea-toggle-box')) return;
+
+    var box = document.createElement('div');
+    box.className = 'tea-toggle-box';
+
+    var titulo = document.createElement('div');
+    titulo.className = 'tea-section';
+    titulo.textContent = 'Layout';
+    box.appendChild(titulo);
+
+    TEA_LAYOUT_TOGGLES.forEach(function (t) {
+        var linha = document.createElement('label');
+        linha.className = 'tea-toggle';
+
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = teaToggleLigado(t.key, t.padrao);
+
+        var txt = document.createElement('span');
+        txt.textContent = t.label;
+
+        cb.addEventListener('change', function () {
+            teaToggleSet(t.key, cb.checked);
+            // Recarrega: as chaves valem no boot e mexem em CSS estrutural.
+            location.reload();
+        });
+
+        linha.appendChild(cb);
+        linha.appendChild(txt);
+        box.appendChild(linha);
+    });
+
+    alvo.appendChild(box);
 }
 
 function applyWhen(listElement, nodes) {
@@ -7266,6 +7570,9 @@ function updateSlotsHasItems() {
     });
     updateTotalTimerDisplay();
     updateListHeaderTooltips();
+    // ITEM 12b (Ciclo 8): unico ponto do app que distribui cartoes nos slots.
+    // Reposiciona depois que os cartoes ja estao nos lugares certos.
+    if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
     if (typeof renderWeeklyView === 'function') renderWeeklyView(); else if (typeof window.renderWeeklyView === 'function') window.renderWeeklyView();
 }
 
@@ -15152,6 +15459,13 @@ function initCentralBank() {
         return;
       }
     }
+    // ITEM 2 (Ciclo 7): saída sem decisões não podia mais escapar da pergunta.
+    // Antes: session=null e fechava direto, sem nunca chamar finishReview().
+    if (session && !session.finished && pendingCompletedItems().length > 0) {
+      finishReview();
+      return;
+    }
+
     session = null;
     closeOverlay();
   }
@@ -15482,20 +15796,42 @@ function initCentralBank() {
     renderCurrentStep();
   }
 
+  // ITEM 2 (Ciclo 7): concluídos que ainda não receberam decisão nesta sessão.
+  // Fonte = a própria varredura da revisão (todos os quadros), não o DOM.
+  function pendingCompletedItems() {
+    if (!session || !session.data || !session.data.completedOnBoard) return [];
+    var decididos = {};
+    (session.decisions || []).forEach(function (d) {
+      if (d && d.card && d.card.id && d.action !== 'keep') decididos[d.card.id] = true;
+    });
+    return session.data.completedOnBoard.filter(function (it) {
+      return it && it.card && it.card.id && !decididos[it.card.id];
+    });
+  }
+
   function finishReview() {
     if (!session) { closeOverlay(); return; }
     session.finished = true;
 
-    // ITEM 1: sugerir enviar concluídos pra lixeira ANTES de finalizar.
+    // ITEM 2 (Ciclo 7): sugerir enviar concluídos pra lixeira ANTES de finalizar.
     // A finalização (completeFinishReview) roda nos DOIS caminhos: sim e não/cancelar,
     // pra nunca perder as decisões da revisão.
-    var completedCards = allCards.filter(function (c) { return c.dataset.completed === 'true'; });
-    if (completedCards.length > 0 && !session._trashAsked) {
+    //
+    // Antes lia allCards (nós do DOM do quadro ATIVO) enquanto o scan da revisão
+    // varre TODOS os quadros pelos dados persistidos. Cartão concluído em outro
+    // quadro era invisível aqui: a revisão mostrava e a pergunta nunca vinha.
+    var pendentes = pendingCompletedItems();
+    if (pendentes.length > 0 && !session._trashAsked && typeof showConfirmCancel === 'function') {
         session._trashAsked = true;
         showConfirmCancel(
-            'Enviar ' + completedCards.length + ' cartão(s) concluído(s) para a lixeira?',
+            'Enviar ' + pendentes.length + ' cartão(s) concluído(s) para a lixeira?',
             function onYes() {
-                removeCardsBatch(completedCards, function () { completeFinishReview(); });
+                // Executa pela própria máquina da revisão (applyDecisions), que sabe
+                // mover cartão entre quadros. removeCardsBatch só alcançaria o ativo.
+                pendentes.forEach(function (it) {
+                    session.decisions.push({ card: it.card, boardId: it.boardId, action: 'trash' });
+                });
+                completeFinishReview();
             },
             function onNo() {
                 completeFinishReview();
@@ -16238,6 +16574,11 @@ document.addEventListener('dragover', (e) => {
 
 function stopScrollParams() { scrollSpeed = { x: 0, y: 0 }; if (scrollFrame) { cancelAnimationFrame(scrollFrame); scrollFrame = null; } }
 document.addEventListener('dragend', stopScrollParams); document.addEventListener('drop', stopScrollParams); document.addEventListener('mouseleave', stopScrollParams);
+// ITEM 12b (Ciclo 9): rede de seguranca - arrasto abortado sem dragend deixaria
+// os cartoes transparentes a ponteiro e nada mais seria clicavel na Agenda.
+['dragend', 'drop', 'mouseup', 'touchend', 'touchcancel'].forEach(function (ev) {
+    document.addEventListener(ev, function () { document.body.classList.remove('tea-dragging'); }, true);
+});
 
 function initDemo() {
     withMute(function () {
@@ -17152,7 +17493,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.8';
+var APP_VERSION = 'v3.0.11';
 
 function initApp() {
     try {
@@ -17162,6 +17503,7 @@ function initApp() {
     initResizers();
     if (typeof initTouchDrag === 'function') initTouchDrag();
     if (typeof teaApplyLayoutFlags === 'function') teaApplyLayoutFlags();
+    if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
     // ITEM 9 (Ciclo 5): roda depois do load para adotar botoes injetados por modulos.
     if (typeof buildMenuBar === 'function') {
         if (document.readyState === 'complete') setTimeout(buildMenuBar, 0);
