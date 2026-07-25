@@ -621,6 +621,17 @@
             border-top: 1px solid rgba(255, 255, 255, 0.10);
         }
 
+        /* ITEM 4 (Ciclo 12): botao de multi-selecao na barra. */
+        .tea-multisel-btn {
+            font-size: 15px;
+            padding: 4px 9px;
+        }
+
+        .tea-multisel-btn.active {
+            background: rgba(77, 163, 255, .35) !important;
+            outline: 2px solid #4da3ff;
+        }
+
         /* ===== ITEM 2 (Ciclo 11): SANDUICHE + LUPA DE COMANDO ===== */
         .tea-hamburger {
             position: relative;
@@ -2329,6 +2340,20 @@
             display: inline-block;
         }
 
+        /* ITEM 5 (Ciclo 12): menu ancorado a direita nao vaza pela borda. */
+        .header-dropdown.tea-align-right > .header-dropdown-content {
+            left: auto;
+            right: 0;
+        }
+
+        .header-dropdown-content button,
+        .header-dropdown-content .tea-toggle,
+        .header-dropdown-content label {
+            white-space: normal;
+            word-break: break-word;
+            text-align: left;
+        }
+
         .header-dropdown-btn {
             background: var(--header-btn-bg) !important;
             color: var(--header-text) !important;
@@ -2357,6 +2382,10 @@
             position: absolute;
             top: 100%;
             left: 0;
+            /* ITEM 5 (Ciclo 12): nunca deixar o texto cortar. */
+            max-width: min(88vw, 320px);
+            white-space: normal;
+            word-break: break-word;
             background: rgba(15, 23, 42, 0.95) !important;
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -5416,6 +5445,9 @@ if (!window.__teaPointerTrackerOn) {
     } else {
         document.addEventListener('touchstart', function () {
             window.__teaLastPointerType = 'touch';
+            try {
+                document.querySelectorAll('.card[draggable="true"]').forEach(function (c) { c.draggable = false; });
+            } catch (e) { }
         }, true);
         document.addEventListener('mousedown', function () {
             window.__teaLastPointerType = 'mouse';
@@ -5828,7 +5860,11 @@ function createCard(data) {
     if (!_d.history) {
         _d.history = JSON.stringify([{ action: 'Criado', time: Date.now() }]);
     }
-    var c = el('div', 'card'); c.draggable = true;
+    var c = el('div', 'card');
+    // ITEM 3 (Ciclo 12): no toque, o draggable nativo BRIGA com a camada de
+    // toque (Ciclo 3): o long-press do Android dispara contextmenu e inverte a
+    // direcao. So habilita o draggable nativo quando NAO e toque.
+    c.draggable = !(window.__teaLastPointerType === 'touch' || window.__teaLastPointerType === 'pen');
     
     c.dataset.id = _d.id || generateId();
     const cardBoardId = _d.boardId || currentBoardId || 'board-todos';
@@ -7052,6 +7088,8 @@ function buildMenuBar() {
     }
 
     buildLayoutToggles();
+    if (typeof teaBuildHamburger === 'function') teaBuildHamburger();
+    if (typeof teaWireDropdownSides === 'function') teaWireDropdownSides();
     header.classList.add('tea-mb');
     teaMbApplyCompact();
     teaMbAdoptLate();
@@ -7103,7 +7141,7 @@ function teaTimelineOn() {
     // Ciclo 9: LIGADA por padrao. A chave agora desliga.
     // O Gui aprovou altura, corte de texto e padrao de 30min - as tres decisoes
     // que definiam o comportamento. Nao ha mais motivo para nascer desligada.
-    return teaToggleLigado('tea-timeline', true);
+    return teaToggleLigado('tea-timeline', false);
 }
 
 function teaTimelineSlotHeight() {
@@ -7242,7 +7280,7 @@ function layoutAgendaTimeline() {
 // Convencao: guardamos apenas o desvio do padrao. Ausencia = padrao.
 // ============================================================================
 var TEA_LAYOUT_TOGGLES = [
-    { key: 'tea-timeline', label: 'Linha do tempo na Agenda', padrao: true },
+    { key: 'tea-timeline', label: 'Linha do tempo na Agenda', padrao: false },
     { key: 'tea-freeze', label: 'Cabe\u00e7alhos congelados', padrao: true },
     { key: 'tea-matrixfit', label: 'Matriz compacta', padrao: true },
     { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true }
@@ -7353,6 +7391,70 @@ function teaBuildHamburger() {
     wrap.appendChild(tray);
     wrap.appendChild(btn);
     header.appendChild(wrap);
+}
+
+
+// ============================================================================
+// ITEM 5 (Ciclo 12) - DROPDOWN NAO VAZA PELA BORDA DIREITA
+// ----------------------------------------------------------------------------
+// Antes de abrir qualquer .header-dropdown, decide se ele abre para a esquerda
+// (padrao) ou alinhado a direita, conforme a posicao do botao na tela.
+// ============================================================================
+function teaFixDropdownSide(wrap) {
+    if (!wrap) return;
+    try {
+        var r = wrap.getBoundingClientRect();
+        var meio = window.innerWidth / 2;
+        if (r.left > meio) wrap.classList.add('tea-align-right');
+        else wrap.classList.remove('tea-align-right');
+    } catch (e) { }
+}
+
+function teaWireDropdownSides() {
+    var all = document.querySelectorAll('.header-dropdown');
+    for (var i = 0; i < all.length; i++) {
+        (function (wrap) {
+            var btn = wrap.querySelector('.header-dropdown-btn, .tea-menu-btn, button');
+            if (!btn || btn.dataset.teaSideWired) return;
+            btn.dataset.teaSideWired = '1';
+            btn.addEventListener('click', function () { teaFixDropdownSide(wrap); }, true);
+        })(all[i]);
+    }
+}
+
+
+// ============================================================================
+// ITEM 4 (Ciclo 12) - BOTAO DE MULTI-SELECAO NA BARRA (esquerda da lupa)
+// ----------------------------------------------------------------------------
+// O Gui precisa de multi-selecao no Android sem entrar em menu. Botao dedicado
+// que espelha o toggleSelectionModeBtn original.
+// ============================================================================
+function teaWireMultiSelectButton() {
+    if (document.getElementById('teaMultiSelBtn')) return;
+    var header = document.getElementById('appHeader');
+    if (!header) return;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'teaMultiSelBtn';
+    btn.className = 'tea-multisel-btn';
+    btn.title = 'Multi-selecao';
+    btn.textContent = '\u2611\ufe0f';
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var real = document.getElementById('toggleSelectionModeBtn');
+        if (real) real.click();
+        btn.classList.toggle('active');
+    });
+
+    // A esquerda da lupa, se ela existir; senao no fim da barra.
+    var lupa = document.getElementById('teaCmdSearchBtn');
+    if (lupa && lupa.parentNode) {
+        lupa.parentNode.insertBefore(btn, lupa);
+    } else {
+        header.appendChild(btn);
+    }
 }
 
 function teaWireCommandSearch() {
@@ -17587,6 +17689,7 @@ function initResizers() {
         function onStart(e) {
             isResizing = true;
             resizer.classList.add('resizing');
+            if (e.cancelable) e.preventDefault();
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             startX = clientX;
@@ -17664,11 +17767,14 @@ function initResizers() {
         }
 
         resizer.addEventListener('mousedown', onStart);
-        resizer.addEventListener('touchstart', onStart, { passive: true });
+        // ITEM 2 (Ciclo 12): passive:false para poder segurar a rolagem.
+        // Sem isso o gesto de arrastar a divisoria competia com o scroll e travava.
+        resizer.addEventListener('touchstart', onStart, { passive: false });
         document.addEventListener('mousemove', onMove);
-        document.addEventListener('touchmove', onMove, { passive: true });
+        document.addEventListener('touchmove', onMove, { passive: false });
         document.addEventListener('mouseup', onEnd);
         document.addEventListener('touchend', onEnd);
+        document.addEventListener('touchcancel', onEnd);
     }
 
     setupResizer(resizerSidebar, 'sidebar');
@@ -17677,7 +17783,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.13';
+var APP_VERSION = 'v3.0.14';
 
 function initApp() {
     try {
@@ -17689,7 +17795,8 @@ function initApp() {
     if (typeof teaApplyLayoutFlags === 'function') teaApplyLayoutFlags();
     if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
     if (typeof teaWireCommandSearch === 'function') teaWireCommandSearch();
-    if (typeof teaBuildHamburger === 'function') setTimeout(teaBuildHamburger, 10);
+    if (typeof teaWireMultiSelectButton === 'function') teaWireMultiSelectButton();
+    // Sanduiche agora e a ultima etapa sincrona de buildMenuBar (Ciclo 12).
     // ITEM 9 (Ciclo 5): roda depois do load para adotar botoes injetados por modulos.
     if (typeof buildMenuBar === 'function') {
         if (document.readyState === 'complete') setTimeout(buildMenuBar, 0);
