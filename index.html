@@ -621,6 +621,55 @@
             border-top: 1px solid rgba(255, 255, 255, 0.10);
         }
 
+        /* ===== ITEM 2 (Ciclo 11): SANDUICHE + LUPA DE COMANDO ===== */
+        .tea-hamburger {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .tea-hamburger-btn {
+            font-size: 18px;
+            padding: 4px 10px;
+            line-height: 1;
+        }
+
+        /* Bandeja escondida a direita; abre para a esquerda. */
+        .tea-hamburger-tray {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            max-width: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-width .28s ease, opacity .2s ease;
+            white-space: nowrap;
+        }
+
+        .tea-hamburger.open .tea-hamburger-tray {
+            max-width: 80vw;
+            opacity: 1;
+            margin-right: 6px;
+        }
+
+        /* A lupa de comando. */
+        .tea-cmd-search-btn {
+            font-size: 15px;
+            padding: 4px 9px;
+        }
+
+        /* Com a lupa ativa, o container de comando recolhe por padrao
+           e so aparece quando o corpo recebe .tea-cmd-open. */
+        body.tea-cmd-collapsible #aiAssistantContainer {
+            display: none;
+        }
+
+        body.tea-cmd-collapsible.tea-cmd-open #aiAssistantContainer {
+            display: block;
+        }
+
         /* ITEM 12b (Ciclo 9): durante o arrasto, o cartao alto deixa de
            interceptar o ponteiro. Sem isto, soltar sobre a area que ele cobre
            acertaria o cartao e o evento borbulharia para o slot de ORIGEM -
@@ -1568,7 +1617,9 @@
             flex-direction: column;
             flex-grow: 1;
             overflow: hidden;
-            min-height: 300px;
+            /* ITEM 1 (Ciclo 11): era 300px e travava o encolhimento no Z Fold.
+               Agora encolhe ate 90px; o resto e o resizer que o usuario controla. */
+            min-height: 90px;
             transition: all .3s ease-in-out;
         }
 
@@ -3214,8 +3265,8 @@ padding: 6px 2px;
             <button id="deleteBoardBtn" style="display:none"></button>
         </div>
 
-        <button id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
-        <button id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
+        <button type="button" id="undo" title="Desfazer (Ctrl+Z)">⟲</button>
+        <button type="button" id="redo" title="Refazer (Ctrl+Shift+Z)">⟳</button>
         <button id="toggleSelectionModeBtn" title="Ativar/Desativar modo de seleção múltipla">🖱️ Multi-seleção</button>
         <button id="filterColorsBtn" title="Filtrar por cor">Filtro de cor</button>
         <span id="filtersOn" class="badge" hidden>Filtros ativos</span>
@@ -6973,7 +7024,7 @@ function buildMenuBar() {
     // Linha 2 - o que o Gui usa mais de dez vezes por dia.
     ['toggleBoardBtn', 'toggleMatrixBtn', 'toggleAgendaBtn', 'toggleWeeklyBtn',
      'addList', 'undo', 'redo', 'manualFocusBtn',
-     'walletBtn', 'wellbeingPill', 'sumTimersDisplay', 'aiAssistantContainer'
+     'walletBtn', 'wellbeingPill', 'sumTimersDisplay'
     ].forEach(function (id) { teaMbMove(id, header); });
 
     // A caixa antiga de controles de quadro fica so com IDs legados ocultos.
@@ -7140,8 +7191,18 @@ function layoutAgendaTimeline() {
     if (!root) return;
 
     var ligado = teaTimelineOn();
-    if (document.body) document.body.classList.toggle('tea-timeline', ligado);
-    if (!ligado) { teaTimelineClear(root); return; }
+    // ITEM 3/5 (Ciclo 11): so posiciona se a Agenda estiver de fato visivel.
+    // Na visao Semana o #slots existe mas esta oculto; um cartao com
+    // position:absolute sem pai posicionado visivel escapava para o topo do
+    // fluxo - era o cartao fantasma '15:30' entre a barra e o painel Semanal.
+    var agendaVisivel = false;
+    try {
+        var _side = document.getElementById('agenda-sidebar');
+        agendaVisivel = !!(_side && _side.offsetParent !== null &&
+                           root.offsetParent !== null);
+    } catch (e) { agendaVisivel = false; }
+    if (document.body) document.body.classList.toggle('tea-timeline', ligado && agendaVisivel);
+    if (!ligado || !agendaVisivel) { teaTimelineClear(root); return; }
 
     var h = teaTimelineSlotHeight();
     root.style.setProperty('--tea-slot-h', h + 'px');
@@ -7237,6 +7298,93 @@ function buildLayoutToggles() {
     });
 
     alvo.appendChild(box);
+}
+
+
+// ============================================================================
+// ITEM 2 (Ciclo 11) - CAMPO DE COMANDO COMO ICONE DE BUSCA
+// ----------------------------------------------------------------------------
+// O container de comando (#aiAssistantContainer) deixa de ocupar uma linha
+// inteira. Vira um botao-lupa na toolbar; tocar expande a barra de comando
+// logo abaixo, tocar de novo recolhe. 1 toque para abrir - decisao do Gui.
+// ============================================================================
+
+// ============================================================================
+// ITEM 2 (Ciclo 11) - SANDUICHE QUE ENGOLE OS MENUS DE TEXTO
+// ----------------------------------------------------------------------------
+// Decisao do Gui: os menus Arquivo/Editar/Exibir/IA nao ficam soltos na barra.
+// Um botao ☰ no canto direito os revela, abrindo da direita para a esquerda.
+// E um menu-a-mais: o conteudo continua sendo os mesmos quatro dropdowns.
+// ============================================================================
+function teaBuildHamburger() {
+    var header = document.getElementById('appHeader');
+    if (!header || document.getElementById('teaHamburger')) return;
+
+    var ids = ['teaMenuArquivo', 'teaMenuEditar', 'teaMenuExibir', 'teaMenuIA'];
+    var menus = ids.map(function (id) { return document.getElementById(id); })
+                   .filter(Boolean);
+    if (!menus.length) return;
+
+    var wrap = document.createElement('div');
+    wrap.id = 'teaHamburger';
+    wrap.className = 'tea-hamburger';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tea-hamburger-btn';
+    btn.title = 'Menu';
+    btn.textContent = '\u2630';
+
+    var tray = document.createElement('div');
+    tray.className = 'tea-hamburger-tray';
+
+    // Ordem visual pedida pelo Gui: abrindo da direita para a esquerda,
+    // a sequencia Arquivo->Editar->Exibir->IA fica com Arquivo mais a direita.
+    menus.forEach(function (m) { tray.appendChild(m); });
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        wrap.classList.toggle('open');
+    });
+    document.addEventListener('click', function (e) {
+        if (!wrap.contains(e.target)) wrap.classList.remove('open');
+    });
+
+    wrap.appendChild(tray);
+    wrap.appendChild(btn);
+    header.appendChild(wrap);
+}
+
+function teaWireCommandSearch() {
+    var cont = document.getElementById('aiAssistantContainer');
+    if (!cont || document.getElementById('teaCmdSearchBtn')) return;
+
+    document.body.classList.add('tea-cmd-collapsible');
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'teaCmdSearchBtn';
+    btn.className = 'tea-cmd-search-btn';
+    btn.title = 'Buscar / comando';
+    btn.textContent = '\ud83d\udd0d';
+
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var aberto = document.body.classList.toggle('tea-cmd-open');
+        if (aberto) {
+            var inp = document.getElementById('aiInput');
+            if (inp) setTimeout(function () { inp.focus(); }, 50);
+        }
+    });
+
+    // Coloca a lupa ao lado do +Lista, se ele existir; senao, na barra.
+    var addList = document.getElementById('addList');
+    if (addList && addList.parentNode) {
+        addList.parentNode.insertBefore(btn, addList.nextSibling);
+    } else {
+        var header = document.getElementById('appHeader');
+        if (header) header.appendChild(btn);
+    }
 }
 
 function applyWhen(listElement, nodes) {
@@ -17529,7 +17677,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.12';
+var APP_VERSION = 'v3.0.13';
 
 function initApp() {
     try {
@@ -17540,6 +17688,8 @@ function initApp() {
     if (typeof initTouchDrag === 'function') initTouchDrag();
     if (typeof teaApplyLayoutFlags === 'function') teaApplyLayoutFlags();
     if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
+    if (typeof teaWireCommandSearch === 'function') teaWireCommandSearch();
+    if (typeof teaBuildHamburger === 'function') setTimeout(teaBuildHamburger, 10);
     // ITEM 9 (Ciclo 5): roda depois do load para adotar botoes injetados por modulos.
     if (typeof buildMenuBar === 'function') {
         if (document.readyState === 'complete') setTimeout(buildMenuBar, 0);
