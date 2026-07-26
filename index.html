@@ -658,36 +658,63 @@
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
-            min-width: 240px;
-            max-width: min(90vw, 320px);
+            width: min(88vw, 300px);
             max-height: 74vh;
-            overflow-y: auto;
+            overflow: hidden;
             background: #0f223d;
             border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 14px;
             box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
-            padding: 8px;
-            z-index: 1200;
+            padding: 6px;
+            /* ITEM 4 (Ciclo 14): acima da divisoria/resizer, que cortava o menu. */
+            z-index: 4000;
         }
 
-        .tea-menu.open .tea-menu-panel {
-            display: block;
+        .tea-menu.open .tea-menu-panel { display: block; }
+
+        /* Dois niveis deslizam horizontalmente dentro do mesmo painel. */
+        .tea-menu-level {
+            max-height: 70vh;
+            overflow-y: auto;
         }
 
-        .tea-menu-section + .tea-menu-section {
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        .tea-menu-level2 { display: none; }
+        .tea-menu.drill .tea-menu-level1 { display: none; }
+        .tea-menu.drill .tea-menu-level2 { display: block; }
+
+        /* Linha de categoria (nivel 1). */
+        .tea-menu-cat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-radius: 9px;
+            padding: 11px 12px;
+            font-size: 14px;
+            color: #e9f1ff;
+            cursor: pointer;
+            text-align: left;
         }
 
-        .tea-menu-section-title {
-            font-size: 10px;
+        .tea-menu-cat:hover { background: rgba(255, 255, 255, 0.06); }
+        .tea-menu-cat-ic { width: 22px; text-align: center; }
+        .tea-menu-cat-lb { flex: 1; }
+        .tea-menu-cat-ar { opacity: .5; font-size: 18px; }
+
+        /* Cabecalho do nivel 2. */
+        .tea-menu-l2-head {
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: .8px;
+            letter-spacing: .6px;
             text-transform: uppercase;
             color: #6f8bb3;
-            padding: 6px 12px 4px;
+            padding: 8px 12px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            margin-bottom: 4px;
         }
+
 
         .tea-menu-panel button,
         .tea-menu-panel .tea-toggle,
@@ -718,6 +745,33 @@
             font-size: 13px;
             padding: 6px 11px;
             line-height: 1.1;
+        }
+
+        /* ITEM 3 (Ciclo 14): barra de rolagem discreta no Kanban.
+           Fina, semi-transparente, e so aparece de forma visivel ao passar o
+           mouse/rolar - estilo Android. */
+        body.tea-freeze .board > .list > .cards {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.14) transparent;
+        }
+
+        body.tea-freeze .board > .list > .cards::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        body.tea-freeze .board > .list > .cards::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        body.tea-freeze .board > .list > .cards::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 6px;
+            transition: background .25s;
+        }
+
+        body.tea-freeze .board > .list > .cards:hover::-webkit-scrollbar-thumb,
+        body.tea-freeze .board > .list > .cards:active::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.22);
         }
 
         /* ITEM 4 (Ciclo 12): botao de multi-selecao na barra. */
@@ -6950,9 +7004,24 @@ function askCardDuration(card, onDone) {
     }, function () {
         if (isNaN(chosen) || chosen <= 0) chosen = 30;
         target.dataset.duration = String(chosen);
+        // ITEM 5 (Ciclo 14): a duracao escolhida vira o timer do cartao.
+        // 60min -> timerTotal = 3600s. So sobrescreve se o usuario nao tinha
+        // um timer manual diferente (evita apagar cronometro ja configurado).
+        var _secs = chosen * 60;
+        var _prev = parseInt(target.dataset.timerTotal, 10);
+        if (isNaN(_prev) || _prev <= 0 || _prev === (parseInt(target.dataset.duration, 10) * 60)) {
+            target.dataset.timerTotal = String(_secs);
+            if (!(parseInt(target.dataset.timerLeft, 10) > 0) ||
+                target.dataset.timerState === 'stopped') {
+                target.dataset.timerLeft = String(_secs);
+            }
+            if (typeof updateTimerDisplay === 'function') updateTimerDisplay(target);
+        }
         renderDurationBadge(target);
         if (typeof persist === 'function') persist();
         if (typeof renderWeeklyView === 'function') renderWeeklyView();
+        if (typeof updateSlotsHasItems === 'function') updateSlotsHasItems();
+        if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
         if (onDone) onDone(chosen);
     });
 }
@@ -7458,45 +7527,79 @@ function buildLayoutToggles() {
 // ============================================================================
 function teaBuildHamburger() {
     var header = document.getElementById('appHeader');
-    if (!header || document.getElementById('teaMenuPanel')) return;
+    if (!header || document.getElementById('teaMenu')) return;
 
-    // Os 4 menus foram criados por buildMenuBar como dropdowns soltos. Aqui eles
-    // sao DESMONTADOS: cada um vira uma secao vertical dentro de um unico painel.
-    var defs = [
-        { id: 'teaMenuArquivo', label: 'Arquivo' },
-        { id: 'teaMenuEditar', label: 'Editar' },
-        { id: 'teaMenuExibir', label: 'Exibir' },
-        { id: 'teaMenuIA', label: 'IA' }
+    // Coleta os itens reais de cada menu-dropdown criado por buildMenuBar e os
+    // reorganiza em CATEGORIAS de 2 niveis. Filtros e Layout ganham categoria
+    // propria (o Gui pediu Filtros e Layout no nivel 1).
+    var cats = [
+        { key: 'arquivo', label: 'Arquivo', icon: '\ud83d\udcc1', from: 'teaMenuArquivo', items: [] },
+        { key: 'editar', label: 'Editar', icon: '\u270f\ufe0f', from: 'teaMenuEditar', items: [] },
+        { key: 'exibir', label: 'Exibir', icon: '\ud83d\udc41\ufe0f', from: 'teaMenuExibir', items: [] },
+        { key: 'filtros', label: 'Filtros', icon: '\ud83d\udd0e', from: null, items: [] },
+        { key: 'layout', label: 'Layout', icon: '\ud83e\udde9', from: null, items: [] },
+        { key: 'ia', label: 'IA', icon: '\ud83e\udd16', from: 'teaMenuIA', items: [] },
+        { key: 'addons', label: 'Add-ons', icon: '\ud83e\udde9', from: null, items: [] }
     ];
 
-    var panel = document.createElement('div');
-    panel.id = 'teaMenuPanel';
-    panel.className = 'tea-menu-panel';
+    function catBy(k) { for (var i = 0; i < cats.length; i++) if (cats[i].key === k) return cats[i]; return null; }
 
-    var achou = 0;
-    defs.forEach(function (def) {
-        var menu = document.getElementById(def.id);
+    // Move o conteudo de cada dropdown de origem para a categoria, separando
+    // Filtros e Layout (que estavam dentro de Exibir) para suas proprias categorias.
+    var PANEL_RE = /^(\u2630 Kanban|\u229e Matriz|\ud83d\uddd3\ufe0f Agenda|\ud83d\udcc5 Semana)$/;
+    cats.forEach(function (cat) {
+        if (!cat.from) return;
+        var menu = document.getElementById(cat.from);
         if (!menu) return;
         var content = menu.querySelector('.header-dropdown-content');
-        if (!content) return;
-        achou++;
-
-        var sec = document.createElement('div');
-        sec.className = 'tea-menu-section';
-
-        var title = document.createElement('div');
-        title.className = 'tea-menu-section-title';
-        title.textContent = def.label;
-        sec.appendChild(title);
-
-        // Move os itens reais do dropdown para dentro da secao.
-        while (content.firstChild) sec.appendChild(content.firstChild);
-        panel.appendChild(sec);
-
-        // O wrapper do menu original ja nao serve; remove do DOM.
+        if (content) {
+            var movingTo = cat;
+            var nodes = Array.prototype.slice.call(content.childNodes);
+            nodes.forEach(function (node) {
+                // A .tea-toggle-box (buildLayoutToggles) inteira vai para Layout.
+                if (node.classList && node.classList.contains('tea-toggle-box')) {
+                    var lay = catBy('layout');
+                    var inner = Array.prototype.slice.call(node.childNodes);
+                    inner.forEach(function (kid) {
+                        // pula o titulo interno "Layout"
+                        if (kid.classList && kid.classList.contains('tea-section')) return;
+                        lay.items.push(kid);
+                    });
+                    return;
+                }
+                // Titulo de secao "Filtros" redireciona os proximos itens.
+                if (node.classList && node.classList.contains('tea-section')) {
+                    var t = (node.textContent || '').toLowerCase();
+                    if (t.indexOf('filtro') !== -1) { movingTo = catBy('filtros'); return; }
+                    if (t.indexOf('layout') !== -1) { movingTo = catBy('layout'); return; }
+                    return; // nao empurra o titulo em si
+                }
+                // Nao duplicar os 4 paineis: eles ja vivem no segmented control.
+                if (PANEL_RE.test((node.textContent || '').trim())) return;
+                // Separadores no inicio/fim atrapalham: so empurra se ja houver item.
+                movingTo.items.push(node);
+            });
+        }
         if (menu.parentNode) menu.parentNode.removeChild(menu);
     });
 
+    // Add-ons: buildMenuBar mesclou os add-ons dentro de IA (aiConfig + sep + addons).
+    // Divide: o que vem depois do primeiro separador vira Add-ons.
+    var iaCat = catBy('ia'), addCat = catBy('addons');
+    if (iaCat && iaCat.items.length) {
+        var sepIdx = -1;
+        for (var z = 0; z < iaCat.items.length; z++) {
+            var it = iaCat.items[z];
+            if (it.className && String(it.className).indexOf('tea-sep') !== -1) { sepIdx = z; break; }
+        }
+        if (sepIdx !== -1) {
+            var depois = iaCat.items.slice(sepIdx + 1);
+            iaCat.items = iaCat.items.slice(0, sepIdx);
+            addCat.items = depois.concat(addCat.items);
+        }
+    }
+
+    var achou = cats.some(function (c) { return c.items.length; });
     if (!achou) return;
 
     var wrap = document.createElement('div');
@@ -7510,17 +7613,65 @@ function teaBuildHamburger() {
     btn.setAttribute('aria-label', 'Menu');
     btn.textContent = '\u2630';
 
+    var panel = document.createElement('div');
+    panel.id = 'teaMenuPanel';
+    panel.className = 'tea-menu-panel';
+
+    // ---- Nivel 1: lista de categorias ----
+    var level1 = document.createElement('div');
+    level1.className = 'tea-menu-level tea-menu-level1';
+
+    // ---- Nivel 2: conteudo de uma categoria ----
+    var level2 = document.createElement('div');
+    level2.className = 'tea-menu-level tea-menu-level2';
+
+    function showLevel1() {
+        wrap.classList.remove('drill');
+        level2.innerHTML = '';
+    }
+
+    function openCat(cat) {
+        level2.innerHTML = '';
+        var head = document.createElement('div');
+        head.className = 'tea-menu-l2-head';
+        head.textContent = cat.icon + '  ' + cat.label;
+        level2.appendChild(head);
+        cat.items.forEach(function (node) { level2.appendChild(node); });
+        wrap.classList.add('drill');
+    }
+
+    cats.forEach(function (cat) {
+        if (!cat.items.length) return;
+        var row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'tea-menu-cat';
+        row.innerHTML = '<span class="tea-menu-cat-ic">' + cat.icon + '</span>' +
+                        '<span class="tea-menu-cat-lb">' + cat.label + '</span>' +
+                        '<span class="tea-menu-cat-ar">\u203a</span>';
+        row.addEventListener('click', function (e) {
+            e.stopPropagation();
+            openCat(cat);
+        });
+        level1.appendChild(row);
+    });
+
+    panel.appendChild(level1);
+    panel.appendChild(level2);
+
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
-        wrap.classList.toggle('open');
+        var isOpen = wrap.classList.toggle('open');
+        if (!isOpen) showLevel1();      // fechar volta pro nivel 1
+        else showLevel1();              // abrir sempre comeca no nivel 1
     });
     document.addEventListener('click', function (e) {
-        if (!wrap.contains(e.target)) wrap.classList.remove('open');
+        if (!wrap.contains(e.target)) { wrap.classList.remove('open'); showLevel1(); }
     });
-    // Clicar num item fecha o painel.
-    panel.addEventListener('click', function (e) {
-        if (e.target.closest('button, .tea-toggle, label')) {
-            setTimeout(function () { wrap.classList.remove('open'); }, 30);
+    // Clicar num item de acao (nivel 2) fecha o menu.
+    level2.addEventListener('click', function (e) {
+        if (e.target.closest('button, .tea-toggle, label') &&
+            !e.target.closest('.tea-menu-l2-head')) {
+            setTimeout(function () { wrap.classList.remove('open'); showLevel1(); }, 30);
         }
     });
 
@@ -17919,7 +18070,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.15';
+var APP_VERSION = 'v3.0.16';
 
 function initApp() {
     try {
