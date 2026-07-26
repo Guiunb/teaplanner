@@ -676,6 +676,28 @@
         .tea-menu-level {
             max-height: 70vh;
             overflow-y: auto;
+            /* ITEM 1 (Ciclo 15): a scrollbar nao pode virar uma faixa que corta
+               o menu. Fina e transparente ate o hover. */
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+        .tea-menu-level::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .tea-menu-level:hover {
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
+        }
+
+        .tea-menu-level:hover::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .tea-menu-level:hover::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
         }
 
         .tea-menu-level2 { display: none; }
@@ -756,7 +778,12 @@
         }
 
         body.tea-freeze .board > .list > .cards::-webkit-scrollbar {
-            width: 6px;
+            width: 0px;
+        }
+
+        body.tea-freeze .board > .list > .cards:hover::-webkit-scrollbar,
+        body.tea-freeze .board > .list > .cards:active::-webkit-scrollbar {
+            width: 7px;
         }
 
         body.tea-freeze .board > .list > .cards::-webkit-scrollbar-track {
@@ -1429,6 +1456,27 @@
         .slot.hover {
             background: rgba(var(--brand-rgb), 0.15);
             box-shadow: inset 0 0 0 2px var(--brand);
+        }
+
+        /* ITEM 3 (Ciclo 15): botoes + minimalistas e proporcionais. */
+        .add-btn-minimal {
+            width: 26px;
+            height: 26px;
+            min-width: 26px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            border-radius: 7px;
+            background: rgba(255,255,255,0.10);
+            color: #cfe0ff;
+            border: none;
+        }
+
+        .add-btn-minimal:hover {
+            background: rgba(255,255,255,0.18);
         }
 
         .goal-slot {
@@ -7946,22 +7994,16 @@ function ensureSchedule() {
     goalSlot.dataset.type = 'goal';
     var goalHead = el('div', 'head');
     var goalLabel = el('span', 'goal-label'); goalLabel.textContent = '🎯 OBJETIVO DO DIA';
-    var goalAdd = el('button', 'add-btn-minimal');
-    goalAdd.textContent = '+';
-    goalAdd.title = 'Novo Cartao (segure para ditar por voz)';
+    // ITEM 3 (Ciclo 15): botao + removido daqui. So o + do topo da Agenda
+    // adiciona cartao (e pergunta o destino). Mantida a funcao para uso interno.
     function _createCardInGoal() {
         var card = createCard({ text: '', when: getActiveDay() + 'TGOAL' });
         goalSlot.querySelector('.cards').prepend(card);
         startInlineEdit(card, true);
         return card;
     }
-    goalAdd.onclick = function (e) {
-        e.stopPropagation();
-        if (goalAdd._wasLongPress && goalAdd._wasLongPress()) return;
-        _createCardInGoal();
-    };
-    attachLongPressVoice(goalAdd, _createCardInGoal);
-    goalHead.appendChild(goalLabel); goalHead.appendChild(goalAdd);
+    window._teaAddGoal = _createCardInGoal;
+    goalHead.appendChild(goalLabel);
     goalSlot.appendChild(goalHead);
     var goalCards = el('div', 'cards');
     goalSlot.appendChild(goalCards);
@@ -7973,9 +8015,7 @@ function ensureSchedule() {
     unscheduledSlot.id = 'unscheduled-bucket';
     var uHead = el('div', 'head');
     var uLabel = el('span', 'unscheduled-label'); uLabel.textContent = '⚠️ HORÁRIO A DEFINIR';
-    var uAdd = el('button', 'add-btn-minimal');
-    uAdd.textContent = '+';
-    uAdd.title = 'Novo Cartao (segure para ditar por voz)';
+    // ITEM 3 (Ciclo 15): botao + removido daqui tambem.
     function _createCardInUnscheduled() {
         var card = createCard({ text: '', when: getActiveDay() + 'T' });
         unscheduledSlot.querySelector('.cards').prepend(card);
@@ -7983,13 +8023,8 @@ function ensureSchedule() {
         updateSlotsHasItems();
         return card;
     }
-    uAdd.onclick = function (e) {
-        e.stopPropagation();
-        if (uAdd._wasLongPress && uAdd._wasLongPress()) return;
-        _createCardInUnscheduled();
-    };
-    attachLongPressVoice(uAdd, _createCardInUnscheduled);
-    uHead.appendChild(uLabel); uHead.appendChild(uAdd);
+    window._teaAddUnscheduled = _createCardInUnscheduled;
+    uHead.appendChild(uLabel);
     unscheduledSlot.appendChild(uHead);
     var uCards = el('div', 'cards');
     unscheduledSlot.appendChild(uCards);
@@ -8161,9 +8196,15 @@ function parseTime(timeStr) {
     return totalMinutes;
 }
 function cardPassesFilters(c) {
-    var fFrom = (document.getElementById('fFrom').value) || '';
-    var fTo = (document.getElementById('fTo').value) || '';
-    var fTime = document.getElementById('fTime').value;
+    // ITEM 4 (Ciclo 15): leitura segura. Os campos de filtro foram para dentro
+    // do menu; se nao estiverem acessiveis, .value estourava null e derrubava
+    // applyFilters -> updateSlotsHasItems -> a Agenda inteira.
+    var _elFrom = document.getElementById('fFrom');
+    var _elTo = document.getElementById('fTo');
+    var _elTime = document.getElementById('fTime');
+    var fFrom = (_elFrom && _elFrom.value) || '';
+    var fTo = (_elTo && _elTo.value) || '';
+    var fTime = (_elTime && _elTime.value) || '';
     var ok = true;
     if (selectedColors.size > 0) { ok = ok && selectedColors.has((c.dataset.labelColor || '').toLowerCase()); }
     if (fFrom) { ok = ok && (!!c.dataset.due && c.dataset.due >= fFrom); }
@@ -8231,7 +8272,11 @@ document.addEventListener('mousedown', function (e) {
 function updateFiltersUi(totalCards, hiddenCardsCount) {
     var badge = document.getElementById('filtersOn');
     var header = document.getElementById('appHeader');
-    const anyActive = selectedColors.size > 0 || !!document.getElementById('fFrom').value || !!document.getElementById('fTo').value || !!document.getElementById('fTime').value;
+    // ITEM 4 (Ciclo 15): leitura segura (elementos podem estar no menu).
+    var _aF = document.getElementById('fFrom');
+    var _aT = document.getElementById('fTo');
+    var _aTi = document.getElementById('fTime');
+    const anyActive = selectedColors.size > 0 || !!(_aF && _aF.value) || !!(_aT && _aT.value) || !!(_aTi && _aTi.value);
     if (anyActive) {
         badge.textContent = hiddenCardsCount > 0 ? ('Filtros: ' + hiddenCardsCount + ' oculto' + (hiddenCardsCount > 1 ? 's' : '')) : 'Filtros ativos';
         badge.hidden = false;
@@ -16573,7 +16618,18 @@ quickConfigToggle.addEventListener('change', () => { const isChecked = quickConf
 document.getElementById('addList').onclick = function () { createList('Nova lista'); persist(); };
 document.getElementById('filterColorsBtn').addEventListener('click', openColorFilters);
 document.getElementById('undo').onclick = doUndo; document.getElementById('redo').onclick = doRedo;
-document.getElementById('clearFilters').onclick = function () { selectedColors.clear(); document.getElementById('fFrom').value = ''; document.getElementById('fTo').value = ''; document.getElementById('fTime').value = ''; applyFilters(); };
+// ITEM 4 (Ciclo 15): clearFilters com leitura segura.
+(function () {
+    var cf = document.getElementById('clearFilters');
+    if (!cf) return;
+    cf.onclick = function () {
+        selectedColors.clear();
+        var a = document.getElementById('fFrom'); if (a) a.value = '';
+        var b = document.getElementById('fTo'); if (b) b.value = '';
+        var c = document.getElementById('fTime'); if (c) c.value = '';
+        applyFilters();
+    };
+})();
 
 // Eventos dos submenus e dropdowns
 document.getElementById('menuNewBoard').onclick = () => { const name = prompt('Nome do novo quadro:'); if (name) createNewBoard(name); };
@@ -18070,7 +18126,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.16';
+var APP_VERSION = 'v3.0.17';
 
 function initApp() {
     try {
