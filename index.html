@@ -621,6 +621,105 @@
             border-top: 1px solid rgba(255, 255, 255, 0.10);
         }
 
+        /* ===== CICLO 13: BARRA RECONSTRUIDA - LIMPA E PROFISSIONAL ===== */
+        /* Segmented control dos paineis: os 4 juntos, visual de grupo unico. */
+        #appHeader.tea-mb .tea-segment {
+            display: inline-flex;
+            align-items: stretch;
+            gap: 2px;
+            padding: 2px;
+            background: rgba(0, 0, 0, 0.22);
+            border-radius: 10px;
+        }
+
+        #appHeader.tea-mb .tea-segment > button {
+            margin: 0;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Menu sanduiche: UM painel vertical, ancorado a direita. */
+        .tea-menu {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .tea-menu-trigger {
+            font-size: 17px;
+            line-height: 1;
+            padding: 6px 11px;
+        }
+
+        .tea-menu-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 240px;
+            max-width: min(90vw, 320px);
+            max-height: 74vh;
+            overflow-y: auto;
+            background: #0f223d;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+            padding: 8px;
+            z-index: 1200;
+        }
+
+        .tea-menu.open .tea-menu-panel {
+            display: block;
+        }
+
+        .tea-menu-section + .tea-menu-section {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .tea-menu-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: #6f8bb3;
+            padding: 6px 12px 4px;
+        }
+
+        .tea-menu-panel button,
+        .tea-menu-panel .tea-toggle,
+        .tea-menu-panel label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            color: #e9f1ff;
+            white-space: normal;
+            word-break: break-word;
+            cursor: pointer;
+        }
+
+        .tea-menu-panel button:hover,
+        .tea-menu-panel .tea-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* Uniformiza os botoes soltos da barra (icones do mesmo tamanho). */
+        #appHeader.tea-mb > button {
+            font-size: 13px;
+            padding: 6px 11px;
+            line-height: 1.1;
+        }
+
         /* ITEM 4 (Ciclo 12): botao de multi-selecao na barra. */
         .tea-multisel-btn {
             font-size: 15px;
@@ -633,12 +732,6 @@
         }
 
         /* ===== ITEM 2 (Ciclo 11): SANDUICHE + LUPA DE COMANDO ===== */
-        .tea-hamburger {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            margin-left: auto;
-        }
 
         .tea-hamburger-btn {
             font-size: 18px;
@@ -7051,17 +7144,26 @@ function buildMenuBar() {
     header.appendChild(brand.wrap);
     // Seletor de quadro colado no logo (decisao do Gui).
     var bsel = teaMbMove('boardSelect', header);
-    header.appendChild(arq.wrap);
-    header.appendChild(edt.wrap);
-    header.appendChild(exb.wrap);
-    header.appendChild(ia.wrap);
+    // Ciclo 13: os 4 menus NAO ficam soltos na barra - o sanduiche os consome.
+    // Ficam fora da tela ate teaBuildHamburger desmonta-los em secoes.
+    [arq.wrap, edt.wrap, exb.wrap, ia.wrap].forEach(function (w) {
+        w.style.display = 'none';
+        header.appendChild(w);
+    });
     header.appendChild(brk);
 
-    // Linha 2 - o que o Gui usa mais de dez vezes por dia.
-    ['toggleBoardBtn', 'toggleMatrixBtn', 'toggleAgendaBtn', 'toggleWeeklyBtn',
-     'addList', 'undo', 'redo', 'manualFocusBtn',
-     'walletBtn', 'wellbeingPill', 'sumTimersDisplay'
-    ].forEach(function (id) { teaMbMove(id, header); });
+    // Linha 2 - Ciclo 13: paineis agrupados num segmented control unico,
+    // para o Kanban nunca mais se separar dos outros.
+    var seg = document.createElement('div');
+    seg.className = 'tea-segment';
+    ['toggleBoardBtn', 'toggleMatrixBtn', 'toggleAgendaBtn', 'toggleWeeklyBtn']
+        .forEach(function (id) { teaMbMove(id, seg); });
+    header.appendChild(seg);
+    // Estado (linha 1): pontos, undo, redo, timer.
+    ['walletBtn', 'wellbeingPill', 'undo', 'redo', 'sumTimersDisplay']
+        .forEach(function (id) { teaMbMove(id, header); });
+    // Acoes (linha 2): foco, +lista.
+    ['manualFocusBtn', 'addList'].forEach(function (id) { teaMbMove(id, header); });
 
     // A caixa antiga de controles de quadro fica so com IDs legados ocultos.
     var bc = header.querySelector('.board-controls');
@@ -7356,29 +7458,57 @@ function buildLayoutToggles() {
 // ============================================================================
 function teaBuildHamburger() {
     var header = document.getElementById('appHeader');
-    if (!header || document.getElementById('teaHamburger')) return;
+    if (!header || document.getElementById('teaMenuPanel')) return;
 
-    var ids = ['teaMenuArquivo', 'teaMenuEditar', 'teaMenuExibir', 'teaMenuIA'];
-    var menus = ids.map(function (id) { return document.getElementById(id); })
-                   .filter(Boolean);
-    if (!menus.length) return;
+    // Os 4 menus foram criados por buildMenuBar como dropdowns soltos. Aqui eles
+    // sao DESMONTADOS: cada um vira uma secao vertical dentro de um unico painel.
+    var defs = [
+        { id: 'teaMenuArquivo', label: 'Arquivo' },
+        { id: 'teaMenuEditar', label: 'Editar' },
+        { id: 'teaMenuExibir', label: 'Exibir' },
+        { id: 'teaMenuIA', label: 'IA' }
+    ];
+
+    var panel = document.createElement('div');
+    panel.id = 'teaMenuPanel';
+    panel.className = 'tea-menu-panel';
+
+    var achou = 0;
+    defs.forEach(function (def) {
+        var menu = document.getElementById(def.id);
+        if (!menu) return;
+        var content = menu.querySelector('.header-dropdown-content');
+        if (!content) return;
+        achou++;
+
+        var sec = document.createElement('div');
+        sec.className = 'tea-menu-section';
+
+        var title = document.createElement('div');
+        title.className = 'tea-menu-section-title';
+        title.textContent = def.label;
+        sec.appendChild(title);
+
+        // Move os itens reais do dropdown para dentro da secao.
+        while (content.firstChild) sec.appendChild(content.firstChild);
+        panel.appendChild(sec);
+
+        // O wrapper do menu original ja nao serve; remove do DOM.
+        if (menu.parentNode) menu.parentNode.removeChild(menu);
+    });
+
+    if (!achou) return;
 
     var wrap = document.createElement('div');
-    wrap.id = 'teaHamburger';
-    wrap.className = 'tea-hamburger';
+    wrap.id = 'teaMenu';
+    wrap.className = 'tea-menu';
 
     var btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'tea-hamburger-btn';
+    btn.className = 'tea-menu-trigger';
     btn.title = 'Menu';
+    btn.setAttribute('aria-label', 'Menu');
     btn.textContent = '\u2630';
-
-    var tray = document.createElement('div');
-    tray.className = 'tea-hamburger-tray';
-
-    // Ordem visual pedida pelo Gui: abrindo da direita para a esquerda,
-    // a sequencia Arquivo->Editar->Exibir->IA fica com Arquivo mais a direita.
-    menus.forEach(function (m) { tray.appendChild(m); });
 
     btn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -7387,9 +7517,15 @@ function teaBuildHamburger() {
     document.addEventListener('click', function (e) {
         if (!wrap.contains(e.target)) wrap.classList.remove('open');
     });
+    // Clicar num item fecha o painel.
+    panel.addEventListener('click', function (e) {
+        if (e.target.closest('button, .tea-toggle, label')) {
+            setTimeout(function () { wrap.classList.remove('open'); }, 30);
+        }
+    });
 
-    wrap.appendChild(tray);
     wrap.appendChild(btn);
+    wrap.appendChild(panel);
     header.appendChild(wrap);
 }
 
@@ -17783,7 +17919,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.14';
+var APP_VERSION = 'v3.0.15';
 
 function initApp() {
     try {
