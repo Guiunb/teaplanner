@@ -676,10 +676,15 @@
         .tea-menu-level {
             max-height: 70vh;
             overflow-y: auto;
-            /* ITEM 1 (Ciclo 15): a scrollbar nao pode virar uma faixa que corta
-               o menu. Fina e transparente ate o hover. */
-            scrollbar-width: thin;
+            /* ITEM 1 (Ciclo 16): sem faixa. Barra oculta ate o hover, em todos
+               os navegadores. */
+            scrollbar-width: none;
             scrollbar-color: transparent transparent;
+        }
+
+        .tea-menu-level:hover {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.2) transparent;
         }
 
         .tea-menu-level::-webkit-scrollbar {
@@ -773,8 +778,15 @@
            Fina, semi-transparente, e so aparece de forma visivel ao passar o
            mouse/rolar - estilo Android. */
         body.tea-freeze .board > .list > .cards {
+            /* ITEM 2 (Ciclo 16): esconde a barra ate o hover, no desktop tambem. */
+            scrollbar-width: none;
+            scrollbar-color: transparent transparent;
+        }
+
+        body.tea-freeze .board > .list > .cards:hover,
+        body.tea-freeze .board > .list > .cards:focus-within {
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.14) transparent;
+            scrollbar-color: rgba(255,255,255,0.22) transparent;
         }
 
         body.tea-freeze .board > .list > .cards::-webkit-scrollbar {
@@ -8227,7 +8239,7 @@ function applyFilters() {
         if (passesGeneralFilters) visibleCount++;
     });
     updateSlotsHasItems();
-    updateFiltersUi(allCards.length, $$('.card[style*="display: none"]').length);
+    safeUpdateFiltersUi(allCards.length, $$('.card[style*="display: none"]').length);
     updateTotalTimerDisplay();
 }
 
@@ -8269,21 +8281,34 @@ document.addEventListener('mousedown', function (e) {
     }
 });
 
+// ITEM 4 (Ciclo 16): guarda global - se updateFiltersUi falhar por qualquer
+// motivo futuro, o erro nao pode derrubar renderFromData/loadAndRenderAll.
+function safeUpdateFiltersUi(a, b) {
+    try { updateFiltersUi(a, b); } catch (e) { console.warn('updateFiltersUi ignorado:', e && e.message); }
+}
+
 function updateFiltersUi(totalCards, hiddenCardsCount) {
+    // ITEM 4 (Ciclo 16): 100% defensivo. Este era o crash que derrubava a
+    // cadeia de render inteira (Agenda + botao + + arraste).
+    // badge (#filtersOn) foi movido para o menu; setar .hidden nele quando
+    // null estourava 'Cannot set properties of null'.
     var badge = document.getElementById('filtersOn');
     var header = document.getElementById('appHeader');
-    // ITEM 4 (Ciclo 15): leitura segura (elementos podem estar no menu).
     var _aF = document.getElementById('fFrom');
     var _aT = document.getElementById('fTo');
     var _aTi = document.getElementById('fTime');
-    const anyActive = selectedColors.size > 0 || !!(_aF && _aF.value) || !!(_aT && _aT.value) || !!(_aTi && _aTi.value);
-    if (anyActive) {
-        badge.textContent = hiddenCardsCount > 0 ? ('Filtros: ' + hiddenCardsCount + ' oculto' + (hiddenCardsCount > 1 ? 's' : '')) : 'Filtros ativos';
-        badge.hidden = false;
-        header.classList.add('filters-active');
-    } else {
-        badge.hidden = true;
-        header.classList.remove('filters-active');
+    var anyActive = selectedColors.size > 0 || !!(_aF && _aF.value) || !!(_aT && _aT.value) || !!(_aTi && _aTi.value);
+    if (badge) {
+        if (anyActive) {
+            badge.textContent = hiddenCardsCount > 0 ? ('Filtros: ' + hiddenCardsCount + ' oculto' + (hiddenCardsCount > 1 ? 's' : '')) : 'Filtros ativos';
+            badge.hidden = false;
+        } else {
+            badge.hidden = true;
+        }
+    }
+    if (header) {
+        if (anyActive) header.classList.add('filters-active');
+        else header.classList.remove('filters-active');
     }
 }
 
@@ -18126,7 +18151,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.17';
+var APP_VERSION = 'v3.0.18';
 
 function initApp() {
     try {
