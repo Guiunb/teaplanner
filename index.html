@@ -1835,14 +1835,28 @@
             flex-direction: column;
             flex-grow: 1;
             overflow: hidden;
-            /* ITEM 1 (Ciclo 11): era 300px e travava o encolhimento no Z Fold.
-               Agora encolhe ate 90px; o resto e o resizer que o usuario controla. */
-            min-height: 90px;
+            /* CICLO 18: aberto na visao Semana precisa de altura util. O piso de
+               90px do Ciclo 11 espremia o painel e os cartoes vazavam pro topo
+               (o "cartao fantasma"). Agora aberto tem min-height decente; o
+               encolhimento fino continua possivel via resizer (que seta height inline). */
+            min-height: 280px;
             transition: all .3s ease-in-out;
+        }
+
+        /* Quando o usuario arrasta o resizer, um height inline sobrepoe o min.
+           Esse piso baixo permite encolher de novo sem voltar ao vazamento. */
+        .weekly-container[style*="height"] {
+            min-height: 60px;
         }
 
         .weekly-container.collapsed {
             display: none !important;
+        }
+
+        /* CICLO 18: o grid rola por dentro; nada vaza pro topo. */
+        .weekly-container .weekly-grid {
+            overflow-y: auto;
+            min-height: 0;
         }
 
         /* Container de navegação da semana */
@@ -18193,7 +18207,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.19';
+var APP_VERSION = 'v3.0.20';
 
 function initApp() {
     try {
