@@ -8084,9 +8084,15 @@ function ensureSchedule() {
     // ITEM 3 (Ciclo 15): botao + removido daqui tambem.
     function _createCardInUnscheduled() {
         var card = createCard({ text: '', when: getActiveDay() + 'T' });
-        unscheduledSlot.querySelector('.cards').prepend(card);
-        startInlineEdit(card, true);
+        // FIX Ciclo 19: ver _createCardUnscheduledBtn. updateSlotsHasItems() apaga o
+        // balde (innerHTML='') e matava o cartao vazio recem-focado via blur. Ordem:
+        // reconstruir slots -> mover ao topo -> garantir visibilidade -> editar.
         updateSlotsHasItems();
+        var _uc = unscheduledSlot.querySelector('.cards');
+        if (_uc) _uc.prepend(card);
+        unscheduledSlot.classList.add('has-items');
+        unscheduledSlot.style.display = 'flex';
+        startInlineEdit(card, true);
         return card;
     }
     window._teaAddUnscheduled = _createCardInUnscheduled;
@@ -8124,9 +8130,17 @@ if (addUnscheduledBtn) {
         const unscheduledSlot = document.getElementById('unscheduled-bucket');
         if (!unscheduledSlot) return null;
         var card = createCard({ text: '', when: getActiveDay() + 'T' });
-        unscheduledSlot.querySelector('.cards').prepend(card);
-        startInlineEdit(card, true);
+        // FIX Ciclo 19 (bug do botao +): updateSlotsHasItems() faz innerHTML='' no
+        // balde, removia o cartao recem-criado do DOM e disparava blur -> finish()
+        // -> removeCard() por estar vazio. O cartao nascia e morria no mesmo clique.
+        // Correcao: reconstruir os slots ANTES de focar (createCard ja pos o cartao
+        // em allCards); depois mover ao topo, garantir visibilidade e so entao editar.
         updateSlotsHasItems();
+        var _uc = unscheduledSlot.querySelector('.cards');
+        if (_uc) _uc.prepend(card);
+        unscheduledSlot.classList.add('has-items');
+        unscheduledSlot.style.display = 'flex';
+        startInlineEdit(card, true);
         return card;
     };
     addUnscheduledBtn.onclick = function () {
