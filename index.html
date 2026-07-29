@@ -6820,7 +6820,7 @@ function initMouseDragAutoScroll() {
     if (window.__teaDragScrollOn) return;
     window.__teaDragScrollOn = true;
 
-    var pos = null, tick = null;
+    var pos = null, tick = null, ultimoMovimento = 0;
 
     function rolar(cont) {
         if (!cont || !pos) return false;
@@ -6831,7 +6831,7 @@ function initMouseDragAutoScroll() {
         if (pos.y - r.top < TEA_DRAG_EDGE_PX) passo = -(TEA_DRAG_EDGE_PX - (pos.y - r.top));
         else if (r.bottom - pos.y < TEA_DRAG_EDGE_PX) passo = (TEA_DRAG_EDGE_PX - (r.bottom - pos.y));
         else return false;
-        passo = Math.max(-12, Math.min(12, Math.round(passo * 0.30)));
+        passo = Math.max(-8, Math.min(8, Math.round(passo * 0.22)));
         if (!passo) return false;
         var antes = cont.scrollTop;
         cont.scrollTop += passo;
@@ -6842,6 +6842,12 @@ function initMouseDragAutoScroll() {
         if (tick) return;
         tick = setInterval(function () {
             if (!pos) return;
+            // CICLO 21: so rola enquanto o ponteiro esta se MOVENDO. O Chrome dispara
+            // dragover mesmo com o mouse parado; sem esta trava a Agenda disparava
+            // ate o fim enquanto o usuario segurava o cartao perto da borda, e o
+            // drop caia no vazio depois do ultimo horario - o cartao nao ia a lugar
+            // nenhum e parecia que "parou de funcionar".
+            if (Date.now() - ultimoMovimento > 220) return;
             // A Agenda tem prioridade: e o painel alto onde o destino costuma estar.
             if (rolar(document.getElementById('slots'))) return;
             rolar(document.getElementById('main-content'));
@@ -6861,6 +6867,9 @@ function initMouseDragAutoScroll() {
         // drop no documento inteiro; quem decide o destino continua sendo o
         // handler da zona.
         if (typeof dragState !== 'undefined' && dragState) e.preventDefault();
+        if (!pos || Math.abs(pos.x - e.clientX) > 1 || Math.abs(pos.y - e.clientY) > 1) {
+            ultimoMovimento = Date.now();
+        }
         pos = { x: e.clientX, y: e.clientY };
         comecar();
     }, true);
@@ -6877,6 +6886,46 @@ function initMouseDragAutoScroll() {
         if (typeof dragState !== 'undefined' && dragState) e.preventDefault();
     }, true);
     document.addEventListener('drop', parar, true);
+
+    // ===== CICLO 21 - O DROP NUNCA MAIS SE PERDE =====
+    // Os handlers de zona chamam stopPropagation(). Se o evento chegou ate aqui
+    // (fase de bolha), NENHUMA zona tratou o drop: o cartao foi solto sobre um
+    // vao do #slots - depois do ultimo horario, sobre a borda, ou sobre a area
+    // que sobrou quando a Agenda rolou. Antes isso era silencioso: nada
+    // acontecia e o usuario concluia que "parou de funcionar".
+    // Agora cai no horario mais proximo verticalmente.
+    var _reentrando = false;
+    document.addEventListener('drop', function (e) {
+        if (_reentrando) return;
+        if (typeof dragState === 'undefined' || !dragState) return;
+        var slots = document.getElementById('slots');
+        if (!slots) return;
+        var r = slots.getBoundingClientRect();
+        // So age dentro da coluna da Agenda; fora dela o usuario quis outra coisa.
+        if (e.clientX < r.left || e.clientX > r.right) return;
+        var zonas = slots.querySelectorAll('.tea-dropzone');
+        if (!zonas.length) return;
+        var melhor = null, menor = Infinity;
+        for (var i = 0; i < zonas.length; i++) {
+            var zr = zonas[i].getBoundingClientRect();
+            if (zr.height <= 0) continue;
+            var centro = zr.top + zr.height / 2;
+            var d = Math.abs(centro - e.clientY);
+            if (e.clientY >= zr.top && e.clientY <= zr.bottom) d = 0;
+            if (d < menor) { menor = d; melhor = zonas[i]; }
+        }
+        if (!melhor) return;
+        e.preventDefault();
+        var zr2 = melhor.getBoundingClientRect();
+        _reentrando = true;
+        try {
+            melhor.dispatchEvent(new DragEvent('drop', {
+                bubbles: true, cancelable: true, dataTransfer: e.dataTransfer,
+                clientX: Math.round(zr2.left + zr2.width * 0.6),
+                clientY: Math.round(zr2.top + zr2.height / 2)
+            }));
+        } finally { _reentrando = false; }
+    }, false);
     document.addEventListener('dragend', parar, true);
     document.addEventListener('mouseup', parar, true);
 }
@@ -7177,6 +7226,31 @@ function renderDurationBadge(c) {
 function askCardDuration(card, onDone) {
     if (!card) return;
     var target = card._originalReference || card;
+
+    // ===== CICLO 21 - O CARTAO PODE MORRER ENTRE A PERGUNTA E A RESPOSTA =====
+    // O dialogo guardava a REFERENCIA do elemento. Entre soltar o cartao e clicar
+    // em OK cabe muita coisa: um snapshot do Firebase chegando, renderFromData
+    // reconstruindo os cartoes, troca de quadro. Se isso acontecer, a referencia
+    // guardada vira um no ORFAO: gravar duracao nele nao muda nada na tela e o
+    // valor se perde no proximo persist. Sintoma exato relatado pelo Gui -
+    // "funcionava, movimentei varias vezes e parou de mudar de tamanho", com o
+    // movimento continuando a funcionar (esse e gravado no drop, antes do dialogo).
+    // Solucao: guardar o ID e reencontrar o cartao VIVO na hora de aplicar.
+    var _alvoId = target.dataset ? target.dataset.id : null;
+    function cartaoVivo() {
+        if (_alvoId) {
+            var vivo = null;
+            if (typeof allCards !== 'undefined' && allCards.length) {
+                for (var i = 0; i < allCards.length; i++) {
+                    if (allCards[i].dataset && allCards[i].dataset.id === _alvoId) { vivo = allCards[i]; break; }
+                }
+            }
+            if (!vivo) vivo = document.querySelector('.card[data-id="' + _alvoId + '"]:not(.mirror-card)');
+            if (vivo) return vivo;
+        }
+        return target;
+    }
+
     var chosen = parseInt(target.dataset.duration, 10);
     if (isNaN(chosen) || chosen <= 0) chosen = 30;
 
@@ -7243,6 +7317,7 @@ function askCardDuration(card, onDone) {
         return wrap;
     }, function () {
         if (isNaN(chosen) || chosen <= 0) chosen = 30;
+        target = cartaoVivo();
         target.dataset.duration = String(chosen);
         // ITEM 5 (Ciclo 14): a duracao escolhida vira o timer do cartao.
         // 60min -> timerTotal = 3600s. So sobrescreve se o usuario nao tinha
@@ -7263,6 +7338,19 @@ function askCardDuration(card, onDone) {
         if (typeof renderWeeklyView === 'function') renderWeeklyView();
         if (typeof updateSlotsHasItems === 'function') updateSlotsHasItems();
         if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
+        // CICLO 21: rastro no console. Se o tamanho nao bater com o tempo, esta
+        // linha diz exatamente onde a corrente quebrou, sem precisar adivinhar.
+        try {
+            var _alt = Math.round(target.getBoundingClientRect().height);
+            var _naAgenda = !!(target.closest && target.closest('#slots'));
+            console.info('[TEA Planner] Duracao aplicada:', {
+                id: target.dataset.id, minutos: chosen, when: target.dataset.when,
+                duration: target.dataset.duration, timerTotal: target.dataset.timerTotal,
+                alturaPx: _alt, naAgenda: _naAgenda,
+                temClasseTimeline: target.classList.contains('tea-tl-card'),
+                noDocumento: document.body.contains(target)
+            });
+        } catch (_) { }
         if (onDone) onDone(chosen);
     });
 }
@@ -18448,7 +18536,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.1.0';
+var APP_VERSION = 'v3.1.2';
 
 function initApp() {
     try {
