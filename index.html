@@ -619,6 +619,22 @@
             display: -webkit-box;
             -webkit-box-orient: vertical;
             overflow: hidden;
+            line-height: 1.15;
+            margin: 0;
+        }
+
+        /* CICLO 20: num cartao de 30min (41px) o cabecalho comia toda a altura e o
+           texto sumia - o cartao aparecia VAZIO na Agenda. Cabecalho compacto para
+           sobrar linha de texto, sem mexer na proporcao tempo/altura. */
+        body.tea-timeline .tea-tl-card .card-header {
+            min-height: 0;
+            margin-bottom: 1px;
+            line-height: 1;
+        }
+
+        body.tea-timeline .tea-tl-card {
+            padding-top: 2px;
+            padding-bottom: 2px;
         }
 
         /* Linha da hora cheia mais marcada que a da meia hora. */
@@ -1533,7 +1549,11 @@
             border: 2px dashed var(--brand);
             border-radius: 8px;
             background: rgba(var(--brand-rgb), 0.1);
-            margin: 4px 0
+            margin: 4px 0;
+            /* CICLO 20: o placeholder e so uma dica visual. Deixa-lo capturar o
+               ponteiro fazia dele o alvo do arrasto no momento em que era
+               inserido, e o drop era recusado. */
+            pointer-events: none;
         }
 
         .ctx {
@@ -6208,7 +6228,20 @@ function createCard(data) {
         e.stopPropagation();
         // ITEM 12b (Ciclo 9): cartao alto cobre os slots seguintes. Sem isto, soltar
         // sobre a area coberta acerta o cartao e agenda no horario de ORIGEM.
-        document.body.classList.add('tea-dragging');
+        // ===== CICLO 20 - POR QUE O ARRASTO COM MOUSE NAO COMECAVA =====
+        // A regra "body.tea-dragging.tea-timeline .tea-tl-card { pointer-events:
+        // none }" era ativada AQUI DENTRO do dragstart. O Chrome ainda estava
+        // decidindo se iniciava o arrasto nativo quando o elemento de ORIGEM perdia
+        // pointer-events - e ABORTAVA o arrasto. Confirmado por bissecao com CDP
+        // (Input.setInterceptDrags): dragIntercepted nunca era emitido para cartoes
+        // da Agenda, e voltava a ser emitido no instante em que a classe
+        // tea-timeline saia do body. Por isso o toque funcionava (camada propria,
+        // sem arrasto nativo) e o mouse nao.
+        // Adiar um tick resolve: quando a classe entra, o Chrome ja confirmou o
+        // arrasto, e a protecao do Ciclo 9 vale do primeiro dragover em diante.
+        setTimeout(function () {
+            if (dragState) document.body.classList.add('tea-dragging');
+        }, 0);
         var block = selected.has(c) ? Array.from(selected) : [c];
         dragState = { leader: c, block: block };
         block.forEach(function (n) { n.classList.add('dragging'); });
@@ -6696,10 +6729,11 @@ function wireDropZone(container) {
             // Antes, todo drop abria o modal "Quanto tempo vai levar?" mesmo quando
             // o tempo ja estava definido no timer - o modal roubava o foco e dava a
             // sensacao de que o cartao "travou" logo depois de ser solto.
-            var _jaTemTempo = (parseInt(_orig && _orig.dataset.duration, 10) > 0) ||
-                              (parseInt(_orig && _orig.dataset.timerTotal, 10) > 0);
-            // CICLO 19: cartao antigo com timer mas sem duration se auto-corrige
-            // aqui. Assim o dado converge sozinho para UM numero, sem migracao.
+            // CICLO 20 (decisao do Gui): SEMPRE perguntar o tempo ao soltar um
+            // cartao num horario, tenha ele timer ou nao. O tamanho na Agenda vira
+            // escolha consciente a cada agendamento, em vez de palpite herdado de um
+            // timer antigo. O dialogo abre preenchido com o tempo atual do cartao,
+            // entao confirmar custa um clique.
             if (_orig && !(parseInt(_orig.dataset.duration, 10) > 0)) {
                 var _ttd = parseInt(_orig.dataset.timerTotal, 10);
                 if (!isNaN(_ttd) && _ttd > 0) {
@@ -6707,7 +6741,7 @@ function wireDropZone(container) {
                     if (typeof renderDurationBadge === 'function') renderDurationBadge(_orig);
                 }
             }
-            if (_orig && !_jaTemTempo) {
+            if (_orig) {
                 setTimeout(function () { askCardDuration(_orig); }, 0);
             }
         }
@@ -6776,7 +6810,11 @@ var TEA_TOUCH_EDGE_PX = 70;         // faixa de auto-scroll nas bordas
 // o 'dragover' do documento e rola o container sob o ponteiro enquanto o arrasto
 // esta ativo.
 // ============================================================================
-var TEA_DRAG_EDGE_PX = 90;
+// CICLO 20: a faixa de 90px era grande demais. O #slots encosta no rodape da
+// janela, entao os ultimos 90px viravam zona de rolagem permanente: o usuario
+// mirava um horario proximo do fim da tela e a Agenda rolava embaixo do
+// ponteiro, levando o alvo embora. Faixa estreita e velocidade menor.
+var TEA_DRAG_EDGE_PX = 40;
 
 function initMouseDragAutoScroll() {
     if (window.__teaDragScrollOn) return;
@@ -6793,7 +6831,7 @@ function initMouseDragAutoScroll() {
         if (pos.y - r.top < TEA_DRAG_EDGE_PX) passo = -(TEA_DRAG_EDGE_PX - (pos.y - r.top));
         else if (r.bottom - pos.y < TEA_DRAG_EDGE_PX) passo = (TEA_DRAG_EDGE_PX - (r.bottom - pos.y));
         else return false;
-        passo = Math.max(-26, Math.min(26, Math.round(passo * 0.35)));
+        passo = Math.max(-12, Math.min(12, Math.round(passo * 0.30)));
         if (!passo) return false;
         var antes = cont.scrollTop;
         cont.scrollTop += passo;
@@ -6816,8 +6854,27 @@ function initMouseDragAutoScroll() {
     }
 
     document.addEventListener('dragover', function (e) {
+        // CICLO 20: quando a Agenda rola sozinha, o elemento sob o ponteiro muda
+        // sem que o mouse se mexa. Se o novo elemento nao receber um dragover com
+        // preventDefault, o Chrome CANCELA o drop - o cartao voltava para o lugar
+        // e parecia "travado". Num arrasto interno (dragState existe) liberamos o
+        // drop no documento inteiro; quem decide o destino continua sendo o
+        // handler da zona.
+        if (typeof dragState !== 'undefined' && dragState) e.preventDefault();
         pos = { x: e.clientX, y: e.clientY };
         comecar();
+    }, true);
+
+    // CICLO 20 - A PECA QUE FALTAVA. O Chrome decide "posso soltar aqui?" pelo
+    // ULTIMO dragenter/dragover que chamou preventDefault. Ao entrar num slot, o
+    // app insere o placeholder debaixo do ponteiro; isso gera um dragenter no
+    // placeholder SEM dragover em seguida. Se o usuario soltasse o botao nesse
+    // instante, o destino estava marcado como invalido e o Chrome CANCELAVA o
+    // drop - o cartao voltava para o lugar. Era intermitente: funcionava quando o
+    // ultimo evento por acaso era um dragover. Explica o "as vezes mexe, quase
+    // sempre nao".
+    document.addEventListener('dragenter', function (e) {
+        if (typeof dragState !== 'undefined' && dragState) e.preventDefault();
     }, true);
     document.addEventListener('drop', parar, true);
     document.addEventListener('dragend', parar, true);
@@ -18391,7 +18448,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.0.20';
+var APP_VERSION = 'v3.1.0';
 
 function initApp() {
     try {
