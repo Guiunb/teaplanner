@@ -566,10 +566,15 @@
             position: relative;
         }
 
-        /* Ciclo 10: a Agenda com linha do tempo gerencia a propria altura;
-           o freeze do Kanban nao deve impor overflow ao container de slots. */
+        /* CICLO 18: REGRESSAO CORRIGIDA. A regra anterior punha overflow:visible
+           aqui. Com a linha do tempo ligada o #slots passa de ~300px para ~1700px
+           (18h x 88px/h) e o pai .schedule e overflow:hidden - resultado: a Agenda
+           NAO ROLAVA. O usuario simplesmente nao conseguia alcancar a tarde, e
+           qualquer arrasto para um horario fora da tela era impossivel.
+           O #slots precisa ser o proprio rolador. */
         body.tea-freeze.tea-timeline #slots {
-            overflow: visible;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         body.tea-timeline .list.slot[data-type="time"] {
@@ -6803,11 +6808,34 @@ function initTouchDrag() {
     }
 
     function autoScroll(x, y) {
+        // CICLO 18: o rolador da Agenda (#slots) nao era considerado. Com a linha
+        // do tempo a Agenda tem ~1700px de altura: arrastar das 09:00 para as
+        // 18:00 exige rolar, e sem isto o alvo nunca chegava a tela. Alem disso a
+        // velocidade fixa de 12px por evento era lenta demais - o dedo saia da
+        // area antes de o alvo aparecer. Agora e proporcional: quanto mais perto
+        // da borda, mais rapido (ate ~44px por evento).
+        function _rolar(cont, borda) {
+            if (!cont || cont.scrollHeight <= cont.clientHeight + 2) return false;
+            var r = cont.getBoundingClientRect();
+            if (x < r.left - 8 || x > r.right + 8) return false;
+            var passo = 0;
+            if (y - r.top < borda) passo = -(borda - (y - r.top));
+            else if (r.bottom - y < borda) passo = (borda - (r.bottom - y));
+            else return false;
+            if (y < r.top) passo = -borda;              // dedo ja saiu por cima
+            if (y > r.bottom) passo = borda;            // dedo ja saiu por baixo
+            passo = Math.max(-44, Math.min(44, Math.round(passo * 0.6)));
+            if (!passo) return false;
+            cont.scrollTop += passo;
+            return true;
+        }
+        // A Agenda tem prioridade: e o painel estreito onde o alvo costuma estar.
+        _rolar(document.getElementById('slots'), TEA_TOUCH_EDGE_PX + 40);
         var main = document.getElementById('main-content');
         if (main) {
             var r = main.getBoundingClientRect();
-            if (y - r.top < TEA_TOUCH_EDGE_PX) main.scrollTop -= 12;
-            else if (r.bottom - y < TEA_TOUCH_EDGE_PX) main.scrollTop += 12;
+            if (y - r.top < TEA_TOUCH_EDGE_PX) main.scrollTop -= 28;
+            else if (r.bottom - y < TEA_TOUCH_EDGE_PX) main.scrollTop += 28;
         }
         var board = document.getElementById('board');
         if (board) {
@@ -6849,10 +6877,15 @@ function initTouchDrag() {
         if (e.touches.length !== 1) { reset(); return; }
         var card = e.target.closest ? e.target.closest('.card') : null;
         if (!card) return;
-        // Botoes internos do cartao mantem o comportamento normal.
-        if (e.target.closest('.kebab') || e.target.closest('.dot') ||
-            e.target.closest('.timer-display') || e.target.closest('.timer-progress-container') ||
-            e.target.closest('input') || e.target.closest('[contenteditable="true"]')) return;
+        // CICLO 18: so o texto em edicao bloqueia o arrasto.
+        // Na linha do tempo um cartao de 30min tem ~41px de altura; o cabecalho
+        // (bolinha + kebab + badge) come o terco de cima. Com esses alvos
+        // bloqueando o toque, o dedo do usuario caia no kebab e o arrasto NUNCA
+        // comecava - era metade do "nao consigo mover o cartao".
+        // Regra nova: TOQUE CURTO = acao do botao (o click sintetico continua
+        // passando, porque so damos preventDefault quando o arrasto ativou).
+        //             TOQUE LONGO = arrastar, de qualquer ponto do cartao.
+        if (e.target.closest('input') || e.target.closest('[contenteditable="true"]')) return;
 
         var t = e.touches[0];
         reset();
@@ -7385,10 +7418,10 @@ var TEA_TL_DEFAULT_DURATION = 30;  // cartao sem estimativa ocupa 1 slot
 var TEA_TL_GAP = 3;                // respiro vertical entre cartoes, em px
 
 function teaTimelineOn() {
-    // Ciclo 9: LIGADA por padrao. A chave agora desliga.
-    // O Gui aprovou altura, corte de texto e padrao de 30min - as tres decisoes
-    // que definiam o comportamento. Nao ha mais motivo para nascer desligada.
-    return teaToggleLigado('tea-timeline', false);
+    // CICLO 18: a Agenda E a linha do tempo. Nao ha mais duas agendas para
+    // manter, testar e depurar. A chave 'tea-timeline' foi aposentada; qualquer
+    // valor antigo em localStorage e ignorado de proposito.
+    return true;
 }
 
 function teaTimelineSlotHeight() {
@@ -7429,10 +7462,28 @@ function teaSweepOrphanCards() {
                 removidos++;
             }
         }
-        if (removidos) {
-            console.warn('[TEA Planner] Faxina: ' + removidos + ' cartao(oes) orfao(s) removido(s) do fluxo.');
+        // CICLO 18: rede de seguranca. Um cartao so pode estar absoluto DENTRO
+        // do #slots (onde a timeline o posiciona). Qualquer .tea-tl-card fora
+        // dali e residuo de clone/mudanca de painel: neutraliza sem apagar dado.
+        var fora = document.querySelectorAll('.tea-tl-card');
+        var neutralizados = 0;
+        for (var j = 0; j < fora.length; j++) {
+            var f = fora[j];
+            if (f.closest('#slots')) continue;
+            f.classList.remove('tea-tl-card');
+            f.style.position = '';
+            f.style.top = '';
+            f.style.left = '';
+            f.style.width = '';
+            f.style.height = '';
+            f.style.zIndex = '';
+            neutralizados++;
         }
-        return removidos;
+        if (removidos || neutralizados) {
+            console.warn('[TEA Planner] Faxina: ' + removidos + ' orfao(s) removido(s), ' +
+                         neutralizados + ' fantasma(s) neutralizado(s).');
+        }
+        return removidos + neutralizados;
     } catch (e) {
         return 0;
     }
@@ -7447,6 +7498,12 @@ function teaTimelineEvents(slots) {
         for (var k = 0; k < cards.length; k++) {
             var card = cards[k];
             var d = parseInt(card.dataset.duration, 10);
+            // CICLO 18: cartao sem 'duration' mas com cronometro configurado
+            // tambem tem tempo declarado - a altura precisa respeitar isso.
+            if (isNaN(d) || d <= 0) {
+                var _tt = parseInt(card.dataset.timerTotal, 10);
+                if (!isNaN(_tt) && _tt > 0) d = Math.round(_tt / 60);
+            }
             if (isNaN(d) || d <= 0) d = TEA_TL_DEFAULT_DURATION;
             var span = Math.max(1, Math.ceil(d / TEA_TL_SLOT_MIN));
             eventos.push({
@@ -7565,7 +7622,7 @@ function layoutAgendaTimeline() {
 // Convencao: guardamos apenas o desvio do padrao. Ausencia = padrao.
 // ============================================================================
 var TEA_LAYOUT_TOGGLES = [
-    { key: 'tea-timeline', label: 'Linha do tempo na Agenda', padrao: false },
+    // CICLO 18: 'tea-timeline' saiu do menu - a Agenda e sempre linha do tempo.
     { key: 'tea-freeze', label: 'Cabe\u00e7alhos congelados', padrao: true },
     { key: 'tea-matrixfit', label: 'Matriz compacta', padrao: true },
     { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true }
@@ -9111,6 +9168,22 @@ listCtx.addEventListener('click', function (e) {
                         clone.classList.add('mirror-card');
                         if (isScheduled) clone.classList.add('is-scheduled');
                         clone.classList.remove('selected', 'dragging', 'timer-running', 'timer-finished');
+                        // ===== CICLO 18 - CAUSA-RAIZ DO CARTAO FANTASMA =====
+                        // cloneNode(true) copia os estilos INLINE. layoutAgendaTimeline
+                        // grava position:absolute/top/left/width/height/z-index no cartao
+                        // original dentro do #slots. updateSlotsHasItems chama a timeline
+                        // ANTES de renderWeeklyView, entao o clone nascia absoluto. No
+                        // Semanal nao existe pai posicionado: o offsetParent virava
+                        // #main-content e o clone escapava para o TOPO do painel - a faixa
+                        // fina com a bolinha e o badge de horario que o Gui via, imovel
+                        // porque estava fora de qualquer coluna de dia.
+                        clone.classList.remove('tea-tl-card');
+                        clone.style.position = '';
+                        clone.style.top = '';
+                        clone.style.left = '';
+                        clone.style.width = '';
+                        clone.style.height = '';
+                        clone.style.zIndex = '';
                         clone.style.animation = '';
                         clone._originalReference = originalCard;
 
