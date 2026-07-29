@@ -6692,7 +6692,22 @@ function wireDropZone(container) {
         if (container.dataset && container.dataset.type === 'time') {
             var _leader = block[0];
             var _orig = (_leader && _leader._originalReference) || _leader;
+            // CICLO 19: cartao que JA tem timer nao precisa ser interrogado de novo.
+            // Antes, todo drop abria o modal "Quanto tempo vai levar?" mesmo quando
+            // o tempo ja estava definido no timer - o modal roubava o foco e dava a
+            // sensacao de que o cartao "travou" logo depois de ser solto.
+            var _jaTemTempo = (parseInt(_orig && _orig.dataset.duration, 10) > 0) ||
+                              (parseInt(_orig && _orig.dataset.timerTotal, 10) > 0);
+            // CICLO 19: cartao antigo com timer mas sem duration se auto-corrige
+            // aqui. Assim o dado converge sozinho para UM numero, sem migracao.
             if (_orig && !(parseInt(_orig.dataset.duration, 10) > 0)) {
+                var _ttd = parseInt(_orig.dataset.timerTotal, 10);
+                if (!isNaN(_ttd) && _ttd > 0) {
+                    _orig.dataset.duration = String(Math.round(_ttd / 60));
+                    if (typeof renderDurationBadge === 'function') renderDurationBadge(_orig);
+                }
+            }
+            if (_orig && !_jaTemTempo) {
                 setTimeout(function () { askCardDuration(_orig); }, 0);
             }
         }
@@ -6750,6 +6765,65 @@ function wireDropZone(container) {
 var TEA_TOUCH_LONGPRESS_MS = 320;   // tempo ate virar arrasto
 var TEA_TOUCH_TOLERANCE_PX = 12;    // se andar mais que isso antes, era rolagem
 var TEA_TOUCH_EDGE_PX = 70;         // faixa de auto-scroll nas bordas
+
+// ============================================================================
+// CICLO 19 - AUTO-SCROLL NO ARRASTO COM MOUSE
+// ----------------------------------------------------------------------------
+// A camada de toque ja rolava sozinha; o arrasto NATIVO (HTML5, mouse/trackpad)
+// nao. Com a Agenda virando linha do tempo ela passou a ter ~1700px de altura:
+// arrastar um cartao das 09:30 para as 15:00 no desktop era simplesmente
+// impossivel, porque o slot de destino nunca chegava a tela. Este modulo escuta
+// o 'dragover' do documento e rola o container sob o ponteiro enquanto o arrasto
+// esta ativo.
+// ============================================================================
+var TEA_DRAG_EDGE_PX = 90;
+
+function initMouseDragAutoScroll() {
+    if (window.__teaDragScrollOn) return;
+    window.__teaDragScrollOn = true;
+
+    var pos = null, tick = null;
+
+    function rolar(cont) {
+        if (!cont || !pos) return false;
+        if (cont.scrollHeight <= cont.clientHeight + 2) return false;
+        var r = cont.getBoundingClientRect();
+        if (pos.x < r.left - 8 || pos.x > r.right + 8) return false;
+        var passo = 0;
+        if (pos.y - r.top < TEA_DRAG_EDGE_PX) passo = -(TEA_DRAG_EDGE_PX - (pos.y - r.top));
+        else if (r.bottom - pos.y < TEA_DRAG_EDGE_PX) passo = (TEA_DRAG_EDGE_PX - (r.bottom - pos.y));
+        else return false;
+        passo = Math.max(-26, Math.min(26, Math.round(passo * 0.35)));
+        if (!passo) return false;
+        var antes = cont.scrollTop;
+        cont.scrollTop += passo;
+        return cont.scrollTop !== antes;
+    }
+
+    function comecar() {
+        if (tick) return;
+        tick = setInterval(function () {
+            if (!pos) return;
+            // A Agenda tem prioridade: e o painel alto onde o destino costuma estar.
+            if (rolar(document.getElementById('slots'))) return;
+            rolar(document.getElementById('main-content'));
+        }, 16);
+    }
+
+    function parar() {
+        if (tick) { clearInterval(tick); tick = null; }
+        pos = null;
+    }
+
+    document.addEventListener('dragover', function (e) {
+        pos = { x: e.clientX, y: e.clientY };
+        comecar();
+    }, true);
+    document.addEventListener('drop', parar, true);
+    document.addEventListener('dragend', parar, true);
+    document.addEventListener('mouseup', parar, true);
+}
+
 
 function initTouchDrag() {
     if (window.__teaTouchDragOn) return;
@@ -7116,16 +7190,17 @@ function askCardDuration(card, onDone) {
         // ITEM 5 (Ciclo 14): a duracao escolhida vira o timer do cartao.
         // 60min -> timerTotal = 3600s. So sobrescreve se o usuario nao tinha
         // um timer manual diferente (evita apagar cronometro ja configurado).
+        // CICLO 19: sincronizacao incondicional. A guarda anterior permitia que
+        // duracao e timer divergissem, e era exatamente essa divergencia que fazia
+        // o cartao ignorar o tempo definido pelo usuario na hora de desenhar a
+        // altura. Um numero so, sempre.
         var _secs = chosen * 60;
-        var _prev = parseInt(target.dataset.timerTotal, 10);
-        if (isNaN(_prev) || _prev <= 0 || _prev === (parseInt(target.dataset.duration, 10) * 60)) {
-            target.dataset.timerTotal = String(_secs);
-            if (!(parseInt(target.dataset.timerLeft, 10) > 0) ||
-                target.dataset.timerState === 'stopped') {
-                target.dataset.timerLeft = String(_secs);
-            }
-            if (typeof updateTimerDisplay === 'function') updateTimerDisplay(target);
+        target.dataset.timerTotal = String(_secs);
+        if (!(parseInt(target.dataset.timerLeft, 10) > 0) ||
+            target.dataset.timerState === 'stopped') {
+            target.dataset.timerLeft = String(_secs);
         }
+        if (typeof updateTimerDisplay === 'function') updateTimerDisplay(target);
         renderDurationBadge(target);
         if (typeof persist === 'function') persist();
         if (typeof renderWeeklyView === 'function') renderWeeklyView();
@@ -7497,13 +7572,14 @@ function teaTimelineEvents(slots) {
         var cards = cont.querySelectorAll(':scope > .card');
         for (var k = 0; k < cards.length; k++) {
             var card = cards[k];
-            var d = parseInt(card.dataset.duration, 10);
-            // CICLO 18: cartao sem 'duration' mas com cronometro configurado
-            // tambem tem tempo declarado - a altura precisa respeitar isso.
-            if (isNaN(d) || d <= 0) {
-                var _tt = parseInt(card.dataset.timerTotal, 10);
-                if (!isNaN(_tt) && _tt > 0) d = Math.round(_tt / 60);
-            }
+            // CICLO 19: o TIMER manda. Cartoes antigos podem ter duration e
+            // timerTotal divergentes (o dialogo de timer nao gravava duration).
+            // Nesses casos o valor que o usuario editou por ultimo e o do timer,
+            // entao e ele que define a altura. duration fica como reserva.
+            var d = NaN;
+            var _tt = parseInt(card.dataset.timerTotal, 10);
+            if (!isNaN(_tt) && _tt > 0) d = Math.round(_tt / 60);
+            if (isNaN(d) || d <= 0) d = parseInt(card.dataset.duration, 10);
             if (isNaN(d) || d <= 0) d = TEA_TL_DEFAULT_DURATION;
             var span = Math.max(1, Math.ceil(d / TEA_TL_SLOT_MIN));
             eventos.push({
@@ -7962,7 +8038,21 @@ function applyWhen(listElement, nodes) {
     let quad = isMatrix ? listElement.dataset.quad : '';
 
     if (listElement && listElement.dataset.date) {
+        // CICLO 19: soltar numa coluna do Semanal muda o DIA, nao apaga a HORA.
+        // Antes, qualquer arrasto dentro do painel Semanal reescrevia o when para
+        // 'AAAA-MM-DDT' - o cartao perdia o horario agendado e voltava para
+        // "Horario a definir" na Agenda. Era o efeito que o Gui descreveu como
+        // "perde o timer que tava programado".
+        // Para mandar de volta para "a definir" existe o proprio balde da Agenda.
         targetWhen = listElement.dataset.date + 'T';
+        var _horaAtual = '';
+        var _n0 = nodes && nodes[0];
+        var _c0 = (_n0 && _n0._originalReference) || _n0;
+        if (_c0 && _c0.dataset && _c0.dataset.when) {
+            var _p = _c0.dataset.when.split('T');
+            if (_p.length > 1 && _p[1] && _p[1] !== 'GOAL') _horaAtual = _p[1];
+        }
+        if (_horaAtual) targetWhen = listElement.dataset.date + 'T' + _horaAtual;
     } else if (listElement && listElement.dataset.type === 'time') {
         targetWhen = day + 'T' + listElement.dataset.time;
     } else if (listElement && listElement.dataset.type === 'goal') {
@@ -12087,6 +12177,13 @@ cards.forEach(function (c) {
 var newTotal = (parseInt(timerMins, 10) || 0) * 60;
 c.dataset.timerTotal = newTotal; c.dataset.timerLeft = newTotal; c.dataset.timerState = 
        'stopped';
+// CICLO 19: o Timer passa a ser a UNICA fonte da verdade do "quanto tempo leva".
+// Antes, este dialogo gravava so timerTotal e a Agenda media a altura por
+// dataset.duration - que continuava com o valor antigo (ex.: 30min definidos no
+// drop). Resultado: o usuario punha 2h no timer e o cartao continuava do tamanho
+// de meia hora. Agora os dois numeros andam juntos e nao ha como divergirem.
+c.dataset.duration = String(Math.max(0, Math.round(newTotal / 60)) || '');
+if (typeof renderDurationBadge === 'function') renderDurationBadge(c);
 c.style.animation = ''; c.classList.remove('timer-running', 'timer-finished'); 
        paintCard(c);
 });
@@ -18303,6 +18400,7 @@ function initApp() {
     } catch (e) { }
     initResizers();
     if (typeof initTouchDrag === 'function') initTouchDrag();
+    if (typeof initMouseDragAutoScroll === 'function') initMouseDragAutoScroll();
     if (typeof teaApplyLayoutFlags === 'function') teaApplyLayoutFlags();
     if (typeof layoutAgendaTimeline === 'function') layoutAgendaTimeline();
     if (typeof teaWireCommandSearch === 'function') teaWireCommandSearch();
