@@ -6513,6 +6513,23 @@ function startInlineEdit(card, isNewCard = false) {
     }
 
     card.classList.add('editing'); var original = tEl.textContent; tEl.setAttribute('contenteditable', 'true'); tEl.focus();
+
+    // ===== CICLO 20 - REDE DE SEGURANCA DO TEXTO DIGITADO =====
+    // Regra do Gui: "se eu digitei alguma coisa, o cartao TEM que ficar salvo".
+    // Nao dependemos mais de o DOM sobreviver ate o blur. A cada tecla:
+    //   1) guardamos o texto num fechamento (ultimoTextoDigitado);
+    //   2) se for um espelho (Semanal), ja empurramos para o cartao real.
+    // Assim, qualquer re-render/sync que apague o no em edicao nao apaga o texto.
+    var ultimoTextoDigitado = original;
+    function onInput() {
+        ultimoTextoDigitado = tEl.textContent;
+        var _orig = card._originalReference;
+        if (_orig) {
+            var _ot = _orig.querySelector('.text');
+            if (_ot && _ot.textContent !== ultimoTextoDigitado) _ot.textContent = ultimoTextoDigitado;
+        }
+    }
+
     var sel = window.getSelection();
     var range = document.createRange();
     range.selectNodeContents(tEl);
@@ -6524,20 +6541,40 @@ function startInlineEdit(card, isNewCard = false) {
         releaseEditLock();
         tEl.removeEventListener('keydown', onKey);
         tEl.removeEventListener('blur', onBlur);
+        tEl.removeEventListener('input', onInput);
         tEl.removeAttribute('contenteditable');
         card.classList.remove('editing');
 
         const quickConfigToggle = document.getElementById('quickConfigToggle');
         const textWasEmpty = original.trim() === '';
-        const textIsNowEmpty = tEl.textContent.trim() === '';
+
+        // CICLO 20: se algum sync/re-render limpou o no em edicao entre a ultima
+        // tecla e o commit, o que vale e o ultimo texto que o usuario digitou.
+        var textoFinal = tEl.textContent;
+        if (save && textoFinal.trim() === '' && ultimoTextoDigitado.trim() !== '') {
+            textoFinal = ultimoTextoDigitado;
+            tEl.textContent = textoFinal;
+        }
+        const textIsNowEmpty = textoFinal.trim() === '';
 
         const targetCard = card._originalReference || card;
 
         if (!save) {
+            // CICLO 20: Escape = cancelar de verdade. Como agora o texto e
+            // propagado ao vivo para o cartao real (onInput), o cancelamento
+            // precisa desfazer isso tambem, senao sobrava um cartao fantasma
+            // com o texto que o usuario mandou descartar.
             tEl.textContent = original;
-            if (textWasEmpty && textIsNowEmpty) {
+            var _origCancel = card._originalReference;
+            if (_origCancel) {
+                var _otCancel = _origCancel.querySelector('.text');
+                if (_otCancel) _otCancel.textContent = original;
+            }
+            if (textWasEmpty) {
                 removeCard(targetCard, true);
                 if (card._originalReference) renderWeeklyView();
+            } else if (card._originalReference) {
+                renderWeeklyView();
             }
         } else if (textIsNowEmpty) {
             if (!textWasEmpty) {
@@ -6552,9 +6589,11 @@ function startInlineEdit(card, isNewCard = false) {
         } else {
             if (card._originalReference) {
                 const origText = card._originalReference.querySelector('.text');
-                if (origText) origText.textContent = tEl.textContent;
+                if (origText) origText.textContent = textoFinal;
             }
-            persist();
+            // CICLO 20: grava JA. persist() e debounced em 250ms; se um render
+            // remoto (Firebase) entrasse nessa janela, o cartao novo sumia.
+            if (typeof saveImmediately === 'function') saveImmediately(); else persist();
             if (isNewCard && quickConfigToggle && quickConfigToggle.checked) {
                 openTimerDialog([targetCard], function () {
                     setTimeout(function () {
@@ -6580,6 +6619,7 @@ function startInlineEdit(card, isNewCard = false) {
     function onBlur() { finish(true); }
     tEl.addEventListener('keydown', onKey);
     tEl.addEventListener('blur', onBlur);
+    tEl.addEventListener('input', onInput);
 }
 
 
@@ -6592,8 +6632,17 @@ function syncMirrors() {
     $$('.mirror-card').forEach(m => {
         const orig = m._originalReference;
         if (orig) {
+            // ===== CICLO 20 - CAUSA-RAIZ DO "CARTAO SOME AO CLICAR FORA" =====
+            // No painel Semanal o usuario edita o ESPELHO, nao o cartao real.
+            // Ao clicar no fundo vazio, o handler de marquee chama clearSelection()
+            // -> syncMirrors(), que copiava o texto do ORIGINAL (ainda vazio, pois
+            // o commit so acontece no finish()) por cima do que o usuario acabou
+            // de digitar. Em seguida o blur via texto vazio -> removeCard().
+            // Com Enter o bug nao aparecia porque o keydown roda antes do mousedown.
+            // Regra: espelho em edicao inline e INTOCAVEL.
+            if (m.classList.contains('editing')) return;
             m.classList.toggle('selected', selected.has(orig));
-            
+
             // Sync timer states and dataset attributes
             m.dataset.timerState = orig.dataset.timerState || 'stopped';
             m.dataset.timerTotal = orig.dataset.timerTotal || '';
@@ -18821,7 +18870,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.2.1';
+var APP_VERSION = 'v3.2.2';
 
 function initApp() {
     try {
