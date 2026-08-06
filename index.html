@@ -693,6 +693,42 @@
 
         .tea-menu.open .tea-menu-panel { display: block; }
 
+        /* CICLO 20 - MENU UNICO: o painel deixa de ser do sanduiche (canto
+           direito) e passa a pendurar embaixo do botao TEA PLANNER, alinhado a
+           esquerda. margin-left:auto tambem sai, senao empurraria a marca. */
+        .tea-menu.tea-menu-unico {
+            position: static;
+            margin-left: 0;
+            display: contents;
+        }
+
+        .tea-menu.tea-menu-unico .tea-menu-panel {
+            left: 0;
+            right: auto;
+        }
+
+        /* CICLO 20 - CHIP DE FILTROS NA BARRA
+           Decisao do Gui: barra limpa por padrao; o chip so aparece quando ha
+           filtro ativo. updateFiltersUi ja controla o .hidden - aqui so damos
+           aparencia de chip clicavel em vez de texto solto. */
+        #appHeader > #filtersOn {
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 1;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(255, 179, 0, 0.18);
+            border: 1px solid rgba(255, 179, 0, 0.45);
+            color: #ffd54f;
+            white-space: nowrap;
+        }
+
+        #appHeader > #filtersOn:hover {
+            background: rgba(255, 179, 0, 0.28);
+        }
+
+        #appHeader > #filtersOn[hidden] { display: none !important; }
+
         /* Dois niveis deslizam horizontalmente dentro do mesmo painel. */
         .tea-menu-level {
             max-height: 70vh;
@@ -7570,7 +7606,24 @@ function buildMenuBar() {
     teaMbMove(lFrom, exb.content);
     teaMbMove(lTo, exb.content);
     teaMbMove('clearFilters', exb.content);
-    teaMbMove('filtersOn', exb.content);
+    // CICLO 20: decisao do Gui - o chip de filtros nao mora mais dentro do menu.
+    // Vai para a barra e aparece SO quando ha filtro ativo (updateFiltersUi ja
+    // controla o .hidden). Clicar nele abre a categoria Filtros.
+    if (teaToggleLigado('tea-chip-filtros', false)) {
+        var chip = teaMbById('filtersOn');
+        if (chip) {
+            header.appendChild(chip);
+            chip.title = 'Filtros ativos - toque para ajustar';
+            chip.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (typeof window.teaAbrirCategoriaMenu === 'function') {
+                    window.teaAbrirCategoriaMenu('filtros');
+                }
+            });
+        }
+    } else {
+        teaMbMove('filtersOn', exb.content);
+    }
 
     // --------------------------------------------------------------- IA
     var ia = teaMbMenu('teaMenuIA', 'IA');
@@ -7896,7 +7949,15 @@ var TEA_LAYOUT_TOGGLES = [
     // CICLO 18: 'tea-timeline' saiu do menu - a Agenda e sempre linha do tempo.
     { key: 'tea-freeze', label: 'Cabe\u00e7alhos congelados', padrao: true },
     { key: 'tea-matrixfit', label: 'Matriz compacta', padrao: true },
-    { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true }
+    { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true },
+    // CICLO 20: menu unico. O sanduiche deixa de existir e todo o conteudo passa
+    // a abrir pelo proprio botao TEA PLANNER, com SAIR como ultima opcao.
+    // Nasce DESLIGADO (regra do projeto: layout novo so liga apos o Gui aprovar
+    // na tela). Ligue em Menu > Layout > "Menu unico no TEA PLANNER".
+    { key: 'tea-menu-unico', label: 'Menu único no TEA PLANNER', padrao: false },
+    // CICLO 20: o chip "Filtros ativos" sai de dentro do menu e vai para a barra,
+    // aparecendo SO quando ha filtro ligado (decisao do Gui). Clicar abre Filtros.
+    { key: 'tea-chip-filtros', label: 'Chip de filtros na barra', padrao: false }
 ];
 
 function teaToggleLigado(key, padrao) {
@@ -8072,6 +8133,49 @@ function teaBuildHamburger() {
         level2.innerHTML = '';
     }
 
+    // ===== CICLO 20 - A LISTRA ORFA =====
+    // O Gui reportou um traco solto no menu. Raio-x confirmou: em "Exibir" o
+    // item 0 e o titulo, o item 1 e um SEPARADOR e o item 2 e "Revisao" - um
+    // traco separando nada de coisa nenhuma. Origem: buildMenuBar monta Exibir
+    // como [Kanban, Matriz, Agenda, Semana] + separador + Revisao; depois
+    // teaBuildHamburger filtra os 4 paineis (PANEL_RE) porque eles ja vivem no
+    // segmented control - e o separador fica orfao.
+    // Em vez de remendar aquele ponto, a regra passa a valer para TODA categoria:
+    // separador so existe entre dois itens de verdade.
+    function teaEhListra(n) {
+        return !!(n && n.classList && String(n.className).indexOf('tea-sep') !== -1);
+    }
+    function teaEhTitulo(n) {
+        // .tea-menu-l2-head e o cabecalho da categoria no nivel 2. Conta como
+        // titulo, nao como item: e por isso que a listra logo abaixo dele nao
+        // separava nada (era exatamente o caso de "Exibir").
+        return !!(n && n.classList &&
+            (n.classList.contains('tea-section') || n.classList.contains('tea-menu-l2-head')));
+    }
+    function teaLimparListras(container) {
+        if (!container) return;
+        var filhos = Array.prototype.slice.call(container.children);
+        var vistoItemReal = false;
+        var ultimaListra = null;
+        filhos.forEach(function (n) {
+            if (teaEhListra(n)) {
+                // listra antes de qualquer item real, ou grudada em outra listra
+                if (!vistoItemReal || ultimaListra) { n.remove(); return; }
+                ultimaListra = n;
+                return;
+            }
+            if (teaEhTitulo(n)) {
+                // titulo ja e uma divisao visual: a listra antes dele e redundante
+                if (ultimaListra) { ultimaListra.remove(); ultimaListra = null; }
+                return;
+            }
+            vistoItemReal = true;
+            ultimaListra = null;
+        });
+        // listra sobrando no fim
+        if (ultimaListra) ultimaListra.remove();
+    }
+
     function openCat(cat) {
         level2.innerHTML = '';
         var head = document.createElement('div');
@@ -8079,6 +8183,7 @@ function teaBuildHamburger() {
         head.textContent = cat.icon + '  ' + cat.label;
         level2.appendChild(head);
         cat.items.forEach(function (node) { level2.appendChild(node); });
+        teaLimparListras(level2);
         wrap.classList.add('drill');
     }
 
@@ -8120,6 +8225,61 @@ function teaBuildHamburger() {
     wrap.appendChild(btn);
     wrap.appendChild(panel);
     header.appendChild(wrap);
+
+    // CICLO 20: gancho para abrir o menu ja dentro de uma categoria.
+    // Usado pelo chip de filtros da barra (1 toque em vez de 2).
+    window.teaAbrirCategoriaMenu = function (chave) {
+        var cat = catBy(chave);
+        if (!cat || !cat.items.length) return;
+        wrap.classList.add('open');
+        openCat(cat);
+    };
+
+    // ========================================================================
+    // CICLO 20 - MENU UNICO (decisao do Gui: 2 niveis, SAIR por ultimo)
+    // ------------------------------------------------------------------------
+    // Diagnostico que motivou: o "Menu TEA PLANNER" tinha 2 itens (um span
+    // vazio + Login) enquanto o sanduiche carregava 7 categorias. Duas portas
+    // de entrada, uma delas oca. Agora e uma so: o proprio botao TEA PLANNER
+    // abre tudo, e a conta (entrar/SAIR) fecha a lista.
+    // A mecanica de 2 niveis do sanduiche e reaproveitada inteira - so troca
+    // quem dispara. Nasce desligada (regra: layout novo so liga apos aprovacao).
+    // ========================================================================
+    if (teaToggleLigado('tea-menu-unico', false)) {
+        var brandWrap = document.getElementById('teaBrandMenu');
+        var brandBtn = brandWrap && brandWrap.querySelector('.tea-brand-btn');
+        if (brandBtn) {
+            // Conta vai para o fim do nivel 1, com uma divisao antes.
+            var contaSep = document.createElement('div');
+            contaSep.className = 'tea-sep-line';
+            level1.appendChild(contaSep);
+            var userInfo = document.getElementById('userInfo');
+            var loginBtn = document.getElementById('loginBtn');
+            // Deslogado, #userInfo e um div vazio: nao deixa buraco no menu.
+            if (userInfo && (userInfo.textContent || '').trim()) level1.appendChild(userInfo);
+            if (loginBtn) level1.appendChild(loginBtn); // vira "Sair" quando logado
+            teaLimparListras(level1);
+
+            // O sanduiche some da barra; quem abre agora e a marca.
+            btn.style.display = 'none';
+            wrap.classList.add('tea-menu-unico');
+
+            // O painel passa a ficar ancorado na marca (esquerda), nao no canto.
+            brandWrap.appendChild(wrap);
+
+            // Neutraliza o dropdown antigo da marca: o conteudo dele migrou.
+            var brandContent = document.getElementById('teaBrandMenuContent');
+            if (brandContent) brandContent.style.display = 'none';
+
+            brandBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                brandWrap.classList.remove('active'); // nao abre o dropdown vazio
+                var aberto = wrap.classList.toggle('open');
+                showLevel1();
+                if (!aberto) showLevel1();
+            }, true);
+        }
+    }
 }
 
 
@@ -18749,21 +18909,44 @@ function initResizers() {
     try {
         const saved = JSON.parse(localStorage.getItem('TEA_RESIZERS') || '{}');
         if (saved.sidebarWidth && window.innerWidth > 700) sidebar.style.flexBasis = saved.sidebarWidth + 'px';
+        // ===== CICLO 20 - A DIVISORIA NAO GRAVAVA DE VERDADE =====
+        // A altura era salva e ate reaplicada aqui, mas .weekly-container e
+        // .board-container tem flex-grow:1 no CSS. No eixo principal do flex o
+        // flex-grow VENCE o height, entao o painel Semanal voltava a ocupar a
+        // tela inteira a cada abertura de quadro e o Gui tinha que arrastar a
+        // divisoria de novo. O arraste funcionava porque onMove seta flex:'none'
+        // junto com a altura - o restore nao setava. Agora seta.
+        // Extra: clamp ao viewport atual (o Z Fold muda de tamanho ao abrir/fechar,
+        // e uma altura salva na tela grande deixava o painel maior que a tela).
+        var _maxAlturaPainel = Math.round(window.innerHeight * 0.8);
         if (saved.boardHeight) {
-            const h = parseInt(saved.boardHeight);
-            boardContainer.style.height = (isNaN(h) || h < 100) ? '300px' : h + 'px';
+            var hb = parseInt(saved.boardHeight);
+            if (isNaN(hb) || hb < 100) hb = 300;
+            if (hb > _maxAlturaPainel) hb = _maxAlturaPainel;
+            boardContainer.style.height = hb + 'px';
+            boardContainer.style.flex = 'none';
         }
         if (saved.weeklyHeight) {
-            const h = parseInt(saved.weeklyHeight);
-            weeklyContainer.style.height = (isNaN(h) || h < 50) ? '250px' : h + 'px';
+            var hw = parseInt(saved.weeklyHeight);
+            if (isNaN(hw) || hw < 50) hw = 250;
+            if (hw > _maxAlturaPainel) hw = _maxAlturaPainel;
+            weeklyContainer.style.height = hw + 'px';
+            weeklyContainer.style.flex = 'none';
         }
     } catch(e) {}
 
     function saveResizerState() {
+        // CICLO 20: painel colapsado mede 0. Gravar 0 apagava a preferencia do
+        // usuario (0 e falsy, o restore pulava). So grava o que foi medido de fato.
+        var _prev = {};
+        try { _prev = JSON.parse(localStorage.getItem('TEA_RESIZERS') || '{}'); } catch (e) { }
+        var _sw = sidebar ? sidebar.getBoundingClientRect().width : 0;
+        var _bh = boardContainer ? boardContainer.getBoundingClientRect().height : 0;
+        var _wh = weeklyContainer ? weeklyContainer.getBoundingClientRect().height : 0;
         const state = {
-            sidebarWidth: sidebar.getBoundingClientRect().width,
-            boardHeight: boardContainer.getBoundingClientRect().height,
-            weeklyHeight: weeklyContainer.getBoundingClientRect().height
+            sidebarWidth: _sw > 0 ? _sw : _prev.sidebarWidth,
+            boardHeight: _bh > 0 ? _bh : _prev.boardHeight,
+            weeklyHeight: _wh > 0 ? _wh : _prev.weeklyHeight
         };
         localStorage.setItem('TEA_RESIZERS', JSON.stringify(state));
     }
@@ -18870,7 +19053,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.2.2';
+var APP_VERSION = 'v3.2.4';
 
 function initApp() {
     try {
