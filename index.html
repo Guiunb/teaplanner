@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- TEA-PLANNER-VERSAO: v3.2.7 -->
+<!-- Este marcador espelha o APP_VERSION la embaixo, de proposito.
+     Serve para conferir em 2 segundos QUAL arquivo esta no ar, sem rolar
+     19 mil linhas: abra view-source da pagina publicada e olhe a linha 2.
+     Se o numero aqui nao bater com o que voce acabou de subir, o upload
+     nao pegou (cache do navegador ou arquivo errado). -->
 <html lang="pt-br">
 
 <head>
@@ -420,6 +426,52 @@
             min-width: 0;
         }
 
+        /* ====================================================================
+           CICLO 20 - O NOME DA LISTA SUMIA NO KANBAN
+           --------------------------------------------------------------------
+           A CONTA, numa lista de largura fixa 5cm (~189px):
+             padding do header .......... -20  -> sobram 169
+             botao "+" (36 + 10 margem) . -46
+             botao "..." ................ -36
+             gaps do flex (3 x 8) ....... -24
+             badge 🚦 do Fluxo Gentil ... -62
+             ------------------------------------
+             sobra para o titulo ........   1px
+           Com padding proprio de 16px, o input colapsava a ZERO. Por isso o
+           nome aparecia como um retangulo escuro vazio.
+           E por isso so acontecia em ALGUMAS listas: o badge .flow-badge so
+           existe quando a lista estourou o limite de WIP. Sem badge sobravam
+           ~55px e o nome aparecia (truncado).
+
+           O ERRO DE DESIGN: `flex: 1; min-width: 0` faz o titulo ser o PRIMEIRO
+           a ser sacrificado - mas ele e o item MAIS importante do cabecalho.
+           E o nome da lista que identifica a coluna inteira; os botoes e o
+           badge sao secundarios. A regra passa a ser: o conteudo essencial
+           nunca e o que some. Quem quebra a linha e o acessorio.
+
+           SOLUCAO: o titulo ganha linha propria (order:-1 + base 100%) e passa
+           de ~55px para os 153px uteis da lista. Custa ~28px de altura no
+           cabecalho - preco justo por conseguir ler o nome da coluna.
+           ==================================================================== */
+        .list header {
+            flex-wrap: wrap;
+            row-gap: 6px;
+        }
+
+        .list header input.title {
+            flex: 1 1 100%;
+            order: -1;
+            text-overflow: ellipsis;
+        }
+
+        /* O badge fica na esquerda da segunda linha; o "+" continua empurrado
+           para a direita pelo margin-left:auto que ja existe. */
+        .list header .flow-badge {
+            order: 0;
+            flex-shrink: 0;
+            margin-left: 0;
+        }
+
         /* Botão Minimalista de Adicionar Cartão */
         .list header .add-btn-minimal {
             background: transparent;
@@ -786,6 +838,31 @@
         .tea-menu-cat-ic { width: 22px; text-align: center; }
         .tea-menu-cat-lb { flex: 1; }
         .tea-menu-cat-ar { opacity: .5; font-size: 18px; }
+
+        /* ===== CICLO 20 - COLISAO DE ESPECIFICIDADE NO MENU =====
+           .tea-menu-cat E um <button> dentro de .tea-menu-panel. Mais abaixo
+           existe a regra generica `.tea-menu-panel button {...}`, com
+           especificidade (0,1,1) contra (0,1,0) da .tea-menu-cat - e ela vem
+           DEPOIS no arquivo. Resultado: a linha de categoria perdia padding,
+           gap, font-size e border-radius para a regra generica, e o icone de
+           22px era espremido contra a borda esquerda do painel.
+           A regra abaixo tem especificidade (0,2,1) e devolve o controle. */
+        .tea-menu-panel .tea-menu-cat {
+            gap: 10px;
+            padding: 12px 14px;
+            font-size: 14px;
+            border-radius: 9px;
+            /* alvo de toque de 44px: o Gui usa o app no Z Fold */
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+
+        .tea-menu-panel .tea-menu-cat .tea-menu-cat-ic {
+            flex: 0 0 22px;
+            width: 22px;
+            font-size: 15px;
+            line-height: 1;
+        }
 
         /* Cabecalho do nivel 2. */
         .tea-menu-l2-head {
@@ -3873,6 +3950,47 @@ padding: 6px 2px;
     <script>
 
 // ===== MODULO: core.js =====
+
+// ============================================================================
+// CICLO 20 - COR TEM SIGNIFICADO (decisao do Gui: duas familias separadas)
+// ----------------------------------------------------------------------------
+// O PROBLEMA: verde e vermelho diziam duas coisas ao mesmo tempo.
+//   Q1 (Faca)    = #2e7d32 verde saturado no cabecalho do cartao
+//   Concluido    = #66bb6a verde na bolinha
+//   Q4 (Elimine) = #c62828 vermelho saturado no cabecalho
+//   Excluir      = vermelho
+// Um cartao Q1 parecia concluido; um cartao Q4 parecia com erro.
+//
+// A REGRA NOVA - duas camadas que nunca competem:
+//   QUADRANTE = tom DESSATURADO, camada de fundo (cabecalho do cartao).
+//               Diz "que tipo de tarefa e esta". Informacao ambiente.
+//   ESTADO    = cor SATURADA, camada de destaque (bolinha, badge, borda).
+//               Diz "o que esta acontecendo AGORA". Informacao ativa.
+// O olho le saturacao como urgencia. Entao so o estado pode ser saturado.
+//
+// O estado "concluido" ja e comunicado tambem por FORMA (texto riscado +
+// opacidade + check), entao dessaturar o quadrante nao perde informacao.
+//
+// Estas eram 6 copias identicas espalhadas pelo arquivo (linhas 6878, 8452,
+// 8604, 10228, 17926 e outra). Agora ha um ponto de verdade so.
+// ============================================================================
+var TEA_CORES_QUADRANTE = {
+    Q1: '#3f6b4a', // Faca      - verde acinzentado
+    Q2: '#39618c', // Agende    - azul acinzentado
+    Q3: '#8a6c35', // Delegue   - ambar acinzentado
+    Q4: '#7e4444'  // Elimine   - vinho acinzentado
+};
+
+// Traducao dos hex saturados antigos para os novos. Os cartoes que voce ja tem
+// guardaram a cor antiga no dataset; paintCard converte na leitura, sem
+// precisar reescrever backup nem tocar no Firebase.
+var TEA_MIGRA_QUADRANTE = {
+    '#2e7d32': TEA_CORES_QUADRANTE.Q1,
+    '#1976d2': TEA_CORES_QUADRANTE.Q2,
+    '#ffb300': TEA_CORES_QUADRANTE.Q3,
+    '#c62828': TEA_CORES_QUADRANTE.Q4
+};
+
 // ===== Helpers =====
 function el(t, c) { var n = document.createElement(t); if (c) n.className = c; return n; }
 // [REVIEW v8] Sanitizacao oficial: TODO dado que nao nasceu no codigo
@@ -6092,7 +6210,12 @@ function paintCard(c) {
         c.title = '';
     }
 
-    var labelColor = c.dataset.labelColor || '';
+    // CICLO 20: cartoes criados antes desta versao guardaram o hex SATURADO
+    // antigo no dataset. Sem esta traducao, so os cartoes novos ficariam
+    // dessaturados e o quadro viraria uma colcha de retalhos. Converte na hora
+    // de pintar - o dado antigo continua valido, a leitura e que muda.
+    var labelColor = TEA_MIGRA_QUADRANTE[(c.dataset.labelColor || '').toLowerCase()] ||
+                     c.dataset.labelColor || '';
     var header = c.querySelector('.card-header');
     if (header) {
         if (labelColor) {
@@ -6844,7 +6967,7 @@ function wireDropZone(container) {
         
         // Matrix Color Drop (Hover over quadrant)
         if (container.dataset.type === 'quad' && dragState.block) {
-            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const EISENHOWER_COLORS = TEA_CORES_QUADRANTE; // CICLO 20: ponto de verdade unico
             const qColor = EISENHOWER_COLORS[container.dataset.quad];
             if (qColor) {
                 var block = (dragState.block && dragState.block.length) ? dragState.block : [dragState.leader];
@@ -7609,7 +7732,7 @@ function buildMenuBar() {
     // CICLO 20: decisao do Gui - o chip de filtros nao mora mais dentro do menu.
     // Vai para a barra e aparece SO quando ha filtro ativo (updateFiltersUi ja
     // controla o .hidden). Clicar nele abre a categoria Filtros.
-    if (teaToggleLigado('tea-chip-filtros', false)) {
+    if (teaToggleLigado('tea-chip-filtros', true)) {
         var chip = teaMbById('filtersOn');
         if (chip) {
             header.appendChild(chip);
@@ -7952,12 +8075,14 @@ var TEA_LAYOUT_TOGGLES = [
     { key: 'tea-menubar', label: 'Barra de menus nova', padrao: true },
     // CICLO 20: menu unico. O sanduiche deixa de existir e todo o conteudo passa
     // a abrir pelo proprio botao TEA PLANNER, com SAIR como ultima opcao.
-    // Nasce DESLIGADO (regra do projeto: layout novo so liga apos o Gui aprovar
-    // na tela). Ligue em Menu > Layout > "Menu unico no TEA PLANNER".
-    { key: 'tea-menu-unico', label: 'Menu único no TEA PLANNER', padrao: false },
+    // LIGADO por padrao. Nasceu desligado seguindo a regra "layout novo so liga
+    // apos aprovacao na tela" - so que o Gui abriu o app, nao viu nada mudar e
+    // perguntou por que o menu nao tinha ido para a marca. A regra protege de
+    // surpresa, mas nao pode esconder a entrega. Desligue aqui se quiser o ☰ de volta.
+    { key: 'tea-menu-unico', label: 'Menu único no TEA PLANNER', padrao: true },
     // CICLO 20: o chip "Filtros ativos" sai de dentro do menu e vai para a barra,
     // aparecendo SO quando ha filtro ligado (decisao do Gui). Clicar abre Filtros.
-    { key: 'tea-chip-filtros', label: 'Chip de filtros na barra', padrao: false }
+    { key: 'tea-chip-filtros', label: 'Chip de filtros na barra', padrao: true }
 ];
 
 function teaToggleLigado(key, padrao) {
@@ -8102,6 +8227,40 @@ function teaBuildHamburger() {
         }
     }
 
+    // ========================================================================
+    // CICLO 20 - MENU ORDENADO
+    // ------------------------------------------------------------------------
+    // Raio-x do menu antes: "IA" era uma categoria inteira com 1 botao (a chave
+    // de configuracao) e "Add-ons" tinha 17 itens soltos. Sete portas, duas
+    // delas desproporcionais, e a ordem nao seguia uso nenhum - era a ordem em
+    // que os menus foram construidos.
+    //
+    // Duas mudancas:
+    //   1. IA (1 item) se dissolve dentro de Ajustes, junto de Layout.
+    //   2. A ordem passa a ser por frequencia de uso, do mais para o menos.
+    // Nada e removido: todo item continua alcancavel.
+    // ========================================================================
+    var catIA = catBy('ia');
+    var catAjustes = catBy('layout');
+    if (catIA && catAjustes) {
+        catAjustes.label = 'Ajustes';
+        catAjustes.icon = '⚙️';
+        if (catIA.items.length) {
+            var sepIA = document.createElement('div');
+            sepIA.className = 'tea-sep-line';
+            catAjustes.items = catAjustes.items.concat([sepIA], catIA.items);
+        }
+        catIA.items = [];
+    }
+
+    // Ordem de exibicao no nivel 1. Quem nao estiver na lista vai para o fim.
+    var ORDEM = ['editar', 'filtros', 'exibir', 'arquivo', 'addons', 'layout'];
+    cats.sort(function (a, b) {
+        var ia = ORDEM.indexOf(a.key); if (ia === -1) ia = 99;
+        var ib = ORDEM.indexOf(b.key); if (ib === -1) ib = 99;
+        return ia - ib;
+    });
+
     var achou = cats.some(function (c) { return c.items.length; });
     if (!achou) return;
 
@@ -8245,7 +8404,7 @@ function teaBuildHamburger() {
     // A mecanica de 2 niveis do sanduiche e reaproveitada inteira - so troca
     // quem dispara. Nasce desligada (regra: layout novo so liga apos aprovacao).
     // ========================================================================
-    if (teaToggleLigado('tea-menu-unico', false)) {
+    if (teaToggleLigado('tea-menu-unico', true)) {
         var brandWrap = document.getElementById('teaBrandMenu');
         var brandBtn = brandWrap && brandWrap.querySelector('.tea-brand-btn');
         if (brandBtn) {
@@ -8382,12 +8541,7 @@ function applyWhen(listElement, nodes) {
     const day = getActiveDay();
     let targetWhen = '';
 
-    const EISENHOWER_COLORS = {
-        Q1: '#2e7d32', // Green (Faça)
-        Q2: '#1976d2', // Blue (Agende)
-        Q3: '#ffb300', // Yellow (Delegue)
-        Q4: '#c62828'  // Red (Elimine)
-    };
+    const EISENHOWER_COLORS = TEA_CORES_QUADRANTE; // CICLO 20: ponto de verdade unico
 
     let isMatrix = listElement && listElement.dataset.type === 'quad';
     let quad = isMatrix ? listElement.dataset.quad : '';
@@ -8534,7 +8688,7 @@ function ensureMatrix() {
         addBtn.title = 'Novo Cartão (segure para ditar por voz)';
         function _createCardInQuad() {
             var card = createCard({ text: '' });
-            const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+            const EISENHOWER_COLORS = TEA_CORES_QUADRANTE; // CICLO 20: ponto de verdade unico
             card.dataset.labelColor = EISENHOWER_COLORS[sp.quad] || '';
             paintCard(card);
             var cardsContainer = l.querySelector('.cards');
@@ -10158,7 +10312,7 @@ async function generateSubtasks(block) {
 async function organizeCardWithGemini(block) {
     if (!block || !block.length || !matrixEl) return;
     showLoader('✨ Analisando tarefa com IA...');
-    const EISENHOWER_COLORS = { Q1: '#2e7d32', Q2: '#1976d2', Q3: '#ffb300', Q4: '#c62828' };
+    const EISENHOWER_COLORS = TEA_CORES_QUADRANTE; // CICLO 20: ponto de verdade unico
     try {
         for (const card of block) {
             const originalText = card.querySelector('.text').textContent;
@@ -17221,7 +17375,16 @@ function initCentralBank() {
             '.ac-where b{color:#a8e2b4;}' +
             '.ac-list{max-height:150px;overflow-y:auto;margin:0 0 14px;padding:0 2px;}' +
             '.ac-list div{font-size:12.5px;color:#9db2cc;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.07);' +
-            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}';
+            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.ac-scope{display:flex;gap:8px;margin:0 0 14px;}' +
+            '.ac-scope-btn{flex:1;min-height:46px;padding:11px 10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;' +
+            'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:#9db2cc;line-height:1.3;}' +
+            '.ac-scope-btn.ac-on{background:rgba(232,161,61,.16);border-color:rgba(232,161,61,.55);color:#f2d9ae;}' +
+            '.ac-map{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:9px;' +
+            'padding:10px 13px;margin:0 0 14px;}' +
+            '.ac-map-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8fa3bd;margin:0 0 7px;}' +
+            '.ac-map-l{font-size:13px;color:#cddaeb;padding:3px 0;}' +
+            '.ac-map-l.ac-fora{color:#7d8ea6;opacity:.75;}';
         var s = document.createElement('style');
         s.id = 'ac-styles';
         s.textContent = css;
@@ -17281,13 +17444,47 @@ function initCentralBank() {
 
         var data;
         try { data = api.scan(); } catch (e) { data = null; }
-        var todos = (data && data.completedOnBoard) || [];
-        var simples = [], recorrentes = [];
-        todos.forEach(function (it) {
-            if (isRecurring(it.card)) recorrentes.push(it); else simples.push(it);
-        });
+        var todosItens = (data && data.completedOnBoard) || [];
 
-        if (todos.length === 0) {
+        var atualId = (typeof currentBoardId !== 'undefined' && currentBoardId) ? currentBoardId : '';
+        // Escopo padrao: SO o quadro atual (decisao do Gui). Se o quadro atual
+        // nao tem nenhum concluido, abre ja em "todos" para nao mostrar tela vazia.
+        var escopo = 'atual';
+        var incluirRecorrentes = false;
+
+        function nomeQuadro(id) {
+            return (data && data.boardNames && data.boardNames[id]) || id || '(sem quadro)';
+        }
+        function noEscopo(it) { return escopo === 'todos' || it.boardId === atualId; }
+        function ehRec(it) { return isRecurring(it.card); }
+        function selecionados() {
+            return todosItens.filter(function (it) {
+                if (!noEscopo(it)) return false;
+                if (ehRec(it) && !incluirRecorrentes) return false;
+                return true;
+            });
+        }
+        function contaEscopo(qual) {
+            return todosItens.filter(function (it) {
+                return qual === 'todos' || it.boardId === atualId;
+            }).length;
+        }
+        if (contaEscopo('atual') === 0) escopo = 'todos';
+
+        // Mapa por quadro: o Gui precisa VER de onde os cartoes vieram, senao
+        // nao ha como saber se o app deixou algum quadro de fora.
+        function mapaPorQuadro() {
+            var m = {}, ordem = [];
+            todosItens.forEach(function (it) {
+                var id = it.boardId || '';
+                if (!m[id]) { m[id] = { total: 0, rec: 0 }; ordem.push(id); }
+                m[id].total++;
+                if (ehRec(it)) m[id].rec++;
+            });
+            return { m: m, ordem: ordem };
+        }
+
+        if (todosItens.length === 0) {
             openPanel(function (p) {
                 p.appendChild(el('p', 'rv-eyebrow', 'Arquivar conclu\u00EDdos'));
                 p.appendChild(el('h2', '', 'Nenhum conclu\u00EDdo por aqui'));
@@ -17302,52 +17499,117 @@ function initCentralBank() {
 
         openPanel(function (p) {
             p.appendChild(el('p', 'rv-eyebrow', 'Arquivar conclu\u00EDdos'));
-            p.appendChild(el('h2', '', 'Guardar ' + todos.length + ' vit\u00F3ria' + (todos.length === 1 ? '' : 's')));
+            var titulo = el('h2', '', '');
+            p.appendChild(titulo);
             p.appendChild(el('p', 'rv-sub', 'Isto tira os cart\u00F5es conclu\u00EDdos dos quadros de trabalho de uma vez s\u00F3. \u00C9 mudan\u00E7a de endere\u00E7o, n\u00E3o exclus\u00E3o.'));
+
+            // ------------------------------------------------ escopo
+            var escopoBox = el('div', 'ac-scope');
+            var btnAtual = el('button', 'ac-scope-btn');
+            btnAtual.type = 'button';
+            var btnTodos = el('button', 'ac-scope-btn');
+            btnTodos.type = 'button';
+            escopoBox.appendChild(btnAtual);
+            escopoBox.appendChild(btnTodos);
+            p.appendChild(escopoBox);
+
+            btnAtual.addEventListener('click', function () { escopo = 'atual'; redesenhar(); });
+            btnTodos.addEventListener('click', function () { escopo = 'todos'; redesenhar(); });
 
             p.appendChild(ondeVai());
 
-            var lista = el('div', 'ac-list');
-            simples.slice(0, 40).forEach(function (it) {
-                var nome = (data.boardNames && data.boardNames[it.boardId]) || it.boardId;
-                lista.appendChild(el('div', '', '\u2714 ' + (it.card.text || '(sem texto)') + '  \u00B7  ' + nome));
-            });
-            if (simples.length > 40) lista.appendChild(el('div', '', '\u2026 e mais ' + (simples.length - 40) + '.'));
-            if (simples.length) p.appendChild(lista);
-
-            var incluirRec = null;
-            if (recorrentes.length > 0) {
-                var lab = el('label', 'ac-check');
-                incluirRec = document.createElement('input');
-                incluirRec.type = 'checkbox';
-                lab.appendChild(incluirRec);
-                var txt = el('div');
-                txt.appendChild(el('b', '', 'Incluir ' + recorrentes.length + ' cart\u00E3o(\u00F5es) de tarefa recorrente'));
-                var aviso = el('div', '', 'Fora por padr\u00E3o: arquivar um cart\u00E3o de recorr\u00EAncia pode interromper as pr\u00F3ximas repeti\u00E7\u00F5es dele. Marque s\u00F3 se quiser mesmo encerrar essas s\u00E9ries.');
-                aviso.style.marginTop = '4px';
-                aviso.style.opacity = '.8';
-                txt.appendChild(aviso);
-                lab.appendChild(txt);
-                p.appendChild(lab);
-            }
+            // ------------------------------------------------ corpo variavel
+            var corpo = el('div');
+            p.appendChild(corpo);
 
             var linha = el('div', 'rv-actions');
-            var okBtn = btn('\u2713 Arquivar no ' + HIST_NAME, 'rv-btn rv-primary', function () {
-                var alvo = simples.slice();
-                if (incluirRec && incluirRec.checked) alvo = alvo.concat(recorrentes);
-                if (!alvo.length) { closePanel(); return; }
+            var okBtn = btn('', 'rv-btn rv-primary', function () {
+                var alvo = selecionados();
+                if (!alvo.length) return;
                 okBtn.disabled = true;
                 okBtn.textContent = 'Arquivando\u2026';
                 executar(alvo);
             });
-            if (simples.length === 0) {
-                okBtn.textContent = '\u2713 Arquivar selecionados no ' + HIST_NAME;
-            }
             linha.appendChild(okBtn);
             linha.appendChild(btn('Agora n\u00E3o', 'rv-btn rv-ghost', closePanel));
             p.appendChild(linha);
 
             p.appendChild(el('p', 'rv-tip', 'Dica: a Revis\u00E3o Semanal (\uD83E\uDDF9) faz o mesmo cart\u00E3o a cart\u00E3o, com contexto. Este bot\u00E3o \u00E9 o atalho para quando voc\u00EA s\u00F3 quer o quadro limpo.'));
+
+            function redesenhar() {
+                var nAtual = contaEscopo('atual');
+                var nTodos = contaEscopo('todos');
+                btnAtual.textContent = 'S\u00F3 ' + nomeQuadro(atualId) + ' (' + nAtual + ')';
+                btnTodos.textContent = 'Todos os quadros (' + nTodos + ')';
+                btnAtual.classList.toggle('ac-on', escopo === 'atual');
+                btnTodos.classList.toggle('ac-on', escopo === 'todos');
+
+                var sel = selecionados();
+                titulo.textContent = sel.length === 0
+                    ? 'Nada selecionado'
+                    : ('Guardar ' + sel.length + ' vit\u00F3ria' + (sel.length === 1 ? '' : 's'));
+
+                corpo.innerHTML = '';
+
+                // Mapa por quadro - sempre visivel, mesmo fora do escopo, para
+                // ficar evidente o que o app encontrou e onde.
+                var mp = mapaPorQuadro();
+                if (mp.ordem.length) {
+                    var mapa = el('div', 'ac-map');
+                    mapa.appendChild(el('div', 'ac-map-h', 'Conclu\u00EDdos encontrados por quadro'));
+                    mp.ordem.forEach(function (id) {
+                        var info = mp.m[id];
+                        var fora = (escopo === 'atual' && id !== atualId);
+                        var l = el('div', 'ac-map-l' + (fora ? ' ac-fora' : ''));
+                        var txt = nomeQuadro(id) + '  \u00B7  ' + info.total;
+                        if (info.rec) txt += ' (' + info.rec + ' recorrente' + (info.rec === 1 ? '' : 's') + ')';
+                        if (fora) txt += '  \u2014 fora do escopo';
+                        l.textContent = txt;
+                        mapa.appendChild(l);
+                    });
+                    corpo.appendChild(mapa);
+                }
+
+                // Lista dos que serao movidos agora
+                if (sel.length) {
+                    var lista = el('div', 'ac-list');
+                    sel.slice(0, 40).forEach(function (it) {
+                        lista.appendChild(el('div', '', '\u2714 ' + (it.card.text || '(sem texto)') +
+                            '  \u00B7  ' + nomeQuadro(it.boardId)));
+                    });
+                    if (sel.length > 40) lista.appendChild(el('div', '', '\u2026 e mais ' + (sel.length - 40) + '.'));
+                    corpo.appendChild(lista);
+                }
+
+                // Recorrentes dentro do escopo atual
+                var recNoEscopo = todosItens.filter(function (it) { return noEscopo(it) && ehRec(it); });
+                if (recNoEscopo.length) {
+                    var lab = el('label', 'ac-check');
+                    var chk = document.createElement('input');
+                    chk.type = 'checkbox';
+                    chk.checked = incluirRecorrentes;
+                    chk.addEventListener('change', function () {
+                        incluirRecorrentes = chk.checked;
+                        redesenhar();
+                    });
+                    lab.appendChild(chk);
+                    var txt2 = el('div');
+                    txt2.appendChild(el('b', '', 'Incluir ' + recNoEscopo.length + ' cart\u00E3o(\u00F5es) de tarefa recorrente'));
+                    var aviso = el('div', '', 'Fora por padr\u00E3o: arquivar um cart\u00E3o de recorr\u00EAncia pode interromper as pr\u00F3ximas repeti\u00E7\u00F5es dele. Marque s\u00F3 se quiser mesmo encerrar essas s\u00E9ries.');
+                    aviso.style.marginTop = '4px';
+                    aviso.style.opacity = '.8';
+                    txt2.appendChild(aviso);
+                    lab.appendChild(txt2);
+                    corpo.appendChild(lab);
+                }
+
+                okBtn.disabled = (sel.length === 0);
+                okBtn.textContent = sel.length === 0
+                    ? 'Nada para arquivar'
+                    : ('\u2713 Arquivar ' + sel.length + ' no ' + HIST_NAME);
+            }
+
+            redesenhar();
         });
     }
 
@@ -17856,12 +18118,7 @@ function getActiveCardForEdit() {
         let parentCards = targetCard.parentElement;
         let parentList = targetCard.closest('.list');
 
-        const EISENHOWER_COLORS = {
-            Q1: '#2e7d32', // Green
-            Q2: '#1976d2', // Blue
-            Q3: '#ffb300', // Yellow
-            Q4: '#c62828'  // Red
-        };
+        const EISENHOWER_COLORS = TEA_CORES_QUADRANTE; // CICLO 20: ponto de verdade unico
 
         // Helpers
         function shiftCardDate(card, days) {
@@ -19053,7 +19310,7 @@ function initResizers() {
 }
 
 // Versão do app — atualizar aqui a cada deploy. Aparece discreta ao lado do título.
-var APP_VERSION = 'v3.2.4';
+var APP_VERSION = 'v3.2.8';
 
 function initApp() {
     try {
