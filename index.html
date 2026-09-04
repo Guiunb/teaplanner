@@ -1150,7 +1150,51 @@
             background: rgba(77, 163, 255, .18);
             color: #9fc1ff;
             white-space: nowrap;
-            margin-left: auto;
+            /* CICLO 21b: margin-left:auto REMOVIDO. Quem empurra para a
+               direita e o .kebab, e so ele - dois "auto" no mesmo flex
+               dividem a sobra e jogam o "⋮" para o meio. */
+        }
+
+        /* =============================================================
+           CICLO 21b - O MENU DO CARTAO (⋮) TEM QUE SER SEMPRE ALCANCAVEL
+           Diagnostico medido: na linha do tempo com 4 colunas o cartao fica
+           com 49px e o .card-header com 42px, mas scrollWidth = 96px. Nem
+           .timer-display nem .dur-badge encolhiam (white-space:nowrap e sem
+           min-width:0), entao o kebab era EMPURRADO PARA FORA do cartao -
+           que e overflow:hidden na timeline. Resultado: o "⋮" sumia da tela
+           e o clique naquele ponto caia no cartao vizinho.
+           Regra: os selos encolhem e recortam; o kebab nunca encolhe.
+           ============================================================= */
+        .card-header {
+            min-width: 0;
+        }
+
+        .card-header > .timer-display,
+        .card-header > .dur-badge,
+        .card-header > .due-date {
+            flex: 0 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-header > .card-checkbox-wrapper,
+        .card-header > .kebab {
+            flex: 0 0 auto;
+        }
+
+        /* Cartao estreito demais para caber tudo: os selos saem, o "⋮" fica.
+           A classe e posta por layoutAgendaTimeline com a largura REAL em px. */
+        body.tea-timeline .tea-tl-card.tea-tl-narrow .card-header > .timer-display,
+        body.tea-timeline .tea-tl-card.tea-tl-narrow .card-header > .dur-badge,
+        body.tea-timeline .tea-tl-card.tea-tl-narrow .card-header > .due-date {
+            display: none;
+        }
+
+        body.tea-timeline .tea-tl-card .card-header {
+            gap: 3px;
+            padding-left: 4px;
+            padding-right: 3px;
         }
 
         /* ITEM 7 (Ciclo 3): feedback visual do arrasto por toque. */
@@ -1589,17 +1633,26 @@
             flex-grow: 1;
         }
 
-        /* CICLO 21 - "+" por horario na Agenda (pedido do Gui, 04/09/2026).
-           Antes, a UNICA forma de agendar era arrastar um cartao ate o horario:
-           das 08h as 23h isso vira uma viagem de scroll. Agora cada faixa de
-           30 min cria o proprio cartao. Fantasma por padrao (34 linhas com botao
-           aceso seria poluicao visual) e cheio no hover/foco. Sem hover (toque)
-           fica em meio-tom, sempre visivel.
-           Altura travada em 22px de proposito: a regra global de 36px (alvo de
-           dedo, FIX 2026-07) dobraria a altura da Agenda inteira e pioraria
-           justamente o scroll que motivou o pedido. A largura de 30px segura o
-           toque. */
-        .slot .head .slot-add-btn {
+        /* ============================================================
+           CICLO 21 - "+" por horario na Agenda (pedido do Gui).
+           Antes, a UNICA forma de agendar era arrastar um cartao ate o
+           horario: das 08h as 23h isso vira uma viagem de scroll.
+
+           CICLO 21b - POR QUE NAO FUNCIONAVA NA PRIMEIRA ENTREGA:
+           a Agenda e SEMPRE linha do tempo (o toggle foi aposentado no
+           Ciclo 18), e a regra da calha
+               body.tea-timeline .slot[data-type="time"] > .head
+           tem pointer-events:none - de proposito, para soltar um cartao
+           sobre a calha acertar o SLOT e nao o cabecalho. O botao herdava
+           isso e era decorativo: aparecia, nao clicava.
+           Alem disso o seletor antigo (.slot .head .slot-add-btn, 0-3-0)
+           empatava com a regra global de alvo de 36px (.list .head
+           .add-btn-minimal, 0-3-0) e PERDIA por vir antes no arquivo -
+           o botao nascia com 36px numa faixa de 44px.
+           Agora: seletor ancorado em #slots (1-3-0, ganha sempre) e
+           pointer-events devolvido so ao botao.
+           ============================================================ */
+        #slots .slot .head .slot-add-btn {
             width: 30px;
             min-width: 30px;
             height: 22px;
@@ -1611,19 +1664,50 @@
             transition: opacity .12s ease, background .12s ease;
         }
 
-        .slot:hover .head .slot-add-btn,
-        .slot .head .slot-add-btn:focus-visible {
+        #slots .slot:hover .head .slot-add-btn,
+        #slots .slot .head .slot-add-btn:focus-visible {
             opacity: 1;
         }
 
-        .slot.has-items .head .slot-add-btn {
+        #slots .slot.has-items .head .slot-add-btn {
             opacity: .5;
         }
 
         @media (hover: none) {
-            .slot .head .slot-add-btn {
+            #slots .slot .head .slot-add-btn {
                 opacity: .55;
             }
+        }
+
+        /* Linha do tempo: a calha de 46px e o unico lugar da Agenda que
+           cartao nenhum cobre. O botao ocupa a calha inteira abaixo do
+           horario - alvo de ~42x20 sem crescer 1px a altura do slot. */
+        body.tea-timeline #slots .slot[data-type="time"] > .head {
+            flex-direction: column;
+            gap: 0;
+            justify-content: flex-start;
+        }
+
+        body.tea-timeline #slots .slot[data-type="time"] > .head .slot-add-btn {
+            pointer-events: auto;
+            width: auto;
+            min-width: 0;
+            align-self: stretch;
+            margin: 0 2px 2px;
+            height: auto;
+            min-height: 0;
+            flex: 1 1 auto;
+            font-size: 13px;
+        }
+
+        /* Durante o arrasto o "+" sai da frente: soltar na calha tem que
+           acertar o slot, nunca o botao. Mesmo motivo do pointer-events
+           dos cartoes altos (Ciclo 9). */
+        body.tea-dragging #slots .slot[data-type="time"] > .head .slot-add-btn,
+        body.tea-touch-dragging #slots .slot[data-type="time"] > .head .slot-add-btn,
+        body.tea-dragging #slots .slot-add-btn,
+        body.tea-touch-dragging #slots .slot-add-btn {
+            pointer-events: none;
         }
 
         .slot .cards {
@@ -6179,6 +6263,15 @@ function toggleCardCompletion(e) {
     if (!card) return;
     const isCompleted = card.dataset.completed === 'true';
     card.dataset.completed = isCompleted ? 'false' : 'true';
+    // CICLO 21c: registra a virada. Sem esta linha nao existia NENHUMA fonte
+    // confiavel da data de conclusao - a Revisao carimbava "agora" na primeira
+    // vez que via o cartao e o painel anunciava como "concluido nos ultimos 7
+    // dias" coisa de meses atras.
+    try {
+        if (typeof addCardHistory === 'function') {
+            addCardHistory(card, card.dataset.completed === 'true' ? 'Conclu\u00eddo' : 'Reaberto');
+        }
+    } catch (_e) { }
 
     if (card.dataset.completed === 'true') {
         card.classList.remove('timer-finished');
@@ -7464,7 +7557,14 @@ function renderDurationBadge(c) {
         old = document.createElement('span');
         old.className = 'dur-badge';
         var header = c.querySelector('.card-header');
-        (header || c).appendChild(old);
+        // CICLO 21b: o selo entra ANTES do kebab. Estava sendo acrescentado
+        // DEPOIS - e como ele e o kebab tinham os dois margin-left:auto, o
+        // espaco livre era dividido entre os dois e o "⋮" parava no MEIO do
+        // cabecalho (exatamente o que o Gui viu no print). O kebab volta a
+        // ser o ultimo item, colado na direita.
+        var kb = header && header.querySelector('.kebab');
+        if (kb) header.insertBefore(old, kb);
+        else (header || c).appendChild(old);
     }
     old.textContent = '\u23f1 ' + txt;
 }
@@ -8059,6 +8159,7 @@ function teaTimelineClear(root) {
     for (var i = 0; i < cards.length; i++) {
         var c = cards[i];
         c.classList.remove('tea-tl-card');
+        c.classList.remove('tea-tl-narrow');
         c.style.position = '';
         c.style.top = '';
         c.style.left = '';
@@ -8098,11 +8199,22 @@ function layoutAgendaTimeline() {
 
     var eventos = teaTimelineAssignColumns(teaTimelineEvents(slots));
 
+    // CICLO 21b: largura REAL do cartao, em px. Abaixo de ~120px nao cabem
+    // bolinha + relogio + selo de duracao + kebab, e o kebab e o que era
+    // expulso. Marcamos o cartao e o CSS esconde os selos, nunca o menu.
+    var faixaPx = 0;
+    try {
+        var _c0 = slots[0].querySelector('.cards');
+        faixaPx = _c0 ? _c0.clientWidth : 0;
+    } catch (e) { faixaPx = 0; }
+
     eventos.forEach(function (ev) {
         var altura = (ev.end - ev.start) * h - TEA_TL_GAP;
         var largura = 100 / ev.cols;
         var c = ev.card;
         c.classList.add('tea-tl-card');
+        c.classList.toggle('tea-tl-narrow',
+            faixaPx > 0 && (faixaPx / Math.max(1, ev.cols)) < 120);
         c.style.position = 'absolute';
         c.style.top = '0px';
         c.style.left = 'calc(' + (ev.col * largura) + '% + 1px)';
@@ -16599,6 +16711,54 @@ function initCentralBank() {
   function loadBoard(id) { return lsGet(LS_PREFIX + id, null); }
   function saveBoard(id, data) { lsSet(LS_PREFIX + id, data); }
 
+  // ===== CICLO 21c - A AGENDA ERA UM PONTO CEGO =====
+  // serializeAndSeparate manda TODO cartao com "when" preenchido para a chave
+  // global da Agenda; ele deixa de existir na lista do quadro e guarda apenas
+  // o boardId como ponteiro. Como o scan so percorria os quadros, qualquer
+  // concluido que tivesse passado pela Agenda ou pela Semana era invisivel -
+  // nem a Revisao Semanal nem o "Limpar conclu\u00eddos" o enxergavam.
+  // Medido no backup de 28/07/2026 do Gui: 66 conclu\u00eddos nos quadros e 46 na
+  // Agenda. 41% do trabalho concluido simplesmente nao existia para a ferramenta.
+  var LS_AGENDA = 'tea-planner-global-agenda';
+  function loadAgenda() { var a = lsGet(LS_AGENDA, []); return Array.isArray(a) ? a : []; }
+  function saveAgenda(a) { lsSet(LS_AGENDA, a); }
+
+  function agendaEntryLabel(entry) {
+    if (!entry) return 'Agenda';
+    if (entry.type === 'goal' || entry.goal) return 'Agenda \u00b7 \uD83C\uDFAF Objetivo do dia';
+    if (entry.type === 'unscheduled') return 'Agenda \u00b7 \u23F0 Hor\u00e1rio a definir';
+    return 'Agenda \u00b7 ' + (entry.time || 'hor\u00e1rio');
+  }
+
+  function eachAgendaCard(agenda, fn) {
+    agenda.forEach(function (entry) {
+      if (!entry || !Array.isArray(entry.cards)) return;
+      entry.cards.forEach(function (c) { if (c && c.id) fn(c, entry); });
+    });
+  }
+
+  function removeAgendaCardById(agenda, cardId) {
+    for (var i = 0; i < agenda.length; i++) {
+      var e = agenda[i];
+      if (!e || !Array.isArray(e.cards)) continue;
+      for (var j = 0; j < e.cards.length; j++) {
+        if (e.cards[j] && e.cards[j].id === cardId) return e.cards.splice(j, 1)[0];
+      }
+    }
+    return null;
+  }
+
+  function whenLegivel(w) {
+    if (!w) return '';
+    var d = w.split('T')[0] || '';
+    var h = w.substring(11);
+    var dia = d;
+    try { var p = d.split('-'); if (p.length === 3) dia = p[2] + '/' + p[1] + '/' + p[0]; } catch (e) { }
+    if (h === 'GOAL') return dia + ' (objetivo do dia)';
+    if (!h) return dia + ' (hor\u00e1rio a definir)';
+    return dia + ' \u00e0s ' + h;
+  }
+
   function getConfig() { return lsGet(KEYS.CONFIG, null); }
   function saveConfig(cfg) { lsSet(KEYS.CONFIG, cfg); }
   function getRegistry() { return lsGet(KEYS.REGISTRY, {}); }
@@ -16646,6 +16806,18 @@ function initCentralBank() {
     });
   }
 
+  // CICLO 21c: data real da conclusao, lida do historico do cartao.
+  // toggleCardCompletion passou a gravar "Conclu\u00eddo" / "Reaberto".
+  function completedAtDoHistorico(card) {
+    var hist = parseHistory(card);
+    for (var i = hist.length - 1; i >= 0; i--) {
+      var h = hist[i];
+      if (!h || !h.time) continue;
+      if (String(h.action || '').indexOf('Conclu') === 0) return h.time;
+    }
+    return 0;
+  }
+
   // ===== 4. REGISTRO DE IDADE (fica mais preciso a cada semana) =====
   function updateRegistry() {
     var now = Date.now();
@@ -16658,13 +16830,31 @@ function initCentralBank() {
       var entry = reg[card.id];
       if (!entry) { entry = { firstSeen: now }; reg[card.id] = entry; }
       var isDone = card.completed === 'true';
-      if (isDone && !entry.completedAt) entry.completedAt = now;
-      if (!isDone && entry.completedAt) entry.completedAt = null;
+      if (isDone) {
+        if (!entry.completedAt) {
+          // 1a escolha: a linha "Conclu\u00eddo" no historico do proprio cartao.
+          var th = completedAtDoHistorico(card);
+          // 2a: se ja tinhamos visto este cartao ABERTO, a virada aconteceu
+          // entre dois scans e "agora" e uma boa aproximacao.
+          // Senao a data e DESCONHECIDA e fica desconhecida - carimbar "agora"
+          // inventava dado. Passou a importar muito: nesta versao a Agenda
+          // inteira entra no registro de uma so vez e o painel anunciaria
+          // dezenas de "concluidos nos ultimos 7 dias" que sao de meses atras.
+          if (th) entry.completedAt = th;
+          else if (entry.viuAberto) entry.completedAt = now;
+        }
+      } else {
+        entry.viuAberto = true;
+        if (entry.completedAt) entry.completedAt = null;
+      }
     }
 
     eachActiveBoard(meta, function (b, data) { eachCard(data, track); });
     var talvez = loadBoard(TALVEZ_ID);
     if (Array.isArray(talvez)) eachCard(talvez, track);
+    // CICLO 21c: sem isto o cartao da Agenda nunca ganhava completedAt e a
+    // conta "conclu\u00eddos nos ultimos 7 dias" nascia menor do que a realidade.
+    eachAgendaCard(loadAgenda(), track);
 
     // Remove do registro cartões que não existem mais
     Object.keys(reg).forEach(function (id) { if (!seen[id]) delete reg[id]; });
@@ -16718,6 +16908,28 @@ function initCentralBank() {
           result.staleCards.push(it);
         }
       });
+    });
+
+    // ===== CICLO 21c - AGENDA E SEMANA =====
+    // Mesmo criterio de "quadro de trabalho": cartao cujo boardId aponta para
+    // lixeira / historico / talvez fica de fora.
+    // DE PROPOSITO so a fatia CONCLUIDO entra aqui. As analises de "parado ha
+    // 3 semanas" nao fazem sentido para um compromisso datado, e despejar
+    // centenas de horarios antigos na Revisao Semanal transformaria o ritual
+    // numa avalanche - exatamente o contrario do que ele existe para fazer.
+    eachAgendaCard(loadAgenda(), function (card, entry) {
+      var bid = card.boardId || '';
+      if (bid === TRASH_ID || bid === HIST_ID || bid === TALVEZ_ID) return;
+      var ea = reg[card.id] || {};
+      if (card.completed === 'true') {
+        var itA = makeItem(card, bid, agendaEntryLabel(entry), 'completed', ea);
+        itA.fromAgenda = true;
+        itA.agendaWhen = card.when || '';
+        result.completedOnBoard.push(itA);
+        if (ea.completedAt && (now - ea.completedAt) <= WEEK_MS) result.completedThisWeek++;
+        return;
+      }
+      result.activeCount++;
     });
 
     var talvez = loadBoard(TALVEZ_ID);
@@ -16794,6 +17006,8 @@ function initCentralBank() {
     var boardCache = {};
     var now = Date.now();
     var reg = getRegistry();
+    var agenda = null;          // carregada sob demanda
+    var agendaDirty = false;
 
     function board(id) {
       if (!boardCache[id]) boardCache[id] = loadBoard(id) || [];
@@ -16822,7 +17036,17 @@ function initCentralBank() {
         });
         return;
       }
-      var cardObj = removeCardById(src, d.card.id);
+      // CICLO 21c: cartao da Agenda/Semana nao mora na lista do quadro.
+      // Antes, removeCardById devolvia null e a funcao saia por
+      // "if (!cardObj) return" - falha SILENCIOSA. Era exatamente por isso
+      // que o Gui via cartao concluido sobrar depois de limpar.
+      var cardObj = null;
+      if (d.fromAgenda) {
+        if (agenda === null) agenda = loadAgenda();
+        cardObj = removeAgendaCardById(agenda, d.card.id);
+        if (cardObj) agendaDirty = true;
+      }
+      if (!cardObj) cardObj = removeCardById(src, d.card.id);
       if (!cardObj) return;
       movedIds.push(cardObj.id);
 
@@ -16842,6 +17066,15 @@ function initCentralBank() {
         target = [{ type: 'kanban', title: targetId === TRASH_ID ? 'Apagados' : 'Cart\u00F5es', cards: [] }];
         boardCache[targetId] = target;
       }
+      // O "when" TEM que ser zerado. Um cartao arquivado que continue com data
+      // e puxado de volta para a Agenda no proximo render (updateSlotsHasItems
+      // casa por data) e, no persist seguinte, serializeAndSeparate o tira do
+      // Historico e devolve para a chave global: o arquivamento se desfazia
+      // sozinho. A data nao se perde - vira linha no historico do cartao.
+      if (cardObj.when) {
+        appendCardHistory(cardObj, 'Estava na Agenda em ' + whenLegivel(cardObj.when));
+        cardObj.when = '';
+      }
       appendCardHistory(cardObj, actionText);
       cardObj.boardId = targetId;
       target[0].cards.push(cardObj);
@@ -16853,6 +17086,8 @@ function initCentralBank() {
       movedIds.forEach(function (id) { removeCardById(todosData, id); });
       saveBoard(TODOS_ID, todosData);
     }
+
+    if (agendaDirty && agenda) saveAgenda(agenda);
 
     Object.keys(boardCache).forEach(function (id) { saveBoard(id, boardCache[id]); });
     meta.forEach(function (b) {
@@ -17216,7 +17451,8 @@ function initCentralBank() {
   }
 
   function decide(item, action, boxEl) {
-    session.decisions.push({ card: item.card, boardId: item.boardId, action: action });
+    session.decisions.push({ card: item.card, boardId: item.boardId, action: action,
+                             fromAgenda: !!item.fromAgenda });
     if (action !== 'keep') session.resolvedCount++;
     if (boxEl) boxEl.classList.add('rv-out');
     setTimeout(function () {
@@ -17318,7 +17554,8 @@ function initCentralBank() {
                 // Executa pela própria máquina da revisão (applyDecisions), que sabe
                 // mover cartão entre quadros. removeCardsBatch só alcançaria o ativo.
                 pendentes.forEach(function (it) {
-                    session.decisions.push({ card: it.card, boardId: it.boardId, action: 'trash' });
+                    session.decisions.push({ card: it.card, boardId: it.boardId, action: 'trash',
+                                             fromAgenda: !!it.fromAgenda });
                 });
                 completeFinishReview();
             },
@@ -17387,6 +17624,16 @@ function initCentralBank() {
       : 'Revis\u00E3o Semanal \u2014 clique para configurar seu ritual';
   }
 
+  // CICLO 21c: a abertura deixa de depender do elemento. O botao vive dentro do
+  // menu de 2 niveis, que guarda os itens DESTACADOS do documento ate a
+  // categoria ser aberta - getElementById devolvia null e a API publica
+  // RevisaoSemanal.open() nao fazia nada (valia tambem antes, quando o botao
+  // morava em Exibir).
+  function abrirRevisao() {
+    if (!getConfig()) renderSetup(function () { startReview(); });
+    else startReview();
+  }
+
   function injectButton() {
     if (document.getElementById('rvHeaderBtn')) return;
     var b = document.createElement('button');
@@ -17396,10 +17643,7 @@ function initCentralBank() {
     b.textContent = '\uD83D\uDD0D Revis\u00E3o semanal'; // 🔍
     b.style.background = 'rgba(232,161,61,.12)';
     b.style.borderColor = 'rgba(232,161,61,.4)';
-    b.addEventListener('click', function () {
-      if (!getConfig()) renderSetup(function () { startReview(); });
-      else startReview();
-    });
+    b.addEventListener('click', abrirRevisao);
     var anchor = document.getElementById('manualFocusBtn');
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor.nextSibling);
     else {
@@ -17424,7 +17668,7 @@ function initCentralBank() {
 
   // API pública mínima (permite integração futura com o assistente de IA do app)
   window.RevisaoSemanal = {
-    open: function () { var b = document.getElementById('rvHeaderBtn'); if (b) b.click(); },
+    open: abrirRevisao,
     scan: scan,
     _applyDecisions: applyDecisions // interno: testes e integração futura com a IA do app
   };
@@ -17483,7 +17727,17 @@ function initCentralBank() {
             'padding:10px 13px;margin:0 0 14px;}' +
             '.ac-map-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8fa3bd;margin:0 0 7px;}' +
             '.ac-map-l{font-size:13px;color:#cddaeb;padding:3px 0;}' +
-            '.ac-map-l.ac-fora{color:#7d8ea6;opacity:.75;}';
+            '.ac-map-l.ac-fora{color:#7d8ea6;opacity:.75;}' +
+            /* CICLO 21c: cada origem vira uma caixa marcavel. Linha alta o
+               bastante para o dedo (36px) sem virar lista gigante. */
+            '.ac-src{display:flex;align-items:center;gap:9px;min-height:36px;padding:3px 2px;' +
+            'cursor:pointer;border-bottom:1px dashed rgba(255,255,255,.06);}' +
+            '.ac-src:last-child{border-bottom:none;}' +
+            '.ac-src input{width:17px;height:17px;flex:0 0 auto;accent-color:#e8a13d;margin:0;}' +
+            '.ac-src-n{flex:1 1 auto;min-width:0;font-size:13px;color:#cddaeb;' +
+            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.ac-src-c{flex:0 0 auto;font-size:12px;font-weight:700;color:#f2d9ae;}' +
+            '.ac-src-off .ac-src-n,.ac-src-off .ac-src-c{color:#6f8098;font-weight:400;}';
         var s = document.createElement('style');
         s.id = 'ac-styles';
         s.textContent = css;
@@ -17527,13 +17781,21 @@ function initCentralBank() {
     }
 
     // ---------------------------------------------------------------- fluxo
+    // CICLO 21c - PAINEL REESCRITO.
+    // O painel antigo tinha DOIS botoes de escopo ("so este quadro" / "todos os
+    // quadros") e um mapa somente-leitura. Isso respondia mal a duas coisas que
+    // o Gui pediu: (a) "tem que limpar tudo" - e o escopo abria em "so este
+    // quadro"; (b) "ou me dar opcao de limpar o que eu quiser" - e o mapa nao
+    // era clicavel. Agora cada ORIGEM (cada quadro, mais a Agenda/Semana) e uma
+    // caixa marcavel, tudo vem marcado por padrao, e os dois botoes viraram
+    // atalhos que so mexem nas caixas.
     function abrirArquivamento() {
         var api = rv();
         if (!api || typeof api.scan !== 'function' || typeof api._applyDecisions !== 'function') {
             openPanel(function (p) {
-                p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
-                p.appendChild(el('h2', '', 'M\u00F3dulo indispon\u00EDvel'));
-                p.appendChild(el('p', 'rv-sub', 'O motor da Revis\u00E3o Semanal n\u00E3o carregou nesta sess\u00E3o. Recarregue a p\u00E1gina e tente de novo.'));
+                p.appendChild(el('p', 'rv-eyebrow', 'Limpar concluídos'));
+                p.appendChild(el('h2', '', 'Módulo indisponível'));
+                p.appendChild(el('p', 'rv-sub', 'O motor da Revisão Semanal não carregou nesta sessão. Recarregue a página e tente de novo.'));
                 var r = el('div', 'rv-actions');
                 r.appendChild(btn('Fechar', 'rv-btn rv-ghost', closePanel));
                 p.appendChild(r);
@@ -17546,48 +17808,56 @@ function initCentralBank() {
         var todosItens = (data && data.completedOnBoard) || [];
 
         var atualId = (typeof currentBoardId !== 'undefined' && currentBoardId) ? currentBoardId : '';
-        // Escopo padrao: SO o quadro atual (decisao do Gui). Se o quadro atual
-        // nao tem nenhum concluido, abre ja em "todos" para nao mostrar tela vazia.
-        var escopo = 'atual';
+        var AG = '__agenda__';
+        // Origens DESMARCADAS. Vazio = tudo marcado, que e o padrao novo.
+        var origensOff = {};
         var incluirRecorrentes = false;
 
         function nomeQuadro(id) {
             return (data && data.boardNames && data.boardNames[id]) || id || '(sem quadro)';
         }
-        function noEscopo(it) { return escopo === 'todos' || it.boardId === atualId; }
+        function chaveOrigem(it) { return it.fromAgenda ? AG : ('b:' + (it.boardId || '')); }
+        function rotuloOrigem(it) {
+            return it.fromAgenda ? '🗓️ Agenda e Semana' : nomeQuadro(it.boardId);
+        }
         function ehRec(it) { return isRecurring(it.card); }
+        function ligada(k) { return !origensOff[k]; }
+
         function selecionados() {
             return todosItens.filter(function (it) {
-                if (!noEscopo(it)) return false;
+                if (!ligada(chaveOrigem(it))) return false;
                 if (ehRec(it) && !incluirRecorrentes) return false;
                 return true;
             });
         }
-        function contaEscopo(qual) {
-            return todosItens.filter(function (it) {
-                return qual === 'todos' || it.boardId === atualId;
-            }).length;
-        }
-        if (contaEscopo('atual') === 0) escopo = 'todos';
 
-        // Mapa por quadro: o Gui precisa VER de onde os cartoes vieram, senao
-        // nao ha como saber se o app deixou algum quadro de fora.
-        function mapaPorQuadro() {
+        // Lista de origens, na ordem: quadro atual primeiro, Agenda por ultimo.
+        function origens() {
             var m = {}, ordem = [];
             todosItens.forEach(function (it) {
-                var id = it.boardId || '';
-                if (!m[id]) { m[id] = { total: 0, rec: 0 }; ordem.push(id); }
-                m[id].total++;
-                if (ehRec(it)) m[id].rec++;
+                var k = chaveOrigem(it);
+                if (!m[k]) {
+                    m[k] = { key: k, total: 0, rec: 0, label: rotuloOrigem(it),
+                             agenda: !!it.fromAgenda, atual: (!it.fromAgenda && it.boardId === atualId) };
+                    ordem.push(k);
+                }
+                m[k].total++;
+                if (ehRec(it)) m[k].rec++;
             });
-            return { m: m, ordem: ordem };
+            var arr = ordem.map(function (k) { return m[k]; });
+            arr.sort(function (a, b) {
+                if (a.agenda !== b.agenda) return a.agenda ? 1 : -1;
+                if (a.atual !== b.atual) return a.atual ? -1 : 1;
+                return b.total - a.total;
+            });
+            return arr;
         }
 
         if (todosItens.length === 0) {
             openPanel(function (p) {
-                p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
+                p.appendChild(el('p', 'rv-eyebrow', 'Limpar concluídos'));
                 p.appendChild(el('h2', '', 'Nada para limpar por aqui'));
-                p.appendChild(el('p', 'rv-sub', 'Nenhum cart\u00E3o marcado como conclu\u00EDdo est\u00E1 ocupando os quadros de trabalho. Quadro limpo.'));
+                p.appendChild(el('p', 'rv-sub', 'Nenhum cartão marcado como concluído está ocupando os quadros de trabalho nem a Agenda. Tudo limpo.'));
                 p.appendChild(ondeVai());
                 var r = el('div', 'rv-actions');
                 r.appendChild(btn('Fechar', 'rv-btn rv-ghost', closePanel));
@@ -17597,27 +17867,28 @@ function initCentralBank() {
         }
 
         openPanel(function (p) {
-            p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
+            p.appendChild(el('p', 'rv-eyebrow', 'Limpar concluídos'));
             var titulo = el('h2', '', '');
             p.appendChild(titulo);
-            p.appendChild(el('p', 'rv-sub', 'Isto tira os cart\u00F5es conclu\u00EDdos dos quadros de trabalho de uma vez s\u00F3. \u00C9 mudan\u00E7a de endere\u00E7o, n\u00E3o exclus\u00E3o.'));
+            p.appendChild(el('p', 'rv-sub', 'A faxina do dia: tira da frente tudo que já foi concluído — nos quadros E na Agenda/Semana. É mudança de endereço, não exclusão.'));
 
-            // ------------------------------------------------ escopo
-            var escopoBox = el('div', 'ac-scope');
-            var btnAtual = el('button', 'ac-scope-btn');
-            btnAtual.type = 'button';
-            var btnTodos = el('button', 'ac-scope-btn');
-            btnTodos.type = 'button';
-            escopoBox.appendChild(btnAtual);
-            escopoBox.appendChild(btnTodos);
-            p.appendChild(escopoBox);
+            // ------------------------------------------------ atalhos
+            var atalhos = el('div', 'ac-scope');
+            var btnTudo = el('button', 'ac-scope-btn'); btnTudo.type = 'button';
+            var btnAtual = el('button', 'ac-scope-btn'); btnAtual.type = 'button';
+            atalhos.appendChild(btnTudo);
+            atalhos.appendChild(btnAtual);
+            p.appendChild(atalhos);
 
-            btnAtual.addEventListener('click', function () { escopo = 'atual'; redesenhar(); });
-            btnTodos.addEventListener('click', function () { escopo = 'todos'; redesenhar(); });
+            btnTudo.addEventListener('click', function () { origensOff = {}; redesenhar(); });
+            btnAtual.addEventListener('click', function () {
+                origensOff = {};
+                origens().forEach(function (o) { if (o.key !== 'b:' + atualId) origensOff[o.key] = 1; });
+                redesenhar();
+            });
 
             p.appendChild(ondeVai());
 
-            // ------------------------------------------------ corpo variavel
             var corpo = el('div');
             p.appendChild(corpo);
 
@@ -17626,86 +17897,98 @@ function initCentralBank() {
                 var alvo = selecionados();
                 if (!alvo.length) return;
                 okBtn.disabled = true;
-                okBtn.textContent = 'Arquivando\u2026';
+                okBtn.textContent = 'Limpando…';
                 executar(alvo);
             });
             linha.appendChild(okBtn);
-            linha.appendChild(btn('Agora n\u00E3o', 'rv-btn rv-ghost', closePanel));
+            linha.appendChild(btn('Agora não', 'rv-btn rv-ghost', closePanel));
             p.appendChild(linha);
 
-            p.appendChild(el('p', 'rv-tip', 'S\u00E3o duas coisas diferentes: a Revis\u00E3o semanal (\uD83D\uDD0D) v\u00EA cart\u00E3o a cart\u00E3o, com contexto \u2014 ritual de uma vez por semana. Esta limpeza \u00E9 a do dia a dia: sem an\u00E1lise, s\u00F3 tira os conclu\u00EDdos da frente.'));
+            p.appendChild(el('p', 'rv-tip', 'São duas coisas diferentes: a Revisão semanal (🔍) vê cartão a cartão, com contexto — ritual de uma vez por semana. Esta limpeza é a do dia a dia: sem análise, só tira os concluídos da frente.'));
 
             function redesenhar() {
-                var nAtual = contaEscopo('atual');
-                var nTodos = contaEscopo('todos');
-                btnAtual.textContent = 'S\u00F3 ' + nomeQuadro(atualId) + ' (' + nAtual + ')';
-                btnTodos.textContent = 'Todos os quadros (' + nTodos + ')';
-                btnAtual.classList.toggle('ac-on', escopo === 'atual');
-                btnTodos.classList.toggle('ac-on', escopo === 'todos');
+                var lista = origens();
+                var nTudo = todosItens.length;
+                var nAtual = todosItens.filter(function (it) {
+                    return !it.fromAgenda && it.boardId === atualId;
+                }).length;
+                btnTudo.textContent = 'Marcar tudo (' + nTudo + ')';
+                btnAtual.textContent = 'Só ' + nomeQuadro(atualId) + ' (' + nAtual + ')';
+                var soAtual = lista.every(function (o) {
+                    return (o.key === 'b:' + atualId) ? ligada(o.key) : !ligada(o.key);
+                }) && nAtual > 0;
+                btnTudo.classList.toggle('ac-on', Object.keys(origensOff).length === 0);
+                btnAtual.classList.toggle('ac-on', soAtual);
 
                 var sel = selecionados();
                 titulo.textContent = sel.length === 0
                     ? 'Nada selecionado'
-                    : ('Guardar ' + sel.length + ' vit\u00F3ria' + (sel.length === 1 ? '' : 's'));
+                    : ('Guardar ' + sel.length + ' vitória' + (sel.length === 1 ? '' : 's'));
 
                 corpo.innerHTML = '';
 
-                // Mapa por quadro - sempre visivel, mesmo fora do escopo, para
-                // ficar evidente o que o app encontrou e onde.
-                var mp = mapaPorQuadro();
-                if (mp.ordem.length) {
-                    var mapa = el('div', 'ac-map');
-                    mapa.appendChild(el('div', 'ac-map-h', 'Conclu\u00EDdos encontrados por quadro'));
-                    mp.ordem.forEach(function (id) {
-                        var info = mp.m[id];
-                        var fora = (escopo === 'atual' && id !== atualId);
-                        var l = el('div', 'ac-map-l' + (fora ? ' ac-fora' : ''));
-                        var txt = nomeQuadro(id) + '  \u00B7  ' + info.total;
-                        if (info.rec) txt += ' (' + info.rec + ' recorrente' + (info.rec === 1 ? '' : 's') + ')';
-                        if (fora) txt += '  \u2014 fora do escopo';
-                        l.textContent = txt;
-                        mapa.appendChild(l);
-                    });
-                    corpo.appendChild(mapa);
-                }
-
-                // Lista dos que serao movidos agora
-                if (sel.length) {
-                    var lista = el('div', 'ac-list');
-                    sel.slice(0, 40).forEach(function (it) {
-                        lista.appendChild(el('div', '', '\u2714 ' + (it.card.text || '(sem texto)') +
-                            '  \u00B7  ' + nomeQuadro(it.boardId)));
-                    });
-                    if (sel.length > 40) lista.appendChild(el('div', '', '\u2026 e mais ' + (sel.length - 40) + '.'));
-                    corpo.appendChild(lista);
-                }
-
-                // Recorrentes dentro do escopo atual
-                var recNoEscopo = todosItens.filter(function (it) { return noEscopo(it) && ehRec(it); });
-                if (recNoEscopo.length) {
-                    var lab = el('label', 'ac-check');
+                // ---------------- origens marcaveis
+                var box = el('div', 'ac-map');
+                box.appendChild(el('div', 'ac-map-h', 'De onde limpar — desmarque o que quiser deixar'));
+                lista.forEach(function (o) {
+                    var lab = el('label', 'ac-src' + (ligada(o.key) ? '' : ' ac-src-off'));
                     var chk = document.createElement('input');
                     chk.type = 'checkbox';
-                    chk.checked = incluirRecorrentes;
+                    chk.checked = ligada(o.key);
                     chk.addEventListener('change', function () {
-                        incluirRecorrentes = chk.checked;
+                        if (chk.checked) delete origensOff[o.key];
+                        else origensOff[o.key] = 1;
                         redesenhar();
                     });
                     lab.appendChild(chk);
+                    var nome = el('span', 'ac-src-n', o.label + (o.atual ? '  (quadro atual)' : ''));
+                    lab.appendChild(nome);
+                    var cnt = el('span', 'ac-src-c', String(o.total) +
+                        (o.rec ? '  · ' + o.rec + ' rec.' : ''));
+                    lab.appendChild(cnt);
+                    box.appendChild(lab);
+                });
+                corpo.appendChild(box);
+
+                // ---------------- previa do que sai agora
+                if (sel.length) {
+                    var prev = el('div', 'ac-list');
+                    sel.slice(0, 40).forEach(function (it) {
+                        prev.appendChild(el('div', '', '✔ ' + (it.card.text || '(sem texto)') +
+                            '  ·  ' + (it.fromAgenda ? it.listTitle : nomeQuadro(it.boardId))));
+                    });
+                    if (sel.length > 40) prev.appendChild(el('div', '', '… e mais ' + (sel.length - 40) + '.'));
+                    corpo.appendChild(prev);
+                }
+
+                // ---------------- recorrentes
+                var recVisiveis = todosItens.filter(function (it) {
+                    return ligada(chaveOrigem(it)) && ehRec(it);
+                });
+                if (recVisiveis.length) {
+                    var lab2 = el('label', 'ac-check');
+                    var chk2 = document.createElement('input');
+                    chk2.type = 'checkbox';
+                    chk2.checked = incluirRecorrentes;
+                    chk2.addEventListener('change', function () {
+                        incluirRecorrentes = chk2.checked;
+                        redesenhar();
+                    });
+                    lab2.appendChild(chk2);
                     var txt2 = el('div');
-                    txt2.appendChild(el('b', '', 'Incluir ' + recNoEscopo.length + ' cart\u00E3o(\u00F5es) de tarefa recorrente'));
-                    var aviso = el('div', '', 'Fora por padr\u00E3o: arquivar um cart\u00E3o de recorr\u00EAncia pode interromper as pr\u00F3ximas repeti\u00E7\u00F5es dele. Marque s\u00F3 se quiser mesmo encerrar essas s\u00E9ries.');
+                    txt2.appendChild(el('b', '', 'Incluir ' + recVisiveis.length + ' cartão(ões) de tarefa recorrente'));
+                    var aviso = el('div', '', 'Fora por padrão: arquivar um cartão de recorrência pode interromper as próximas repetições dele. Marque só se quiser mesmo encerrar essas séries.');
                     aviso.style.marginTop = '4px';
                     aviso.style.opacity = '.8';
                     txt2.appendChild(aviso);
-                    lab.appendChild(txt2);
-                    corpo.appendChild(lab);
+                    lab2.appendChild(txt2);
+                    corpo.appendChild(lab2);
                 }
 
                 okBtn.disabled = (sel.length === 0);
                 okBtn.textContent = sel.length === 0
-                    ? 'Nada para arquivar'
-                    : ('\u2713 Arquivar ' + sel.length + ' no ' + HIST_NAME);
+                    ? 'Nada selecionado'
+                    : ('🧹 Limpar ' + sel.length + ' — vai para o ' + HIST_NAME);
             }
 
             redesenhar();
@@ -17749,6 +18032,16 @@ function initCentralBank() {
                 jobs.push(db.ref('users/' + uid + '/boards/' + id).set(parsed));
             });
 
+            // CICLO 21c: a Agenda global tem o proprio no e o proprio listener
+            // (users/<uid>/global/agenda). Sem empurrar isto, o snapshot remoto
+            // devolvia os cartoes de agenda que acabamos de arquivar - a
+            // limpeza se desfazia sozinha alguns segundos depois.
+            var agRaw = localStorage.getItem('tea-planner-global-agenda');
+            if (agRaw !== null) {
+                try { jobs.push(db.ref('users/' + uid + '/global/agenda').set(JSON.parse(agRaw))); }
+                catch (e) { /* agenda corrompida: nao trava o arquivamento local */ }
+            }
+
             // O meta tambem muda: o quadro Historico pode ter acabado de nascer.
             var metaRaw = localStorage.getItem('tea-planner-boards-meta');
             if (metaRaw !== null) {
@@ -17761,7 +18054,8 @@ function initCentralBank() {
 
     function executar(itens) {
         var decisions = itens.map(function (it) {
-            return { card: it.card, boardId: it.boardId, action: 'historico' };
+            return { card: it.card, boardId: it.boardId, action: 'historico',
+                     fromAgenda: !!it.fromAgenda };
         });
 
         // Quadros tocados: origens + destino + o agregado TODOS, que
