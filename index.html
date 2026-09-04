@@ -1589,6 +1589,43 @@
             flex-grow: 1;
         }
 
+        /* CICLO 21 - "+" por horario na Agenda (pedido do Gui, 04/09/2026).
+           Antes, a UNICA forma de agendar era arrastar um cartao ate o horario:
+           das 08h as 23h isso vira uma viagem de scroll. Agora cada faixa de
+           30 min cria o proprio cartao. Fantasma por padrao (34 linhas com botao
+           aceso seria poluicao visual) e cheio no hover/foco. Sem hover (toque)
+           fica em meio-tom, sempre visivel.
+           Altura travada em 22px de proposito: a regra global de 36px (alvo de
+           dedo, FIX 2026-07) dobraria a altura da Agenda inteira e pioraria
+           justamente o scroll que motivou o pedido. A largura de 30px segura o
+           toque. */
+        .slot .head .slot-add-btn {
+            width: 30px;
+            min-width: 30px;
+            height: 22px;
+            min-height: 22px;
+            padding: 0;
+            font-size: 15px;
+            border-radius: 6px;
+            opacity: .22;
+            transition: opacity .12s ease, background .12s ease;
+        }
+
+        .slot:hover .head .slot-add-btn,
+        .slot .head .slot-add-btn:focus-visible {
+            opacity: 1;
+        }
+
+        .slot.has-items .head .slot-add-btn {
+            opacity: .5;
+        }
+
+        @media (hover: none) {
+            .slot .head .slot-add-btn {
+                opacity: .55;
+            }
+        }
+
         .slot .cards {
             display: none;
             padding: 4px;
@@ -3596,7 +3633,7 @@ padding: 6px 2px;
                     <button type="button" id="menuNewBoard" title="Cria um novo quadro em branco">➕ Adicionar Quadro</button>
                     <button type="button" id="menuRenameBoard" title="Renomeia o quadro atual">✏️ Renomear Quadro</button>
                     <button type="button" id="menuCloneBoard" title="Duplica o quadro atual com outro nome">💾 Salvar Quadro como...</button>
-                    <button type="button" id="menuArchiveCompleted" title="Move todos os cartões concluídos para o quadro 🏆 Histórico de uma vez">🏆 Arquivar Concluídos</button>
+                    <button type="button" id="menuArchiveCompleted" title="Faxina do dia: tira da frente todos os cartões já concluídos, de uma vez e sem análise. Eles vão inteiros para o quadro 🏆 Histórico — nada é apagado.">🧹 Limpar concluídos</button>
                     <button type="button" id="menuBoardTheme" title="Define a cor de fundo do quadro atual">🎨 Cor do Quadro</button>
                     <button type="button" id="menuBoardProposito" style="display:none;">🎯 Editar Propósito</button>
                     <button type="button" id="menuDeleteBoard" style="color: #ff6b6b;">🗑️ Excluir Quadro</button>
@@ -7666,10 +7703,11 @@ function teaMbApplyCompact() {
 }
 
 // O botao de Revisao e injetado por outro modulo e pode chegar depois.
+// CICLO 21: o destino agora e Editar (era Exibir).
 function teaMbAdoptLate() {
-    var exib = teaMbById('teaMenuExibirContent');
+    var alvo = teaMbById('teaMenuEditarContent');
     var rv = teaMbById('rvHeaderBtn');
-    if (exib && rv && rv.parentNode !== exib) exib.insertBefore(rv, exib.firstChild);
+    if (alvo && rv && rv.parentNode !== alvo) alvo.appendChild(rv);
 }
 
 function buildMenuBar() {
@@ -7711,6 +7749,23 @@ function buildMenuBar() {
     edt.content.appendChild(teaMbProxy('redo', '\u27f3 Refazer'));
     edt.content.appendChild(teaMbSep());
     teaMbMove('toggleSelectionModeBtn', edt.content);
+    // CICLO 21 - as duas faxinas moram juntas, e moram em Editar.
+    // Sao coisas DIFERENTES, e o menu passa a dizer isso:
+    //   \ud83e\uddf9 Limpar conclu\u00eddos = di\u00e1rio, em lote, sem an\u00e1lise. So tira da frente.
+    //   \ud83d\udd0d Revis\u00e3o semanal   = ritual, cart\u00e3o a cart\u00e3o, com contexto e decis\u00e3o.
+    // Antes: Limpar vivia no dropdown "Quadros" (-> menu Arquivo) e a Revisao em
+    // Exibir. Duas gavetas erradas e longe uma da outra.
+    // ARMADILHA (achada no teste headless do Ciclo 21): teaMbMove usa
+    // getElementById, e neste ponto o bloco Arquivo JA levou #menuArchiveCompleted
+    // para dentro de arq.content - que ainda e um no DESTACADO do documento
+    // (arq.wrap so entra no header la embaixo). getElementById nao enxerga no
+    // destacado, entao o move silenciosamente nao fazia nada e o botao continuava
+    // aparecendo em Arquivo. Por isso a busca tambem dentro de arq.content.
+    edt.content.appendChild(teaMbSep());
+    var _limpar = teaMbById('menuArchiveCompleted') ||
+        arq.content.querySelector('#menuArchiveCompleted');
+    if (_limpar) edt.content.appendChild(_limpar);
+    teaMbMove('rvHeaderBtn', edt.content);
 
     // ----------------------------------------------------------- Exibir
     var exb = teaMbMenu('teaMenuExibir', 'Exibir');
@@ -7719,8 +7774,8 @@ function buildMenuBar() {
     exb.content.appendChild(teaMbProxy('toggleAgendaBtn', '\ud83d\uddd3\ufe0f Agenda'));
     exb.content.appendChild(teaMbProxy('toggleWeeklyBtn', '\ud83d\udcc5 Semana'));
     exb.content.appendChild(teaMbSep());
-    // Revisao (2x por semana -> menu). Pode ainda nao existir; teaMbAdoptLate resolve.
-    teaMbMove('rvHeaderBtn', exb.content);
+    // CICLO 21: a Revisao saiu daqui e foi para Editar, ao lado de "Limpar
+    // conclu\u00eddos". Exibir volta a ser so sobre o que aparece na tela.
     exb.content.appendChild(teaMbSection('Filtros'));
     teaMbMove('filterColorsBtn', exb.content);
     teaMbMove('fTime', exb.content);
@@ -8346,8 +8401,19 @@ function teaBuildHamburger() {
         wrap.classList.add('drill');
     }
 
+    // CICLO 21: categoria feita SO de listra/titulo nao e categoria - e beco sem
+    // saida. Aconteceu com "Exibir" assim que a Revisao migrou para Editar:
+    // sobrou o separador orfao dos 4 paineis (que ja vivem no segmented control).
+    function teaTemItemReal(cat) {
+        for (var i = 0; i < cat.items.length; i++) {
+            if (teaEhListra(cat.items[i]) || teaEhTitulo(cat.items[i])) continue;
+            return true;
+        }
+        return false;
+    }
+
     cats.forEach(function (cat) {
-        if (!cat.items.length) return;
+        if (!teaTemItemReal(cat)) return;
         var row = document.createElement('button');
         row.type = 'button';
         row.className = 'tea-menu-cat';
@@ -8759,6 +8825,36 @@ function ensureSchedule() {
     wireDropZone(unscheduledSlot);
     slotsRoot.appendChild(unscheduledSlot);
 
+    // CICLO 21 - "+" por horario. Receita identica a ja testada no "+" da Semana
+    // e no "HORARIO A DEFINIR": criar -> updateSlotsHasItems() -> reancorar ->
+    // editar. A ORDEM IMPORTA: updateSlotsHasItems() faz innerHTML='' nos
+    // containers; um cartao vazio que perde o DOM leva blur -> finish() ->
+    // removeCard() e morre no mesmo clique (bug do Ciclo 19, ver comentario do
+    // _createCardUnscheduledBtn).
+    function makeSlotAddBtn(time, slotRef) {
+        var b = el('button', 'add-btn-minimal slot-add-btn');
+        b.type = 'button';
+        b.textContent = '+';
+        b.title = 'Novo cart\u00E3o \u00E0s ' + time + ' (segure para ditar por voz)';
+        b.setAttribute('aria-label', 'Adicionar cart\u00E3o \u00E0s ' + time);
+        function criar() {
+            var card = createCard({ text: '', when: getActiveDay() + 'T' + time });
+            updateSlotsHasItems();
+            var cont = slotRef.querySelector('.cards');
+            if (cont) cont.appendChild(card);
+            slotRef.classList.add('has-items');
+            startInlineEdit(card, true);
+            return card;
+        }
+        b.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (b._wasLongPress && b._wasLongPress()) return;
+            criar();
+        });
+        if (typeof attachLongPressVoice === 'function') attachLongPressVoice(b, criar);
+        return b;
+    }
+
     for (var h = 6; h <= 23; h++) {
         for (var m = 0; m <= 30; m += 30) {
             if (h === 23 && m === 30) break;
@@ -8768,6 +8864,7 @@ function ensureSchedule() {
             var head = el('div', 'head');
             var label = el('span', 'time'); label.textContent = t;
             head.appendChild(label);
+            head.appendChild(makeSlotAddBtn(t, slot));
             slot.appendChild(head);
             var cards = el('div', 'cards');
             slot.appendChild(cards);
@@ -15218,7 +15315,7 @@ function initCentralBank() {
                 }
                 badge.textContent = '\uD83D\uDEA6 ' + n + '/' + limite;
                 badge.title = 'Lista cheia (' + n + ' de ' + limite + ' sugeridos). Nada bloqueado - ' +
-                    'mas que tal uma Revisao (botao da vassoura) pra dar respiro?';
+                    'mas que tal uma Revisao semanal (menu Editar) pra dar respiro?';
             } else if (badge && badge.parentNode) {
                 badge.parentNode.removeChild(badge);
             }
@@ -17294,7 +17391,9 @@ function initCentralBank() {
     if (document.getElementById('rvHeaderBtn')) return;
     var b = document.createElement('button');
     b.id = 'rvHeaderBtn';
-    b.textContent = '\uD83E\uDDF9 Revis\u00E3o'; // 🧹
+    // CICLO 21: a vassoura (🧹) virou a marca da faxina DIARIA ("Limpar
+    // concluídos"). A Revisao e outra coisa: ritual semanal, cartao a cartao.
+    b.textContent = '\uD83D\uDD0D Revis\u00E3o semanal'; // 🔍
     b.style.background = 'rgba(232,161,61,.12)';
     b.style.borderColor = 'rgba(232,161,61,.4)';
     b.addEventListener('click', function () {
@@ -17432,7 +17531,7 @@ function initCentralBank() {
         var api = rv();
         if (!api || typeof api.scan !== 'function' || typeof api._applyDecisions !== 'function') {
             openPanel(function (p) {
-                p.appendChild(el('p', 'rv-eyebrow', 'Arquivar conclu\u00EDdos'));
+                p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
                 p.appendChild(el('h2', '', 'M\u00F3dulo indispon\u00EDvel'));
                 p.appendChild(el('p', 'rv-sub', 'O motor da Revis\u00E3o Semanal n\u00E3o carregou nesta sess\u00E3o. Recarregue a p\u00E1gina e tente de novo.'));
                 var r = el('div', 'rv-actions');
@@ -17486,8 +17585,8 @@ function initCentralBank() {
 
         if (todosItens.length === 0) {
             openPanel(function (p) {
-                p.appendChild(el('p', 'rv-eyebrow', 'Arquivar conclu\u00EDdos'));
-                p.appendChild(el('h2', '', 'Nenhum conclu\u00EDdo por aqui'));
+                p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
+                p.appendChild(el('h2', '', 'Nada para limpar por aqui'));
                 p.appendChild(el('p', 'rv-sub', 'Nenhum cart\u00E3o marcado como conclu\u00EDdo est\u00E1 ocupando os quadros de trabalho. Quadro limpo.'));
                 p.appendChild(ondeVai());
                 var r = el('div', 'rv-actions');
@@ -17498,7 +17597,7 @@ function initCentralBank() {
         }
 
         openPanel(function (p) {
-            p.appendChild(el('p', 'rv-eyebrow', 'Arquivar conclu\u00EDdos'));
+            p.appendChild(el('p', 'rv-eyebrow', 'Limpar conclu\u00EDdos'));
             var titulo = el('h2', '', '');
             p.appendChild(titulo);
             p.appendChild(el('p', 'rv-sub', 'Isto tira os cart\u00F5es conclu\u00EDdos dos quadros de trabalho de uma vez s\u00F3. \u00C9 mudan\u00E7a de endere\u00E7o, n\u00E3o exclus\u00E3o.'));
@@ -17534,7 +17633,7 @@ function initCentralBank() {
             linha.appendChild(btn('Agora n\u00E3o', 'rv-btn rv-ghost', closePanel));
             p.appendChild(linha);
 
-            p.appendChild(el('p', 'rv-tip', 'Dica: a Revis\u00E3o Semanal (\uD83E\uDDF9) faz o mesmo cart\u00E3o a cart\u00E3o, com contexto. Este bot\u00E3o \u00E9 o atalho para quando voc\u00EA s\u00F3 quer o quadro limpo.'));
+            p.appendChild(el('p', 'rv-tip', 'S\u00E3o duas coisas diferentes: a Revis\u00E3o semanal (\uD83D\uDD0D) v\u00EA cart\u00E3o a cart\u00E3o, com contexto \u2014 ritual de uma vez por semana. Esta limpeza \u00E9 a do dia a dia: sem an\u00E1lise, s\u00F3 tira os conclu\u00EDdos da frente.'));
 
             function redesenhar() {
                 var nAtual = contaEscopo('atual');
